@@ -19,6 +19,15 @@
                 <flux:sidebar.item icon="home" :href="route('teachers.manage')" :current="request()->routeIs('teachers.manage')" wire:navigate>
                     {{ __('Teacher Management') }}
                 </flux:sidebar.item>
+
+                <flux:sidebar.item icon="home" :href="route('lab.summary')" :current="request()->routeIs('lab.summary')" wire:navigate>
+                    {{ __('Lab Summary') }}
+                </flux:sidebar.item>
+
+                <flux:sidebar.item icon="home" :href="route('ict.summary')" :current="request()->routeIs('ict.summary')" wire:navigate>
+                    {{ __('ICT Training Summary') }}
+                </flux:sidebar.item>
+
             </flux:sidebar.nav>
 
             <flux:spacer />

@@ -1,0 +1,114 @@
+<div class="max-w-6xl mx-auto py-8 sm:px-6 lg:px-8" x-data="{ activeTab: 'with_lab' }">
+
+    <!-- প্রিন্ট করার জন্য বিশেষ CSS -->
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #print-section, #print-section * { visibility: visible; }
+            #print-section { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+            .print-table { width: 100%; border-collapse: collapse; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 8px; text-align: left; }
+            .print-table th { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+
+    <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
+
+        <!-- হেডার ও ট্যাব বাটন (প্রিন্টের সময় লুকানো থাকবে) -->
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 no-print flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex space-x-2">
+                <!-- Tab 1: ল্যাব আছে -->
+                <button @click="activeTab = 'with_lab'"
+                        :class="activeTab === 'with_lab' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'"
+                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300">
+                    কম্পিউটার ল্যাব আছে ({{ $collegesWithLab->count() }})
+                </button>
+
+                <!-- Tab 2: ল্যাব নেই -->
+                <button @click="activeTab = 'without_lab'"
+                        :class="activeTab === 'without_lab' ? 'bg-red-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'"
+                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300">
+                    কম্পিউটার ল্যাব নেই ({{ $collegesWithoutLab->count() }})
+                </button>
+            </div>
+
+            <!-- প্রিন্ট বাটন -->
+            <button onclick="window.print()" class="flex items-center px-4 py-2 bg-gray-800 text-white rounded-md text-sm font-semibold hover:bg-gray-700 transition shadow-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                তালিকা প্রিন্ট করুন
+            </button>
+        </div>
+
+        <!-- প্রিন্ট এরিয়া (Print Section) -->
+        <div id="print-section" class="p-6">
+
+            <!-- ল্যাব থাকা কলেজগুলোর তালিকা (Tab 1 Content) -->
+            <div x-show="activeTab === 'with_lab'">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">যেসব কলেজে কম্পিউটার ল্যাব আছে</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300">
+                        <thead class="bg-gray-800 text-white print:bg-gray-200 print:text-black">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">ক্র.নং</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">কলেজ কোড</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">কলেজের নাম</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border">কম্পিউটারের সংখ্যা</th>
+                        </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                        @forelse ($collegesWithLab as $index => $college)
+                            <tr class="hover:bg-indigo-50 transition-colors">
+                                <td class="px-6 py-3 whitespace-nowrap text-gray-900 border">{{ $loop->iteration }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap font-bold text-gray-900 border">{{ $college->college_code }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-gray-700 font-medium border">{{ $college->college_name ?? '-' }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-green-700">
+                                    {{ $college->total_computers ?? 0 }} টি
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-6 py-8 text-center text-gray-500 font-medium border">কোনো ডেটা নেই</td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ল্যাব না থাকা কলেজগুলোর তালিকা (Tab 2 Content) -->
+            <div x-show="activeTab === 'without_lab'" style="display: none;">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">যেসব কলেজে কোনো কম্পিউটার ল্যাব নেই</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300">
+                        <thead class="bg-gray-800 text-white print:bg-gray-200 print:text-black">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">ক্র.নং</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">কলেজ কোড</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">কলেজের নাম</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border">অবস্থা</th>
+                        </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                        @forelse ($collegesWithoutLab as $index => $college)
+                            <tr class="hover:bg-red-50 transition-colors">
+                                <td class="px-6 py-3 whitespace-nowrap text-gray-900 border">{{ $loop->iteration }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap font-bold text-gray-900 border">{{ $college->college_code }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-gray-700 font-medium border">{{ $college->college_name ?? '-' }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600">
+                                    ল্যাব নেই
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-6 py-8 text-center text-gray-500 font-medium border">কোনো ডেটা নেই</td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
