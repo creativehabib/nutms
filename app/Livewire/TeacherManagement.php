@@ -176,7 +176,8 @@ class TeacherManagement extends Component
             ->whereKey($this->deletingTeacherIds)
             ->delete();
 
-        $this->reset('deletingTeacherIds', 'deletingTeacherName', 'selectedTeacherIds', 'selectAllOnPage');
+        $this->reset('deletingTeacherIds', 'deletingTeacherName');
+        $this->resetSelection();
         Flux::modal('confirm-teacher-deletion')->close();
         Flux::toast(
             variant: 'success',
@@ -196,6 +197,7 @@ class TeacherManagement extends Component
             return;
         }
 
+        $this->resetSelection();
         Flux::toast(variant: 'success', text: 'শিক্ষকের তথ্য সফলভাবে পুনরুদ্ধার করা হয়েছে।');
     }
 
@@ -216,7 +218,7 @@ class TeacherManagement extends Component
             return;
         }
 
-        $this->reset('selectedTeacherIds', 'selectAllOnPage');
+        $this->resetSelection();
         Flux::toast(variant: 'success', text: "{$restoredTeacherCount} জন শিক্ষকের তথ্য সফলভাবে পুনরুদ্ধার করা হয়েছে।");
     }
 
@@ -364,6 +366,12 @@ class TeacherManagement extends Component
     private function resetFiltersAndSelection(): void
     {
         $this->resetPage();
+        $this->resetSelection();
+    }
+
+    private function resetSelection(): void
+    {
         $this->reset('selectedTeacherIds', 'selectAllOnPage');
+        $this->dispatch('teacher-selection-updated', selected: false);
     }
 }

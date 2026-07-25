@@ -157,7 +157,9 @@ it('selects and deletes multiple teachers after confirmation', function () {
         ->assertSet('deletingTeacherName', 'নির্বাচিত 2 জন শিক্ষক')
         ->assertSee('নির্বাচিত 2 জন শিক্ষক')
         ->call('deleteTeacher')
-        ->assertSet('selectedTeacherIds', []);
+        ->assertSet('selectedTeacherIds', [])
+        ->assertSet('selectAllOnPage', false)
+        ->assertDispatched('teacher-selection-updated', selected: false);
 
     expect(Teacher::query()->find($teachers[0]->id))->toBeNull()
         ->and(Teacher::query()->find($teachers[1]->id))->toBeNull()
@@ -190,7 +192,9 @@ it('restores multiple selected teachers from the trash', function () {
         ->call('toggleTrashed')
         ->set('selectedTeacherIds', $teachers->pluck('id')->map(fn (int $id): string => (string) $id)->all())
         ->call('restoreSelectedTeachers')
-        ->assertSet('selectedTeacherIds', []);
+        ->assertSet('selectedTeacherIds', [])
+        ->assertSet('selectAllOnPage', false)
+        ->assertDispatched('teacher-selection-updated', selected: false);
 
     expect(Teacher::query()->count())->toBe(2);
 });
