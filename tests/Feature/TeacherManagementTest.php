@@ -138,7 +138,7 @@ it('requires Flux confirmation before deleting a teacher', function () {
         ->call('confirmTeacherDeletion', $teacher->id)
         ->assertSet('deletingTeacherIds', [$teacher->id])
         ->assertSet('deletingTeacherName', 'Teacher To Delete')
-        ->assertSee('শিক্ষকের তথ্য মুছে ফেলবেন?')
+        ->assertSee('শিক্ষকের তথ্য ট্র্যাশে পাঠাবেন?')
         ->assertSee('Teacher To Delete')
         ->call('deleteTeacher');
 
@@ -200,4 +200,38 @@ it('restores multiple selected teachers from the trash', function () {
         ->assertDispatched('teacher-selection-updated', selected: false);
 
     expect(Teacher::query()->count())->toBe(2);
+});
+
+it('permanently deletes a teacher from the trash after confirmation', function () {
+    $teacher = Teacher::query()->create(['name' => 'Permanently Deleted Teacher']);
+    $teacher->delete();
+
+    Livewire::test(TeacherManagement::class)
+        ->call('toggleTrashed')
+        ->call('confirmPermanentTeacherDeletion', $teacher->id)
+        ->assertSet('deletingTeacherIds', [$teacher->id])
+        ->assertSet('permanentDeletion', true)
+        ->assertSee('শিক্ষকের তথ্য স্থায়ীভাবে মুছে ফেলবেন?')
+        ->call('deleteTeacher');
+
+    expect(Teacher::withTrashed()->find($teacher->id))->toBeNull();
+});
+
+it('permanently deletes multiple selected teachers from the trash', function () {
+    $teachers = collect([
+        Teacher::query()->create(['name' => 'First Permanent Teacher']),
+        Teacher::query()->create(['name' => 'Second Permanent Teacher']),
+    ]);
+
+    $teachers->each->delete();
+
+    Livewire::test(TeacherManagement::class)
+        ->call('toggleTrashed')
+        ->set('selectedTeacherIds', $teachers->pluck('id')->map(fn (int $id): string => (string) $id)->all())
+        ->call('confirmBulkPermanentDeletion')
+        ->assertSet('permanentDeletion', true)
+        ->call('deleteTeacher')
+        ->assertSet('selectedTeacherIds', []);
+
+    expect(Teacher::withTrashed()->whereKey($teachers->pluck('id'))->count())->toBe(0);
 });

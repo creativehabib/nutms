@@ -101,9 +101,14 @@
                     {{ count($selectedTeacherIds) }} জন শিক্ষক নির্বাচিত
                 </p>
                 @if ($showTrashed)
-                    <flux:button variant="primary" size="sm" wire:click="restoreSelectedTeachers">
-                        নির্বাচিত তথ্য পুনরুদ্ধার করুন
-                    </flux:button>
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <flux:button variant="primary" size="sm" wire:click="restoreSelectedTeachers">
+                            নির্বাচিত তথ্য পুনরুদ্ধার করুন
+                        </flux:button>
+                        <flux:button variant="danger" size="sm" wire:click="confirmBulkPermanentDeletion">
+                            স্থায়ীভাবে মুছুন
+                        </flux:button>
+                    </div>
                 @else
                     <flux:button variant="danger" size="sm" wire:click="confirmBulkTeacherDeletion">
                         নির্বাচিত তথ্য মুছুন
@@ -183,7 +188,8 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                             @if ($showTrashed)
-                                <button wire:click="restoreTeacher({{ $teacher->id }})" class="rounded bg-emerald-100 px-3 py-1 text-emerald-700 transition hover:bg-emerald-200 hover:text-emerald-900">Restore</button>
+                                <button wire:click="restoreTeacher({{ $teacher->id }})" class="mr-2 rounded bg-emerald-100 px-3 py-1 text-emerald-700 transition hover:bg-emerald-200 hover:text-emerald-900">Restore</button>
+                                <button wire:click="confirmPermanentTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-700 transition hover:bg-red-200 hover:text-red-900">Permanent Delete</button>
                             @else
                                 <button wire:click="editTeacher({{ $teacher->id }})" class="mr-2 rounded bg-indigo-100 px-3 py-1 text-indigo-600 transition hover:bg-indigo-200 hover:text-indigo-900">
                                     Edit
@@ -260,19 +266,25 @@
         <flux:modal name="confirm-teacher-deletion" focusable class="max-w-lg">
             <div class="space-y-6">
                 <div>
-                    <flux:heading size="lg">শিক্ষকের তথ্য মুছে ফেলবেন?</flux:heading>
+                    <flux:heading size="lg">
+                        {{ $permanentDeletion ? 'শিক্ষকের তথ্য স্থায়ীভাবে মুছে ফেলবেন?' : 'শিক্ষকের তথ্য ট্র্যাশে পাঠাবেন?' }}
+                    </flux:heading>
                     <flux:subheading class="mt-2">
-                        <strong>{{ $deletingTeacherName }}</strong>-এর তথ্য স্থায়ীভাবে মুছে যাবে। এই কাজটি আর ফিরিয়ে নেওয়া যাবে না।
+                        @if ($permanentDeletion)
+                            <strong>{{ $deletingTeacherName }}</strong>-এর তথ্য স্থায়ীভাবে মুছে যাবে। এই কাজটি আর ফিরিয়ে নেওয়া যাবে না।
+                        @else
+                            <strong>{{ $deletingTeacherName }}</strong>-এর তথ্য ট্র্যাশে যাবে এবং পরে পুনরুদ্ধার করা যাবে।
+                        @endif
                     </flux:subheading>
                 </div>
 
                 <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                     <flux:modal.close>
-                        <flux:button variant="filled" class="w-full sm:w-auto">বাতিল</flux:button>
+                        <flux:button variant="filled" wire:click="cancelTeacherDeletion" class="w-full sm:w-auto">বাতিল</flux:button>
                     </flux:modal.close>
 
                     <flux:button variant="danger" wire:click="deleteTeacher" wire:loading.attr="disabled" wire:target="deleteTeacher" class="w-full sm:w-auto">
-                        <span wire:loading.remove wire:target="deleteTeacher">হ্যাঁ, মুছে ফেলুন</span>
+                        <span wire:loading.remove wire:target="deleteTeacher">{{ $permanentDeletion ? 'হ্যাঁ, স্থায়ীভাবে মুছুন' : 'হ্যাঁ, ট্র্যাশে পাঠান' }}</span>
                         <span wire:loading wire:target="deleteTeacher">মুছে ফেলা হচ্ছে...</span>
                     </flux:button>
                 </div>

@@ -38,6 +38,9 @@ class TeacherManagement extends Component
     #[Locked]
     public string $deletingTeacherName = '';
 
+    #[Locked]
+    public bool $permanentDeletion = false;
+
     public $editForm = [
         'college_code' => '',
         'college_name' => '',
@@ -137,6 +140,18 @@ class TeacherManagement extends Component
 
         $this->deletingTeacherIds = [$teacher->id];
         $this->deletingTeacherName = $teacher->name ?? 'এই শিক্ষক';
+        $this->permanentDeletion = false;
+
+        Flux::modal('confirm-teacher-deletion')->show();
+    }
+
+    public function confirmPermanentTeacherDeletion(int $teacherId): void
+    {
+        $teacher = Teacher::onlyTrashed()->findOrFail($teacherId);
+
+        $this->deletingTeacherIds = [$teacher->id];
+        $this->deletingTeacherName = $teacher->name ?? 'এই শিক্ষক';
+        $this->permanentDeletion = true;
 
         Flux::modal('confirm-teacher-deletion')->show();
     }
@@ -160,6 +175,31 @@ class TeacherManagement extends Component
         $this->deletingTeacherName = $teachers->count() === 1
             ? ($teachers->first()->name ?? 'এই শিক্ষক')
             : "নির্বাচিত {$teachers->count()} জন শিক্ষক";
+        $this->permanentDeletion = false;
+
+        Flux::modal('confirm-teacher-deletion')->show();
+    }
+
+    public function confirmBulkPermanentDeletion(): void
+    {
+        $teacherIds = collect($this->selectedTeacherIds)
+            ->map(fn ($teacherId): int => (int) $teacherId)
+            ->unique()
+            ->values();
+
+        $teachers = Teacher::onlyTrashed()->whereKey($teacherIds)->get(['id', 'name']);
+
+        if ($teachers->isEmpty()) {
+            Flux::toast(variant: 'warning', text: 'স্থায়ীভাবে মুছে ফেলার জন্য অন্তত একজন শিক্ষক নির্বাচন করুন।');
+
+            return;
+        }
+
+        $this->deletingTeacherIds = $teachers->pluck('id')->all();
+        $this->deletingTeacherName = $teachers->count() === 1
+            ? ($teachers->first()->name ?? 'এই শিক্ষক')
+            : "নির্বাচিত {$teachers->count()} জন শিক্ষক";
+        $this->permanentDeletion = true;
 
         Flux::modal('confirm-teacher-deletion')->show();
     }
@@ -172,17 +212,25 @@ class TeacherManagement extends Component
             return;
         }
 
-        $deletedTeacherCount = Teacher::query()
-            ->whereKey($this->deletingTeacherIds)
-            ->delete();
+        $isPermanentDeletion = $this->permanentDeletion;
+        $deletedTeacherCount = $isPermanentDeletion
+            ? Teacher::onlyTrashed()->whereKey($this->deletingTeacherIds)->forceDelete()
+            : Teacher::query()->whereKey($this->deletingTeacherIds)->delete();
 
-        $this->reset('deletingTeacherIds', 'deletingTeacherName');
+        $this->reset('deletingTeacherIds', 'deletingTeacherName', 'permanentDeletion');
         $this->resetSelection();
         Flux::modal('confirm-teacher-deletion')->close();
         Flux::toast(
             variant: 'success',
-            text: "{$deletedTeacherCount} জন শিক্ষকের তথ্য সফলভাবে মুছে ফেলা হয়েছে।",
+            text: $isPermanentDeletion
+                ? "{$deletedTeacherCount} জন শিক্ষকের তথ্য স্থায়ীভাবে মুছে ফেলা হয়েছে।"
+                : "{$deletedTeacherCount} জন শিক্ষকের তথ্য সফলভাবে ট্র্যাশে পাঠানো হয়েছে।",
         );
+    }
+
+    public function cancelTeacherDeletion(): void
+    {
+        $this->reset('deletingTeacherIds', 'deletingTeacherName', 'permanentDeletion');
     }
 
     public function restoreTeacher(int $teacherId): void
