@@ -14,3 +14,31 @@ test('authenticated users can visit the dashboard', function () {
     $response = $this->get(route('dashboard'));
     $response->assertOk();
 });
+
+test('sidebar menu items use icons that match their destinations', function () {
+    $sidebar = file_get_contents(resource_path('views/layouts/app/sidebar.blade.php'));
+
+    expect($sidebar)
+        ->toContain('icon="layout-grid" :href="route(\'dashboard\')"')
+        ->toContain('icon="user-group" :href="route(\'teachers.manage\')"')
+        ->toContain('icon="computer-desktop" :href="route(\'lab.summary\')"')
+        ->toContain('icon="academic-cap" :href="route(\'ict.summary\')"');
+});
+
+test('custom application screens include dark mode surfaces and text', function () {
+    $views = [
+        'livewire/teacher-management.blade.php',
+        'livewire/teacher-data-import.blade.php',
+        'livewire/college-lab-summary.blade.php',
+        'livewire/ict-training-summary.blade.php',
+    ];
+
+    foreach ($views as $view) {
+        $contents = file_get_contents(resource_path("views/{$view}"));
+
+        expect($contents)
+            ->toContain('dark:bg-')
+            ->toContain('dark:text-')
+            ->toContain('dark:border-');
+    }
+});
