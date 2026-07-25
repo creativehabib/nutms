@@ -1,4 +1,4 @@
-<div class="max-w-6xl mx-auto py-8 sm:px-6 lg:px-8" x-data="{ activeTab: 'with_lab' }">
+<div class="max-w-6xl mx-auto py-8 sm:px-6 lg:px-8">
 
     <!-- প্রিন্ট করার জন্য বিশেষ CSS -->
     <style>
@@ -21,22 +21,20 @@
         <div class="px-6 py-4 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 no-print flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex space-x-2">
                 <!-- Tab 1: ল্যাব আছে -->
-                <button @click="activeTab = 'with_lab'"
-                        :class="activeTab === 'with_lab' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'"
-                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600">
-                    কম্পিউটার ল্যাব আছে ({{ $collegesWithLab->count() }})
+                <button wire:click="showTab('with_lab')"
+                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600 {{ $activeTab === 'with_lab' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700' }}">
+                    কম্পিউটার ল্যাব আছে
                 </button>
 
                 <!-- Tab 2: ল্যাব নেই -->
-                <button @click="activeTab = 'without_lab'"
-                        :class="activeTab === 'without_lab' ? 'bg-red-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'"
-                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600">
-                    কম্পিউটার ল্যাব নেই ({{ $collegesWithoutLab->count() }})
+                <button wire:click="showTab('without_lab')"
+                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600 {{ $activeTab === 'without_lab' ? 'bg-red-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700' }}">
+                    কম্পিউটার ল্যাব নেই
                 </button>
             </div>
 
             <div class="flex flex-wrap items-center justify-center gap-2">
-                <button type="button" x-on:click="$wire.export(activeTab)" wire:loading.attr="disabled" wire:target="export" class="flex items-center px-4 py-2 bg-green-700 text-white rounded-md text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition shadow-sm">
+                <button type="button" wire:click="export('{{ $activeTab }}')" wire:loading.attr="disabled" wire:target="export" class="flex items-center px-4 py-2 bg-green-700 text-white rounded-md text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition shadow-sm">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"></path></svg>
                     <span wire:loading.remove wire:target="export">Excel Export</span>
                     <span wire:loading wire:target="export">Export হচ্ছে...</span>
@@ -52,7 +50,8 @@
         <div id="print-section" class="p-6">
 
             <!-- ল্যাব থাকা কলেজগুলোর তালিকা (Tab 1 Content) -->
-            <div x-show="activeTab === 'with_lab'">
+            @if ($activeTab === 'with_lab')
+            <div>
                 <h2 class="text-xl font-bold text-gray-800 dark:text-slate-200 mb-4 text-center">যেসব কলেজে কম্পিউটার ল্যাব আছে</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
@@ -65,9 +64,9 @@
                         </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 text-sm">
-                        @forelse ($collegesWithLab as $index => $college)
+                        @forelse ($colleges as $college)
                             <tr class="hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors">
-                                <td class="px-6 py-3 whitespace-nowrap text-gray-900 dark:text-slate-100 border">{{ $loop->iteration }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-gray-900 dark:text-slate-100 border">{{ $colleges->firstItem() + $loop->index }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap font-bold text-gray-900 dark:text-slate-100 border">{{ $college->college_code }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap text-gray-700 dark:text-slate-300 font-medium border">{{ $college->college_name ?? '-' }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-green-700 dark:text-green-300">
@@ -83,9 +82,10 @@
                     </table>
                 </div>
             </div>
+            @else
 
             <!-- ল্যাব না থাকা কলেজগুলোর তালিকা (Tab 2 Content) -->
-            <div x-show="activeTab === 'without_lab'" style="display: none;">
+            <div>
                 <h2 class="text-xl font-bold text-gray-800 dark:text-slate-200 mb-4 text-center">যেসব কলেজে কোনো কম্পিউটার ল্যাব নেই</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
@@ -98,9 +98,9 @@
                         </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 text-sm">
-                        @forelse ($collegesWithoutLab as $index => $college)
+                        @forelse ($colleges as $college)
                             <tr class="hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
-                                <td class="px-6 py-3 whitespace-nowrap text-gray-900 dark:text-slate-100 border">{{ $loop->iteration }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-gray-900 dark:text-slate-100 border">{{ $colleges->firstItem() + $loop->index }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap font-bold text-gray-900 dark:text-slate-100 border">{{ $college->college_code }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap text-gray-700 dark:text-slate-300 font-medium border">{{ $college->college_name ?? '-' }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600 dark:text-red-300">
@@ -116,7 +116,11 @@
                     </table>
                 </div>
             </div>
+            @endif
 
+        </div>
+        <div class="no-print border-t border-gray-200 px-6 py-4 dark:border-slate-700">
+            {{ $colleges->links() }}
         </div>
     </div>
 </div>

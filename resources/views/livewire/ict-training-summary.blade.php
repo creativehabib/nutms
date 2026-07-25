@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8" x-data="{ activeTab: 'with_ict' }">
+<div class="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
 
     <!-- প্রিন্ট করার জন্য বিশেষ CSS -->
     <style>
@@ -21,21 +21,19 @@
         <!-- হেডার ও ট্যাব বাটন -->
         <div class="px-6 py-4 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 no-print flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex flex-wrap gap-2">
-                <button @click="activeTab = 'with_ict'"
-                        :class="activeTab === 'with_ict' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'"
-                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600 shadow-sm">
+                <button wire:click="showTab('with_ict')"
+                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600 shadow-sm {{ $activeTab === 'with_ict' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700' }}">
                     আইসিটি ট্রেনিং প্রাপ্ত শিক্ষক
                 </button>
 
-                <button @click="activeTab = 'without_ict'"
-                        :class="activeTab === 'without_ict' ? 'bg-red-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'"
-                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600 shadow-sm">
+                <button wire:click="showTab('without_ict')"
+                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600 shadow-sm {{ $activeTab === 'without_ict' ? 'bg-red-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700' }}">
                     আইসিটি ট্রেনিং বিহীন শিক্ষক
                 </button>
             </div>
 
             <div class="flex flex-wrap items-center justify-center gap-2">
-                <button type="button" x-on:click="$wire.export(activeTab)" wire:loading.attr="disabled" wire:target="export" class="flex items-center px-4 py-2 bg-green-700 text-white rounded-md text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition shadow-sm">
+                <button type="button" wire:click="export('{{ $activeTab }}')" wire:loading.attr="disabled" wire:target="export" class="flex items-center px-4 py-2 bg-green-700 text-white rounded-md text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition shadow-sm">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"></path></svg>
                     <span wire:loading.remove wire:target="export">Excel Export</span>
                     <span wire:loading wire:target="export">Export হচ্ছে...</span>
@@ -51,7 +49,8 @@
         <div id="print-section" class="p-6">
 
             <!-- আইসিটি ট্রেনিং থাকা শিক্ষকদের তালিকা -->
-            <div x-show="activeTab === 'with_ict'">
+            @if ($activeTab === 'with_ict')
+            <div>
                 <h2 class="text-xl font-bold text-gray-800 dark:text-slate-200 mb-4 text-center">আইসিটি (ICT) ট্রেনিং প্রাপ্ত শিক্ষকদের তালিকা</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
@@ -66,18 +65,19 @@
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 text-sm">
                         <!-- কলেজ অনুযায়ী গ্রুপ লুপ -->
-                        @forelse ($teachersWithIct as $collegeCode => $teachers)
+                        @php($rowNumber = $teachers->firstItem())
+                        @forelse ($teachersByCollege as $collegeCode => $collegeTeachers)
                             <!-- কলেজ হেডার রো -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
                                 <td colspan="5" class="px-4 py-2 font-bold text-indigo-800 dark:text-indigo-300 border text-center college-header text-base">
-                                    কলেজ কোড: {{ $collegeCode }} - {{ $teachers->first()->college_name ?? 'নাম উল্লেখ নেই' }}
+                                    কলেজ কোড: {{ $collegeCode }} - {{ $collegeTeachers->first()->college_name ?? 'নাম উল্লেখ নেই' }}
                                 </td>
                             </tr>
 
                             <!-- ওই কলেজের শিক্ষকদের লুপ -->
-                            @foreach ($teachers as $index => $teacher)
+                            @foreach ($collegeTeachers as $teacher)
                                 <tr class="hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors">
-                                    <td class="px-4 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $loop->iteration }}</td>
+                                    <td class="px-4 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
                                     <td class="px-4 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->name }}</td>
                                     <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->ict_training_name ?: 'উল্লেখ নেই' }}</td>
                                     <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->other_training_name ?: 'উল্লেখ নেই' }}</td>
@@ -93,9 +93,10 @@
                     </table>
                 </div>
             </div>
+            @else
 
             <!-- আইসিটি ট্রেনিং না থাকা শিক্ষকদের তালিকা -->
-            <div x-show="activeTab === 'without_ict'" style="display: none;">
+            <div>
                 <h2 class="text-xl font-bold text-gray-800 dark:text-slate-200 mb-4 text-center">আইসিটি (ICT) ট্রেনিং বিহীন শিক্ষকদের তালিকা</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
@@ -108,18 +109,19 @@
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 text-sm">
                         <!-- কলেজ অনুযায়ী গ্রুপ লুপ -->
-                        @forelse ($teachersWithoutIct as $collegeCode => $teachers)
+                        @php($rowNumber = $teachers->firstItem())
+                        @forelse ($teachersByCollege as $collegeCode => $collegeTeachers)
                             <!-- কলেজ হেডার রো -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
                                 <td colspan="3" class="px-4 py-2 font-bold text-red-800 dark:text-red-300 border text-center college-header text-base">
-                                    কলেজ কোড: {{ $collegeCode }} - {{ $teachers->first()->college_name ?? 'নাম উল্লেখ নেই' }}
+                                    কলেজ কোড: {{ $collegeCode }} - {{ $collegeTeachers->first()->college_name ?? 'নাম উল্লেখ নেই' }}
                                 </td>
                             </tr>
 
                             <!-- ওই কলেজের শিক্ষকদের লুপ -->
-                            @foreach ($teachers as $index => $teacher)
+                            @foreach ($collegeTeachers as $teacher)
                                 <tr class="hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
-                                    <td class="px-6 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $loop->iteration }}</td>
+                                    <td class="px-6 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
                                     <td class="px-6 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->name }}</td>
                                     <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600">
                                         ট্রেনিং নেই
@@ -135,7 +137,11 @@
                     </table>
                 </div>
             </div>
+            @endif
 
+        </div>
+        <div class="no-print border-t border-gray-200 px-6 py-4 dark:border-slate-700">
+            {{ $teachers->links() }}
         </div>
     </div>
 </div>
