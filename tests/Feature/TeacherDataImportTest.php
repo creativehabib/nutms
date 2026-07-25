@@ -5,6 +5,13 @@ use App\Models\Teacher;
 use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 
+it('renders the professional import form', function () {
+    Livewire::test(TeacherDataImport::class)
+        ->assertSee('শিক্ষকের ডেটা ইম্পোর্ট')
+        ->assertSee('সর্বোচ্চ ১০ MB')
+        ->assertSeeHtml('border-dashed');
+});
+
 it('notifies the user instead of importing the same college again', function () {
     Teacher::query()->create([
         'college_code' => '126',

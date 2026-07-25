@@ -13,51 +13,74 @@
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
 
         <!-- টপবার: সার্চ, ফিল্টার এবং ইম্পোর্ট বাটন -->
-        <div class="p-4 bg-gray-50 border-b">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div class="border-b border-slate-200 bg-slate-50/80 p-4 sm:p-5">
+            <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">শিক্ষক ব্যবস্থাপনা</h2>
+                    <p class="text-sm text-slate-500">সার্চ ও ফিল্টার ব্যবহার করে প্রয়োজনীয় শিক্ষক খুঁজুন।</p>
+                </div>
+                <span class="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+                    মোট {{ $teachers->total() }} জন শিক্ষক
+                </span>
+            </div>
+
+            <div class="grid gap-3 lg:grid-cols-[minmax(16rem,1.25fr)_repeat(3,minmax(10rem,0.75fr))_auto] lg:items-end">
 
                 <!-- সার্চ ইনপুট -->
-                <div class="w-full lg:w-1/4">
-                    <input
-                        type="text"
-                        wire:model.live.debounce.300ms="search"
-                        placeholder="খুঁজুন (নাম, TMIS ID, মোবাইল)..."
-                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                    >
+                <div>
+                    <label for="teacher-search" class="mb-1.5 block text-xs font-semibold text-slate-600">শিক্ষক খুঁজুন</label>
+                    <div class="relative">
+                        <svg class="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"></path></svg>
+                        <input
+                            id="teacher-search"
+                            type="search"
+                            wire:model.live.debounce.300ms="search"
+                            placeholder="নাম, TMIS ID বা মোবাইল নম্বর"
+                            class="block w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        >
+                    </div>
                 </div>
 
                 <!-- ফিল্টার অপশনস -->
-                <div class="flex flex-col sm:flex-row w-full lg:w-2/4 gap-2">
                     <!-- সাবজেক্ট ফিল্টার -->
-                    <select wire:model.live="subjectFilter" class="w-full sm:w-1/3 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                        <option value="">সব বিষয়</option>
-                        @foreach($subjects as $subject)
-                            <option value="{{ $subject }}">{{ $subject }}</option>
-                        @endforeach
-                    </select>
+                    <div>
+                        <label for="subject-filter" class="mb-1.5 block text-xs font-semibold text-slate-600">বিষয়</label>
+                        <select id="subject-filter" wire:model.live="subjectFilter" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                            <option value="">সব বিষয়</option>
+                            @foreach($subjects as $subject)
+                                <option value="{{ $subject }}">{{ $subject }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- কলেজ কোড ফিল্টার -->
-                    <select wire:model.live="collegeCodeFilter" class="w-full sm:w-1/3 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                        <option value="">সব কলেজ কোড</option>
-                        @foreach($collegeCodes as $code)
-                            <option value="{{ $code }}">{{ $code }}</option>
-                        @endforeach
-                    </select>
+                    <div>
+                        <label for="college-filter" class="mb-1.5 block text-xs font-semibold text-slate-600">কলেজ কোড</label>
+                        <select id="college-filter" wire:model.live="collegeCodeFilter" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                            <option value="">সব কলেজ কোড</option>
+                            @foreach($collegeCodes as $code)
+                                <option value="{{ $code }}">{{ $code }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- ল্যাব ফিল্টার -->
-                    <select wire:model.live="labFilter" class="w-full sm:w-1/3 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                        <option value="">কম্পিউটার ল্যাব?</option>
-                        <option value="Yes">ল্যাব আছে</option>
-                        <option value="No">ল্যাব নেই</option>
-                    </select>
-                </div>
+                    <div>
+                        <label for="lab-filter" class="mb-1.5 block text-xs font-semibold text-slate-600">ল্যাব অবস্থা</label>
+                        <select id="lab-filter" wire:model.live="labFilter" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                            <option value="">সব অবস্থা</option>
+                            <option value="Yes">ল্যাব আছে</option>
+                            <option value="No">ল্যাব নেই</option>
+                        </select>
+                    </div>
 
                 <!-- ইম্পোর্ট বাটন -->
-                <div class="w-full lg:w-auto flex justify-end">
+                <div>
                     <button
                         @click="showImportModal = true"
-                        class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-indigo-700 transition shadow-sm w-full sm:w-auto"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-transparent bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 lg:w-auto"
                     >
+                        <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14"></path></svg>
                         ডেটা ইম্পোর্ট
                     </button>
                 </div>
@@ -140,12 +163,12 @@
         <div
             x-show="showImportModal"
             style="display: none;"
-            class="fixed inset-0 z-50 overflow-y-auto"
+            class="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-6"
             aria-labelledby="modal-title"
             role="dialog"
             aria-modal="true"
         >
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="flex min-h-full items-end justify-center sm:items-center">
                 <!-- Background overlay -->
                 <div
                     x-show="showImportModal"
@@ -155,12 +178,10 @@
                     x-transition:leave="ease-in duration-200"
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"
-                    class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                    class="fixed inset-0 bg-slate-950/55 backdrop-blur-sm"
                     @click="showImportModal = false"
                     aria-hidden="true"
                 ></div>
-
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
                 <!-- Modal panel -->
                 <div
@@ -171,14 +192,14 @@
                     x-transition:leave="ease-in duration-200"
                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative"
+                    class="relative w-full max-w-xl transform overflow-hidden rounded-2xl border border-white/60 bg-white text-left shadow-2xl transition-all"
                 >
                     <!-- Close Button -->
-                    <button @click="showImportModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                    <button type="button" @click="showImportModal = false" class="absolute right-4 top-4 z-10 inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-slate-700" aria-label="ইম্পোর্ট ফরম বন্ধ করুন">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
 
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="bg-white">
                         <!-- এখানে আগের তৈরি করা ইম্পোর্ট কম্পোনেন্ট কল করা হয়েছে -->
                         <livewire:teacher-data-import />
                     </div>
