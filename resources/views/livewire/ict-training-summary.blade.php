@@ -54,6 +54,7 @@
                             <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider border w-16">ক্র.নং</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border min-w-[200px]">শিক্ষকের নাম</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">আইসিটি ট্রেনিংয়ের নাম</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">অন্যান্য ট্রেনিংয়ের নাম</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">ট্রেনিং ইনস্টিটিউট</th>
                         </tr>
                         </thead>
@@ -62,7 +63,7 @@
                         @forelse ($teachersWithIct as $collegeCode => $teachers)
                             <!-- কলেজ হেডার রো -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
-                                <td colspan="4" class="px-4 py-2 font-bold text-indigo-800 dark:text-indigo-300 border text-center college-header text-base">
+                                <td colspan="5" class="px-4 py-2 font-bold text-indigo-800 dark:text-indigo-300 border text-center college-header text-base">
                                     কলেজ কোড: {{ $collegeCode }} - {{ $teachers->first()->college_name ?? 'নাম উল্লেখ নেই' }}
                                 </td>
                             </tr>
@@ -72,13 +73,14 @@
                                 <tr class="hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors">
                                     <td class="px-4 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->name }}</td>
-                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->ict_training_name }}</td>
+                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->ict_training_name ?: 'উল্লেখ নেই' }}</td>
+                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->other_training_name ?: 'উল্লেখ নেই' }}</td>
                                     <td class="px-4 py-3 text-gray-600 dark:text-slate-400 border text-xs">{{ $teacher->training_institute ?? 'উল্লেখ নেই' }}</td>
                                 </tr>
                             @endforeach
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-8 text-center text-gray-500 dark:text-slate-400 font-medium border">কোনো ডেটা নেই</td>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-slate-400 font-medium border">কোনো ডেটা নেই</td>
                             </tr>
                         @endforelse
                         </tbody>
