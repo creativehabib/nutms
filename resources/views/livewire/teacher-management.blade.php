@@ -69,7 +69,14 @@
                     </div>
 
                 <!-- ইম্পোর্ট বাটন -->
-                <div>
+                <div class="flex flex-col gap-2 sm:flex-row">
+                    <button
+                        type="button"
+                        wire:click="toggleTrashed"
+                        class="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 lg:w-auto"
+                    >
+                        {{ $showTrashed ? 'সক্রিয় তথ্য' : 'ট্র্যাশ' }}
+                    </button>
                     <button
                         @click="showImportModal = true"
                         class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-transparent bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 lg:w-auto"
@@ -87,9 +94,15 @@
                 <p class="text-sm font-semibold text-indigo-900">
                     {{ count($selectedTeacherIds) }} জন শিক্ষক নির্বাচিত
                 </p>
-                <flux:button variant="danger" size="sm" wire:click="confirmBulkTeacherDeletion">
-                    নির্বাচিত তথ্য মুছুন
-                </flux:button>
+                @if ($showTrashed)
+                    <flux:button variant="primary" size="sm" wire:click="restoreSelectedTeachers">
+                        নির্বাচিত তথ্য পুনরুদ্ধার করুন
+                    </flux:button>
+                @else
+                    <flux:button variant="danger" size="sm" wire:click="confirmBulkTeacherDeletion">
+                        নির্বাচিত তথ্য মুছুন
+                    </flux:button>
+                @endif
             </div>
         @endif
 
@@ -147,10 +160,14 @@
                             <span class="block text-blue-600 text-xs">{{ $teacher->email ?? '-' }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <button wire:click="editTeacher({{ $teacher->id }})" class="text-indigo-600 hover:text-indigo-900 bg-indigo-100 hover:bg-indigo-200 px-3 py-1 rounded transition mr-2">
-                                Edit
-                            </button>
-                            <button wire:click="confirmTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200 hover:text-red-900">Delete</button>
+                            @if ($showTrashed)
+                                <button wire:click="restoreTeacher({{ $teacher->id }})" class="rounded bg-emerald-100 px-3 py-1 text-emerald-700 transition hover:bg-emerald-200 hover:text-emerald-900">Restore</button>
+                            @else
+                                <button wire:click="editTeacher({{ $teacher->id }})" class="mr-2 rounded bg-indigo-100 px-3 py-1 text-indigo-600 transition hover:bg-indigo-200 hover:text-indigo-900">
+                                    Edit
+                                </button>
+                                <button wire:click="confirmTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200 hover:text-red-900">Delete</button>
+                            @endif
                         </td>
                     </tr>
                 @empty

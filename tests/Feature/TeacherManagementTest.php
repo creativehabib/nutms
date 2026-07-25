@@ -97,7 +97,8 @@ it('requires Flux confirmation before deleting a teacher', function () {
         ->assertSee('Teacher To Delete')
         ->call('deleteTeacher');
 
-    expect($teacher->fresh())->toBeNull();
+    expect(Teacher::query()->find($teacher->id))->toBeNull()
+        ->and(Teacher::withTrashed()->find($teacher->id)?->deleted_at)->not->toBeNull();
 });
 
 it('selects and deletes multiple teachers after confirmation', function () {
@@ -116,7 +117,38 @@ it('selects and deletes multiple teachers after confirmation', function () {
         ->call('deleteTeacher')
         ->assertSet('selectedTeacherIds', []);
 
-    expect($teachers[0]->fresh())->toBeNull()
-        ->and($teachers[1]->fresh())->toBeNull()
-        ->and($teachers[2]->fresh())->not->toBeNull();
+    expect(Teacher::query()->find($teachers[0]->id))->toBeNull()
+        ->and(Teacher::query()->find($teachers[1]->id))->toBeNull()
+        ->and(Teacher::query()->find($teachers[2]->id))->not->toBeNull();
+});
+
+it('restores a soft deleted teacher from the trash', function () {
+    $teacher = Teacher::query()->create(['name' => 'Restorable Teacher']);
+    $teacher->delete();
+
+    Livewire::test(TeacherManagement::class)
+        ->call('toggleTrashed')
+        ->assertSet('showTrashed', true)
+        ->assertSee('Restorable Teacher')
+        ->call('restoreTeacher', $teacher->id);
+
+    expect($teacher->fresh())->not->toBeNull()
+        ->and($teacher->refresh()->deleted_at)->toBeNull();
+});
+
+it('restores multiple selected teachers from the trash', function () {
+    $teachers = collect([
+        Teacher::query()->create(['name' => 'First Restorable Teacher']),
+        Teacher::query()->create(['name' => 'Second Restorable Teacher']),
+    ]);
+
+    $teachers->each->delete();
+
+    Livewire::test(TeacherManagement::class)
+        ->call('toggleTrashed')
+        ->set('selectedTeacherIds', $teachers->pluck('id')->all())
+        ->call('restoreSelectedTeachers')
+        ->assertSet('selectedTeacherIds', []);
+
+    expect(Teacher::query()->count())->toBe(2);
 });

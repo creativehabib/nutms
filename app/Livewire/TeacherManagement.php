@@ -27,6 +27,8 @@ class TeacherManagement extends Component
 
     public bool $selectAllOnPage = false;
 
+    public bool $showTrashed = false;
+
     // এডিট করার জন্য নতুন প্রপার্টি
     public $editingId = null;
 
@@ -100,6 +102,12 @@ class TeacherManagement extends Component
         $this->selectAllOnPage = false;
     }
 
+    public function toggleTrashed(): void
+    {
+        $this->showTrashed = ! $this->showTrashed;
+        $this->resetFiltersAndSelection();
+    }
+
     public function confirmTeacherDeletion(int $teacherId): void
     {
         $teacher = Teacher::findOrFail($teacherId);
@@ -151,6 +159,42 @@ class TeacherManagement extends Component
             variant: 'success',
             text: "{$deletedTeacherCount} জন শিক্ষকের তথ্য সফলভাবে মুছে ফেলা হয়েছে।",
         );
+    }
+
+    public function restoreTeacher(int $teacherId): void
+    {
+        $restoredTeacherCount = Teacher::onlyTrashed()
+            ->whereKey($teacherId)
+            ->restore();
+
+        if ($restoredTeacherCount === 0) {
+            Flux::toast(variant: 'danger', text: 'শিক্ষকের তথ্য পুনরুদ্ধার করা যায়নি।');
+
+            return;
+        }
+
+        Flux::toast(variant: 'success', text: 'শিক্ষকের তথ্য সফলভাবে পুনরুদ্ধার করা হয়েছে।');
+    }
+
+    public function restoreSelectedTeachers(): void
+    {
+        $teacherIds = collect($this->selectedTeacherIds)
+            ->map(fn ($teacherId): int => (int) $teacherId)
+            ->unique()
+            ->values();
+
+        $restoredTeacherCount = Teacher::onlyTrashed()
+            ->whereKey($teacherIds)
+            ->restore();
+
+        if ($restoredTeacherCount === 0) {
+            Flux::toast(variant: 'warning', text: 'পুনরুদ্ধারের জন্য অন্তত একজন শিক্ষক নির্বাচন করুন।');
+
+            return;
+        }
+
+        $this->reset('selectedTeacherIds', 'selectAllOnPage');
+        Flux::toast(variant: 'success', text: "{$restoredTeacherCount} জন শিক্ষকের তথ্য সফলভাবে পুনরুদ্ধার করা হয়েছে।");
     }
 
     // এডিট মডাল ওপেন করা এবং ডেটা লোড করার ফাংশন
@@ -257,7 +301,9 @@ class TeacherManagement extends Component
 
     private function filteredTeachersQuery(): Builder
     {
-        $query = Teacher::query();
+        $query = $this->showTrashed
+            ? Teacher::onlyTrashed()
+            : Teacher::query();
 
         // সার্চ (নাম, TMIS ID অথবা মোবাইল নাম্বার)
         if (!empty($this->search)) {
