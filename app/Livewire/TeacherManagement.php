@@ -22,7 +22,7 @@ class TeacherManagement extends Component
     public $collegeCodeFilter = '';
     public $labFilter = '';
 
-    /** @var array<int, int|string> */
+    /** @var array<int, string> */
     public array $selectedTeacherIds = [];
 
     public bool $selectAllOnPage = false;
@@ -94,6 +94,7 @@ class TeacherManagement extends Component
             ->latest()
             ->forPage($this->getPage(), 8)
             ->pluck('id')
+            ->map(fn (int $teacherId): string => (string) $teacherId)
             ->all();
     }
 

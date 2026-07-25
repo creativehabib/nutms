@@ -24,6 +24,17 @@ it('shows the distinct college count beside the teacher count', function () {
         ->assertSee('মোট 2টি কলেজ');
 });
 
+it('keeps every row checkbox checked when selecting the current page', function () {
+    Teacher::query()->create(['name' => 'First Selected Teacher']);
+    Teacher::query()->create(['name' => 'Second Selected Teacher']);
+    $expectedTeacherIds = Teacher::query()->latest()->pluck('id')->map(fn (int $id): string => (string) $id)->all();
+
+    Livewire::test(TeacherManagement::class)
+        ->set('selectAllOnPage', true)
+        ->assertSet('selectAllOnPage', true)
+        ->assertSet('selectedTeacherIds', $expectedTeacherIds);
+});
+
 it('allows every teacher data field to be updated', function () {
     $teacher = Teacher::query()->create([
         'college_code' => '100',
@@ -119,7 +130,7 @@ it('selects and deletes multiple teachers after confirmation', function () {
     ]);
 
     Livewire::test(TeacherManagement::class)
-        ->set('selectedTeacherIds', $teachers->take(2)->pluck('id')->all())
+        ->set('selectedTeacherIds', $teachers->take(2)->pluck('id')->map(fn (int $id): string => (string) $id)->all())
         ->call('confirmBulkTeacherDeletion')
         ->assertSet('deletingTeacherIds', $teachers->take(2)->pluck('id')->all())
         ->assertSet('deletingTeacherName', 'নির্বাচিত 2 জন শিক্ষক')
@@ -156,7 +167,7 @@ it('restores multiple selected teachers from the trash', function () {
 
     Livewire::test(TeacherManagement::class)
         ->call('toggleTrashed')
-        ->set('selectedTeacherIds', $teachers->pluck('id')->all())
+        ->set('selectedTeacherIds', $teachers->pluck('id')->map(fn (int $id): string => (string) $id)->all())
         ->call('restoreSelectedTeachers')
         ->assertSet('selectedTeacherIds', []);
 
