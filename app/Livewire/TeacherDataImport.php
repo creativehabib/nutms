@@ -2,53 +2,65 @@
 
 namespace App\Livewire;
 
+use App\Imports\TeachersImport;
+use App\Models\Teacher;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\TeachersImport;
 
 class TeacherDataImport extends Component
 {
     use WithFileUploads;
 
     public $file;
+
     public $message = '';
 
-    public function import()
+    public string $messageType = 'success';
+
+    public function import(): void
     {
         $this->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:10240', // Max 10MB
+            'file' => ['required', 'mimes:xlsx,xls,csv', 'max:10240'],
         ]);
 
         try {
-            // ফাইলের অরিজিনাল নাম নেওয়া
-            // উদাহরণ: "126 - FAKIRHAT GOVT. COLLEGE - 30.xlsx - Sheet1.csv"
             $originalName = $this->file->getClientOriginalName();
-
-            // ' - ' (স্পেস-হাইফেন-স্পেস) দিয়ে নামটিকে ভাগ করা
             $parts = explode(' - ', $originalName);
+            $collegeCode = trim($parts[0]);
+            $collegeName = isset($parts[1]) ? trim($parts[1]) : null;
 
-            $collegeName = null;
-            // যদি ২য় অংশটি থাকে, তবে সেটিই কলেজের নাম
-            if (isset($parts[1])) {
-                $collegeName = trim($parts[1]);
+            $collegeAlreadyImported = Teacher::query()
+                ->when($collegeCode !== '', fn ($query) => $query->where('college_code', $collegeCode))
+                ->when($collegeCode === '' && $collegeName, fn ($query) => $query->where('college_name', $collegeName))
+                ->exists();
+
+            if ($collegeAlreadyImported) {
+                $collegeIdentifier = $collegeName
+                    ? "{$collegeName} ({$collegeCode})"
+                    : $collegeCode;
+
+                $this->messageType = 'warning';
+                $this->message = "{$collegeIdentifier} কলেজের শিক্ষক তথ্য ইতোমধ্যে ইম্পোর্ট করা হয়েছে।";
+                $this->reset('file');
+
+                return;
             }
 
-            // TeachersImport ক্লাসে কলেজের নামটি পাস করা
             Excel::import(new TeachersImport($collegeName), $this->file->getRealPath());
 
+            $this->messageType = 'success';
             $this->message = 'ডেটা সফলভাবে ইম্পোর্ট এবং প্রসেস করা হয়েছে!';
             $this->reset('file');
-
-            // আপলোড শেষ হলে মডাল বন্ধ করার জন্য ইভেন্ট ফায়ার
             $this->dispatch('close-modal');
-
         } catch (\Exception $e) {
+            $this->messageType = 'error';
             $this->message = 'এরর: ' . $e->getMessage();
         }
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.teacher-data-import');
     }

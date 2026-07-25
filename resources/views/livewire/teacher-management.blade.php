@@ -195,7 +195,7 @@
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
                 <!-- Modal Panel -->
-                <div x-show="showEditModal" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div x-show="showEditModal" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
 
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
                         <!-- Close Button -->
@@ -206,42 +206,118 @@
                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">তথ্য আপডেট করুন</h3>
 
                         <!-- এডিট ফর্ম -->
-                        <form wire:submit.prevent="updateTeacher" class="space-y-4">
+                        <form wire:submit.prevent="updateTeacher" class="max-h-[70vh] space-y-6 overflow-y-auto pr-2">
 
-                            <!-- Name -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">শিক্ষকের নাম</label>
-                                <input type="text" wire:model="editForm.name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                @error('editForm.name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <!-- Designation -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">পদবী</label>
-                                    <input type="text" wire:model="editForm.designation" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <fieldset class="space-y-4">
+                                <legend class="text-sm font-semibold text-gray-900">কলেজ ও আইডি তথ্য</legend>
+                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">কলেজ কোড</label>
+                                        <input type="text" wire:model="editForm.college_code" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div class="lg:col-span-3">
+                                        <label class="block text-sm font-medium text-gray-700">কলেজের নাম</label>
+                                        <input type="text" wire:model="editForm.college_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">TMIS ID</label>
+                                        <input type="text" wire:model="editForm.tmis_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        @error('editForm.tmis_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">TTIS ID</label>
+                                        <input type="text" wire:model="editForm.ttis_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
                                 </div>
+                            </fieldset>
 
-                                <!-- Subject -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">বিষয়</label>
-                                    <input type="text" wire:model="editForm.subject" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <fieldset class="space-y-4">
+                                <legend class="text-sm font-semibold text-gray-900">শিক্ষকের তথ্য</legend>
+                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    <div class="lg:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700">শিক্ষকের নাম</label>
+                                        <input type="text" wire:model="editForm.name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        @error('editForm.name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">পদবী</label>
+                                        <input type="text" wire:model="editForm.designation" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">বিষয়</label>
+                                        <input type="text" wire:model="editForm.subject" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">শিক্ষক স্তর</label>
+                                        <input type="text" wire:model="editForm.teacher_level" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">চাকরির ধরন</label>
+                                        <input type="text" wire:model="editForm.employment_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
                                 </div>
-                            </div>
+                            </fieldset>
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <!-- Mobile -->
+                            <fieldset class="space-y-4">
+                                <legend class="text-sm font-semibold text-gray-900">প্রশিক্ষণের তথ্য</legend>
+                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">প্রশিক্ষণ আছে?</label>
+                                        <input type="text" wire:model="editForm.has_training" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">প্রশিক্ষণ প্রতিষ্ঠান</label>
+                                        <input type="text" wire:model="editForm.training_institute" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">প্রশিক্ষণের বছর</label>
+                                        <input type="text" wire:model="editForm.training_year" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">ICT প্রশিক্ষণের নাম</label>
+                                        <textarea wire:model="editForm.ict_training_name" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">ICT প্রশিক্ষণের মেয়াদ</label>
+                                        <textarea wire:model="editForm.ict_training_duration" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">অন্যান্য প্রশিক্ষণের নাম</label>
+                                        <textarea wire:model="editForm.other_training_name" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">অন্যান্য প্রশিক্ষণের মেয়াদ</label>
+                                        <textarea wire:model="editForm.other_training_duration" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="space-y-4">
+                                <legend class="text-sm font-semibold text-gray-900">ল্যাব ও যোগাযোগ</legend>
+                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">কম্পিউটার ল্যাব</label>
+                                    <select wire:model="editForm.has_computer_lab" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="">নির্বাচন করুন</option>
+                                        <option value="Yes">আছে</option>
+                                        <option value="No">নেই</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">কম্পিউটার সংখ্যা</label>
+                                    <input type="number" min="0" wire:model="editForm.computer_count" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">মোবাইল নম্বর</label>
                                     <input type="text" wire:model="editForm.mobile_number" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                 </div>
-
-                                <!-- Email -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">ইমেইল</label>
                                     <input type="email" wire:model="editForm.email" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    @error('editForm.email') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                 </div>
-                            </div>
+                                </div>
+                            </fieldset>
 
                             <div class="mt-5 sm:mt-6 flex gap-2 justify-end">
                                 <button type="button" @click="showEditModal = false" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:w-auto sm:text-sm">

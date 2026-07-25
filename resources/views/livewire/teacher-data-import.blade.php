@@ -2,7 +2,12 @@
     <h2 class="text-2xl font-semibold text-gray-800 mb-4">Teacher Data Import</h2>
 
     @if($message)
-        <div class="mb-4 p-3 rounded {{ str_contains($message, 'এরর') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
+        <div @class([
+            'mb-4 rounded p-3',
+            'bg-green-100 text-green-700' => $messageType === 'success',
+            'bg-amber-100 text-amber-800' => $messageType === 'warning',
+            'bg-red-100 text-red-700' => $messageType === 'error',
+        ]) role="alert">
             {{ $message }}
         </div>
     @endif
