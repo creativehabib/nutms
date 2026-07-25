@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Teacher;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
@@ -21,11 +22,16 @@ class TeacherManagement extends Component
     public $collegeCodeFilter = '';
     public $labFilter = '';
 
+    /** @var array<int, int|string> */
+    public array $selectedTeacherIds = [];
+
+    public bool $selectAllOnPage = false;
+
     // এডিট করার জন্য নতুন প্রপার্টি
     public $editingId = null;
 
     #[Locked]
-    public ?int $deletingTeacherId = null;
+    public array $deletingTeacherIds = [];
 
     #[Locked]
     public string $deletingTeacherName = '';
@@ -54,35 +60,97 @@ class TeacherManagement extends Component
     ];
 
     // কোনো ফিল্টারে পরিবর্তন হলে পেজ ১-এ ফিরে যাবে
-    public function updatedSearch() { $this->resetPage(); }
-    public function updatedSubjectFilter() { $this->resetPage(); }
-    public function updatedCollegeCodeFilter() { $this->resetPage(); }
-    public function updatedLabFilter() { $this->resetPage(); }
+    public function updatedSearch(): void
+    {
+        $this->resetFiltersAndSelection();
+    }
+
+    public function updatedSubjectFilter(): void
+    {
+        $this->resetFiltersAndSelection();
+    }
+
+    public function updatedCollegeCodeFilter(): void
+    {
+        $this->resetFiltersAndSelection();
+    }
+
+    public function updatedLabFilter(): void
+    {
+        $this->resetFiltersAndSelection();
+    }
+
+    public function updatedSelectAllOnPage(bool $selected): void
+    {
+        if (! $selected) {
+            $this->selectedTeacherIds = [];
+
+            return;
+        }
+
+        $this->selectedTeacherIds = $this->filteredTeachersQuery()
+            ->latest()
+            ->forPage($this->getPage(), 8)
+            ->pluck('id')
+            ->all();
+    }
+
+    public function updatedSelectedTeacherIds(): void
+    {
+        $this->selectAllOnPage = false;
+    }
 
     public function confirmTeacherDeletion(int $teacherId): void
     {
         $teacher = Teacher::findOrFail($teacherId);
 
-        $this->deletingTeacherId = $teacher->id;
+        $this->deletingTeacherIds = [$teacher->id];
         $this->deletingTeacherName = $teacher->name ?? 'এই শিক্ষক';
+
+        Flux::modal('confirm-teacher-deletion')->show();
+    }
+
+    public function confirmBulkTeacherDeletion(): void
+    {
+        $teacherIds = collect($this->selectedTeacherIds)
+            ->map(fn ($teacherId): int => (int) $teacherId)
+            ->unique()
+            ->values();
+
+        $teachers = Teacher::query()->whereKey($teacherIds)->get(['id', 'name']);
+
+        if ($teachers->isEmpty()) {
+            Flux::toast(variant: 'warning', text: 'মুছে ফেলার জন্য অন্তত একজন শিক্ষক নির্বাচন করুন।');
+
+            return;
+        }
+
+        $this->deletingTeacherIds = $teachers->pluck('id')->all();
+        $this->deletingTeacherName = $teachers->count() === 1
+            ? ($teachers->first()->name ?? 'এই শিক্ষক')
+            : "নির্বাচিত {$teachers->count()} জন শিক্ষক";
 
         Flux::modal('confirm-teacher-deletion')->show();
     }
 
     public function deleteTeacher(): void
     {
-        if ($this->deletingTeacherId === null) {
+        if ($this->deletingTeacherIds === []) {
             Flux::toast(variant: 'danger', text: 'মুছে ফেলার জন্য কোনো শিক্ষক নির্বাচন করা হয়নি।');
 
             return;
         }
 
-        $teacher = Teacher::findOrFail($this->deletingTeacherId);
-        $teacher->delete();
+        $deletedTeacherCount = Teacher::query()
+            ->whereKey($this->deletingTeacherIds)
+            ->delete();
 
-        $this->reset('deletingTeacherId', 'deletingTeacherName');
+        $this->reset('deletingTeacherIds', 'deletingTeacherName', 'selectedTeacherIds', 'selectAllOnPage');
         Flux::modal('confirm-teacher-deletion')->close();
-        Flux::toast(variant: 'success', text: 'শিক্ষকের তথ্য সফলভাবে মুছে ফেলা হয়েছে।');
+        Flux::toast(
+            variant: 'success',
+            text: "{$deletedTeacherCount} জন শিক্ষকের তথ্য সফলভাবে মুছে ফেলা হয়েছে।",
+        );
     }
 
     // এডিট মডাল ওপেন করা এবং ডেটা লোড করার ফাংশন
@@ -174,6 +242,21 @@ class TeacherManagement extends Component
 
     public function render(): View
     {
+        $query = $this->filteredTeachersQuery();
+
+        // ড্রপডাউনের জন্য ডেটাবেস থেকে ইউনিক সাবজেক্ট এবং কলেজ কোড বের করা
+        $subjects = Teacher::select('subject')->distinct()->whereNotNull('subject')->pluck('subject');
+        $collegeCodes = Teacher::select('college_code')->distinct()->whereNotNull('college_code')->pluck('college_code');
+
+        return view('livewire.teacher-management', [
+            'teachers' => $query->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
+            'subjects' => $subjects,
+            'collegeCodes' => $collegeCodes,
+        ]);
+    }
+
+    private function filteredTeachersQuery(): Builder
+    {
         $query = Teacher::query();
 
         // সার্চ (নাম, TMIS ID অথবা মোবাইল নাম্বার)
@@ -200,14 +283,12 @@ class TeacherManagement extends Component
             $query->where('has_computer_lab', $this->labFilter);
         }
 
-        // ড্রপডাউনের জন্য ডেটাবেস থেকে ইউনিক সাবজেক্ট এবং কলেজ কোড বের করা
-        $subjects = Teacher::select('subject')->distinct()->whereNotNull('subject')->pluck('subject');
-        $collegeCodes = Teacher::select('college_code')->distinct()->whereNotNull('college_code')->pluck('college_code');
+        return $query;
+    }
 
-        return view('livewire.teacher-management', [
-            'teachers' => $query->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
-            'subjects' => $subjects,
-            'collegeCodes' => $collegeCodes,
-        ]);
+    private function resetFiltersAndSelection(): void
+    {
+        $this->resetPage();
+        $this->reset('selectedTeacherIds', 'selectAllOnPage');
     }
 }

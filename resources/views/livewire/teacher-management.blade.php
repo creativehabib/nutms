@@ -82,10 +82,24 @@
         </div>
 
         <!-- ডেটা টেবিল -->
+        @if (count($selectedTeacherIds) > 0)
+            <div class="flex flex-col gap-3 border-b border-indigo-100 bg-indigo-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <p class="text-sm font-semibold text-indigo-900">
+                    {{ count($selectedTeacherIds) }} জন শিক্ষক নির্বাচিত
+                </p>
+                <flux:button variant="danger" size="sm" wire:click="confirmBulkTeacherDeletion">
+                    নির্বাচিত তথ্য মুছুন
+                </flux:button>
+            </div>
+        @endif
+
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-800 text-white">
                 <tr>
+                    <th class="w-12 px-4 py-3 text-center">
+                        <input type="checkbox" wire:model.live="selectAllOnPage" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" aria-label="এই পৃষ্ঠার সব শিক্ষক নির্বাচন করুন">
+                    </th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">TMIS ID</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">কলেজ কোড</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">শিক্ষকের নাম</th>
@@ -98,6 +112,9 @@
                 <tbody class="bg-white divide-y divide-gray-200 text-sm">
                 @forelse ($teachers as $teacher)
                     <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-4 text-center">
+                            <input type="checkbox" wire:model.live="selectedTeacherIds" value="{{ $teacher->id }}" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" aria-label="{{ $teacher->name }} নির্বাচন করুন">
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                             {{ $teacher->tmis_id ?? 'N/A' }}
                         </td>
@@ -138,7 +155,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">
                             কোনো ডেটা পাওয়া যায়নি!
                         </td>
                     </tr>

@@ -10,6 +10,7 @@ it('renders a responsive edit form with a blurred backdrop', function () {
         ->assertSeeHtml('sm:max-h-[calc(100vh-3rem)]')
         ->assertSeeHtml('px-3 py-2.5')
         ->assertSee('শিক্ষক খুঁজুন')
+        ->assertSee('এই পৃষ্ঠার সব শিক্ষক নির্বাচন করুন')
         ->assertSeeHtml('lg:grid-cols-[minmax(16rem,1.25fr)_repeat(3,minmax(10rem,0.75fr))_auto]');
 });
 
@@ -90,11 +91,32 @@ it('requires Flux confirmation before deleting a teacher', function () {
 
     Livewire::test(TeacherManagement::class)
         ->call('confirmTeacherDeletion', $teacher->id)
-        ->assertSet('deletingTeacherId', $teacher->id)
+        ->assertSet('deletingTeacherIds', [$teacher->id])
         ->assertSet('deletingTeacherName', 'Teacher To Delete')
         ->assertSee('শিক্ষকের তথ্য মুছে ফেলবেন?')
         ->assertSee('Teacher To Delete')
         ->call('deleteTeacher');
 
     expect($teacher->fresh())->toBeNull();
+});
+
+it('selects and deletes multiple teachers after confirmation', function () {
+    $teachers = collect([
+        Teacher::query()->create(['name' => 'First Teacher']),
+        Teacher::query()->create(['name' => 'Second Teacher']),
+        Teacher::query()->create(['name' => 'Teacher To Keep']),
+    ]);
+
+    Livewire::test(TeacherManagement::class)
+        ->set('selectedTeacherIds', $teachers->take(2)->pluck('id')->all())
+        ->call('confirmBulkTeacherDeletion')
+        ->assertSet('deletingTeacherIds', $teachers->take(2)->pluck('id')->all())
+        ->assertSet('deletingTeacherName', 'নির্বাচিত 2 জন শিক্ষক')
+        ->assertSee('নির্বাচিত 2 জন শিক্ষক')
+        ->call('deleteTeacher')
+        ->assertSet('selectedTeacherIds', []);
+
+    expect($teachers[0]->fresh())->toBeNull()
+        ->and($teachers[1]->fresh())->toBeNull()
+        ->and($teachers[2]->fresh())->not->toBeNull();
 });
