@@ -24,3 +24,21 @@ test('sidebar menu items use icons that match their destinations', function () {
         ->toContain('icon="computer-desktop" :href="route(\'lab.summary\')"')
         ->toContain('icon="academic-cap" :href="route(\'ict.summary\')"');
 });
+
+test('custom application screens include dark mode surfaces and text', function () {
+    $views = [
+        'livewire/teacher-management.blade.php',
+        'livewire/teacher-data-import.blade.php',
+        'livewire/college-lab-summary.blade.php',
+        'livewire/ict-training-summary.blade.php',
+    ];
+
+    foreach ($views as $view) {
+        $contents = file_get_contents(resource_path("views/{$view}"));
+
+        expect($contents)
+            ->toContain('dark:bg-')
+            ->toContain('dark:text-')
+            ->toContain('dark:border-');
+    }
+});

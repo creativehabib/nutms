@@ -38,6 +38,10 @@
 
 @layer base {
 
+    .dark {
+        color-scheme: dark;
+    }
+
     *,
     ::after,
     ::before,
