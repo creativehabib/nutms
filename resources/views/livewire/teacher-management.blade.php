@@ -13,51 +13,74 @@
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
 
         <!-- টপবার: সার্চ, ফিল্টার এবং ইম্পোর্ট বাটন -->
-        <div class="p-4 bg-gray-50 border-b">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div class="border-b border-slate-200 bg-slate-50/80 p-4 sm:p-5">
+            <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">শিক্ষক ব্যবস্থাপনা</h2>
+                    <p class="text-sm text-slate-500">সার্চ ও ফিল্টার ব্যবহার করে প্রয়োজনীয় শিক্ষক খুঁজুন।</p>
+                </div>
+                <span class="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+                    মোট {{ $teachers->total() }} জন শিক্ষক
+                </span>
+            </div>
+
+            <div class="grid gap-3 lg:grid-cols-[minmax(16rem,1.25fr)_repeat(3,minmax(10rem,0.75fr))_auto] lg:items-end">
 
                 <!-- সার্চ ইনপুট -->
-                <div class="w-full lg:w-1/4">
-                    <input
-                        type="text"
-                        wire:model.live.debounce.300ms="search"
-                        placeholder="খুঁজুন (নাম, TMIS ID, মোবাইল)..."
-                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                    >
+                <div>
+                    <label for="teacher-search" class="mb-1.5 block text-xs font-semibold text-slate-600">শিক্ষক খুঁজুন</label>
+                    <div class="relative">
+                        <svg class="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"></path></svg>
+                        <input
+                            id="teacher-search"
+                            type="search"
+                            wire:model.live.debounce.300ms="search"
+                            placeholder="নাম, TMIS ID বা মোবাইল নম্বর"
+                            class="block w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        >
+                    </div>
                 </div>
 
                 <!-- ফিল্টার অপশনস -->
-                <div class="flex flex-col sm:flex-row w-full lg:w-2/4 gap-2">
                     <!-- সাবজেক্ট ফিল্টার -->
-                    <select wire:model.live="subjectFilter" class="w-full sm:w-1/3 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                        <option value="">সব বিষয়</option>
-                        @foreach($subjects as $subject)
-                            <option value="{{ $subject }}">{{ $subject }}</option>
-                        @endforeach
-                    </select>
+                    <div>
+                        <label for="subject-filter" class="mb-1.5 block text-xs font-semibold text-slate-600">বিষয়</label>
+                        <select id="subject-filter" wire:model.live="subjectFilter" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                            <option value="">সব বিষয়</option>
+                            @foreach($subjects as $subject)
+                                <option value="{{ $subject }}">{{ $subject }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- কলেজ কোড ফিল্টার -->
-                    <select wire:model.live="collegeCodeFilter" class="w-full sm:w-1/3 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                        <option value="">সব কলেজ কোড</option>
-                        @foreach($collegeCodes as $code)
-                            <option value="{{ $code }}">{{ $code }}</option>
-                        @endforeach
-                    </select>
+                    <div>
+                        <label for="college-filter" class="mb-1.5 block text-xs font-semibold text-slate-600">কলেজ কোড</label>
+                        <select id="college-filter" wire:model.live="collegeCodeFilter" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                            <option value="">সব কলেজ কোড</option>
+                            @foreach($collegeCodes as $code)
+                                <option value="{{ $code }}">{{ $code }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- ল্যাব ফিল্টার -->
-                    <select wire:model.live="labFilter" class="w-full sm:w-1/3 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                        <option value="">কম্পিউটার ল্যাব?</option>
-                        <option value="Yes">ল্যাব আছে</option>
-                        <option value="No">ল্যাব নেই</option>
-                    </select>
-                </div>
+                    <div>
+                        <label for="lab-filter" class="mb-1.5 block text-xs font-semibold text-slate-600">ল্যাব অবস্থা</label>
+                        <select id="lab-filter" wire:model.live="labFilter" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                            <option value="">সব অবস্থা</option>
+                            <option value="Yes">ল্যাব আছে</option>
+                            <option value="No">ল্যাব নেই</option>
+                        </select>
+                    </div>
 
                 <!-- ইম্পোর্ট বাটন -->
-                <div class="w-full lg:w-auto flex justify-end">
+                <div>
                     <button
                         @click="showImportModal = true"
-                        class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-indigo-700 transition shadow-sm w-full sm:w-auto"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-transparent bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 lg:w-auto"
                     >
+                        <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14"></path></svg>
                         ডেটা ইম্পোর্ট
                     </button>
                 </div>
@@ -140,12 +163,12 @@
         <div
             x-show="showImportModal"
             style="display: none;"
-            class="fixed inset-0 z-50 overflow-y-auto"
+            class="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-6"
             aria-labelledby="modal-title"
             role="dialog"
             aria-modal="true"
         >
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="flex min-h-full items-end justify-center sm:items-center">
                 <!-- Background overlay -->
                 <div
                     x-show="showImportModal"
@@ -155,12 +178,10 @@
                     x-transition:leave="ease-in duration-200"
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"
-                    class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                    class="fixed inset-0 bg-slate-950/55 backdrop-blur-sm"
                     @click="showImportModal = false"
                     aria-hidden="true"
                 ></div>
-
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
                 <!-- Modal panel -->
                 <div
@@ -171,14 +192,14 @@
                     x-transition:leave="ease-in duration-200"
                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative"
+                    class="relative w-full max-w-xl transform overflow-hidden rounded-2xl border border-white/60 bg-white text-left shadow-2xl transition-all"
                 >
                     <!-- Close Button -->
-                    <button @click="showImportModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                    <button type="button" @click="showImportModal = false" class="absolute right-4 top-4 z-10 inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-slate-700" aria-label="ইম্পোর্ট ফরম বন্ধ করুন">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
 
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="bg-white">
                         <!-- এখানে আগের তৈরি করা ইম্পোর্ট কম্পোনেন্ট কল করা হয়েছে -->
                         <livewire:teacher-data-import />
                     </div>
@@ -187,74 +208,174 @@
         </div>
 
         <!-- এডিট মডাল (Edit Modal) -->
-        <div x-show="showEditModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div x-show="showEditModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-6" aria-labelledby="modal-title" role="dialog" aria-modal="true" @keydown.escape.window="showEditModal = false">
+            <div class="flex min-h-full items-end justify-center sm:items-center">
                 <!-- Background Overlay -->
-                <div x-show="showEditModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showEditModal = false" aria-hidden="true"></div>
-
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div
+                    x-show="showEditModal"
+                    x-transition:enter="ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    class="fixed inset-0 bg-slate-950/55 backdrop-blur-sm"
+                    @click="showEditModal = false"
+                    aria-hidden="true"
+                ></div>
 
                 <!-- Modal Panel -->
-                <div x-show="showEditModal" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div
+                    x-show="showEditModal"
+                    x-transition:enter="ease-out duration-300"
+                    x-transition:enter-start="translate-y-6 opacity-0 sm:translate-y-0 sm:scale-95"
+                    x-transition:enter-end="translate-y-0 opacity-100 sm:scale-100"
+                    x-transition:leave="ease-in duration-200"
+                    x-transition:leave-start="translate-y-0 opacity-100 sm:scale-100"
+                    x-transition:leave-end="translate-y-6 opacity-0 sm:translate-y-0 sm:scale-95"
+                    class="relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-5xl transform flex-col overflow-hidden rounded-2xl border border-white/60 bg-slate-50 text-left shadow-2xl transition-all sm:max-h-[calc(100vh-3rem)]"
+                >
 
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
+                    <div class="relative border-b border-slate-200 bg-white px-5 py-4 sm:px-7 sm:py-5">
                         <!-- Close Button -->
-                        <button @click="showEditModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                        <button type="button" @click="showEditModal = false" class="absolute right-4 top-4 inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="এডিট ফরম বন্ধ করুন">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
 
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">তথ্য আপডেট করুন</h3>
+                        <div class="pr-12">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600">Teacher profile</p>
+                            <h3 class="mt-1 text-xl font-bold text-slate-900 sm:text-2xl" id="modal-title">শিক্ষকের তথ্য আপডেট করুন</h3>
+                            <p class="mt-1 text-sm text-slate-500">প্রয়োজনীয় তথ্য পরিবর্তন করে নিচের আপডেট বাটনে ক্লিক করুন।</p>
+                        </div>
+                    </div>
 
                         <!-- এডিট ফর্ম -->
-                        <form wire:submit.prevent="updateTeacher" class="space-y-4">
+                        <form wire:submit.prevent="updateTeacher" class="flex min-h-0 flex-1 flex-col">
+                            <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-5 sm:px-7 sm:py-6">
 
-                            <!-- Name -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">শিক্ষকের নাম</label>
-                                <input type="text" wire:model="editForm.name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                @error('editForm.name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <!-- Designation -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">পদবী</label>
-                                    <input type="text" wire:model="editForm.designation" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <fieldset class="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                                <legend class="px-2 text-sm font-semibold text-slate-900">কলেজ ও আইডি তথ্য</legend>
+                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">কলেজ কোড</label>
+                                        <input type="text" wire:model="editForm.college_code" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
+                                    <div class="lg:col-span-3">
+                                        <label class="block text-sm font-medium text-gray-700">কলেজের নাম</label>
+                                        <input type="text" wire:model="editForm.college_name" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">TMIS ID</label>
+                                        <input type="text" wire:model="editForm.tmis_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        @error('editForm.tmis_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">TTIS ID</label>
+                                        <input type="text" wire:model="editForm.ttis_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
                                 </div>
+                            </fieldset>
 
-                                <!-- Subject -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">বিষয়</label>
-                                    <input type="text" wire:model="editForm.subject" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <fieldset class="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                                <legend class="px-2 text-sm font-semibold text-slate-900">শিক্ষকের তথ্য</legend>
+                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    <div class="lg:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700">শিক্ষকের নাম</label>
+                                        <input type="text" wire:model="editForm.name" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        @error('editForm.name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">পদবী</label>
+                                        <input type="text" wire:model="editForm.designation" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">বিষয়</label>
+                                        <input type="text" wire:model="editForm.subject" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">শিক্ষক স্তর</label>
+                                        <input type="text" wire:model="editForm.teacher_level" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">চাকরির ধরন</label>
+                                        <input type="text" wire:model="editForm.employment_type" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
                                 </div>
-                            </div>
+                            </fieldset>
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <!-- Mobile -->
+                            <fieldset class="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                                <legend class="px-2 text-sm font-semibold text-slate-900">প্রশিক্ষণের তথ্য</legend>
+                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">প্রশিক্ষণ আছে?</label>
+                                        <input type="text" wire:model="editForm.has_training" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">প্রশিক্ষণ প্রতিষ্ঠান</label>
+                                        <input type="text" wire:model="editForm.training_institute" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">প্রশিক্ষণের বছর</label>
+                                        <input type="text" wire:model="editForm.training_year" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">ICT প্রশিক্ষণের নাম</label>
+                                        <textarea wire:model="editForm.ict_training_name" rows="2" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">ICT প্রশিক্ষণের মেয়াদ</label>
+                                        <textarea wire:model="editForm.ict_training_duration" rows="2" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">অন্যান্য প্রশিক্ষণের নাম</label>
+                                        <textarea wire:model="editForm.other_training_name" rows="2" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">অন্যান্য প্রশিক্ষণের মেয়াদ</label>
+                                        <textarea wire:model="editForm.other_training_duration" rows="2" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                                <legend class="px-2 text-sm font-semibold text-slate-900">ল্যাব ও যোগাযোগ</legend>
+                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">কম্পিউটার ল্যাব</label>
+                                    <select wire:model="editForm.has_computer_lab" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        <option value="">নির্বাচন করুন</option>
+                                        <option value="Yes">আছে</option>
+                                        <option value="No">নেই</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">কম্পিউটার সংখ্যা</label>
+                                    <input type="number" min="0" wire:model="editForm.computer_count" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">মোবাইল নম্বর</label>
-                                    <input type="text" wire:model="editForm.mobile_number" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <input type="text" wire:model="editForm.mobile_number" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                                 </div>
-
-                                <!-- Email -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">ইমেইল</label>
-                                    <input type="email" wire:model="editForm.email" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <input type="email" wire:model="editForm.email" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                    @error('editForm.email') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                 </div>
+                                </div>
+                            </fieldset>
+
                             </div>
 
-                            <div class="mt-5 sm:mt-6 flex gap-2 justify-end">
-                                <button type="button" @click="showEditModal = false" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:w-auto sm:text-sm">
+                            <div class="flex flex-col-reverse gap-3 border-t border-slate-200 bg-white px-4 py-4 sm:flex-row sm:justify-end sm:px-7">
+                                <button type="button" @click="showEditModal = false" class="inline-flex w-full justify-center rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 sm:w-auto">
                                     বাতিল
                                 </button>
-                                <button type="submit" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:w-auto sm:text-sm">
+                                <button type="submit" class="inline-flex w-full justify-center rounded-lg border border-transparent bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" wire:loading.attr="disabled" wire:target="updateTeacher">
                                     <span wire:loading wire:target="updateTeacher" class="mr-2">সেভ হচ্ছে...</span>
                                     আপডেট করুন
                                 </button>
                             </div>
                         </form>
-
-                    </div>
                 </div>
             </div>
         </div>
