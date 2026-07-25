@@ -120,6 +120,7 @@
                         <input
                             type="checkbox"
                             wire:click="toggleSelectAllOnPage"
+                            data-teacher-checkbox
                             class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                             aria-label="এই পৃষ্ঠার সব শিক্ষক নির্বাচন করুন"
                             @checked($selectAllOnPage)

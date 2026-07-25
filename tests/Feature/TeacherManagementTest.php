@@ -36,6 +36,9 @@ it('keeps every row checkbox checked when selecting the current page', function 
         ->assertDispatched('teacher-selection-updated', selected: true)
         ->assertSeeHtml('data-teacher-checkbox');
 
+    expect(file_get_contents(resource_path('views/livewire/teacher-management.blade.php')))
+        ->toMatch('/wire:click="toggleSelectAllOnPage"\s+data-teacher-checkbox/');
+
     foreach ($expectedTeacherIds as $teacherId) {
         expect($component->html())->toMatch('/value="'.preg_quote($teacherId, '/').'"[^>]*checked/');
     }
