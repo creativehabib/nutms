@@ -8,11 +8,24 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class IctTrainingSummary extends Component
 {
+    use WithPagination;
+
+    public string $activeTab = 'with_ict';
+
+    public function showTab(string $tab): void
+    {
+        abort_unless(in_array($tab, ['with_ict', 'without_ict'], true), 404);
+
+        $this->activeTab = $tab;
+        $this->resetPage();
+    }
+
     public function export(string $tab): BinaryFileResponse
     {
         [$rows, $headings, $filename] = match ($tab) {
@@ -52,10 +65,36 @@ class IctTrainingSummary extends Component
 
     public function render(): View
     {
+        $teachers = $this->activeTab === 'with_ict'
+            ? $this->teachersWithIctQuery()->paginate(50)
+            : $this->teachersWithoutIctQuery()->paginate(50);
+
         return view('livewire.ict-training-summary', [
-            'teachersWithIct' => $this->teachersWithIct(),
-            'teachersWithoutIct' => $this->teachersWithoutIct(),
+            'teachers' => $teachers,
+            'teachersByCollege' => $teachers->getCollection()->groupBy('college_code'),
         ]);
+    }
+
+    private function teachersWithIctQuery(): Builder
+    {
+        return Teacher::select('id', 'college_code', 'college_name', 'name', 'ict_training_name', 'other_training_name', 'training_institute')
+            ->whereNotNull('ict_training_name')
+            ->where('ict_training_name', '!=', '')
+            ->orderBy('college_code')
+            ->orderBy('name')
+            ->orderBy('id');
+    }
+
+    private function teachersWithoutIctQuery(): Builder
+    {
+        return Teacher::select('id', 'college_code', 'college_name', 'name')
+            ->where(function (Builder $query): void {
+                $query->whereNull('ict_training_name')
+                    ->orWhere('ict_training_name', '');
+            })
+            ->orderBy('college_code')
+            ->orderBy('name')
+            ->orderBy('id');
     }
 
     /**
@@ -63,11 +102,7 @@ class IctTrainingSummary extends Component
      */
     private function teachersWithIct(): Collection
     {
-        return Teacher::select('college_code', 'college_name', 'name', 'ict_training_name', 'other_training_name', 'training_institute')
-            ->whereNotNull('ict_training_name')
-            ->where('ict_training_name', '!=', '')
-            ->orderBy('college_code', 'asc')
-            ->orderBy('name', 'asc')
+        return $this->teachersWithIctQuery()
             ->get()
             ->groupBy('college_code');
     }
@@ -77,13 +112,7 @@ class IctTrainingSummary extends Component
      */
     private function teachersWithoutIct(): Collection
     {
-        return Teacher::select('college_code', 'college_name', 'name')
-            ->where(function (Builder $query): void {
-                $query->whereNull('ict_training_name')
-                    ->orWhere('ict_training_name', '');
-            })
-            ->orderBy('college_code', 'asc')
-            ->orderBy('name', 'asc')
+        return $this->teachersWithoutIctQuery()
             ->get()
             ->groupBy('college_code');
     }

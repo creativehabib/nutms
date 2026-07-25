@@ -15,7 +15,7 @@ test('training summary shows non-empty ICT training names without marker filteri
 
     Livewire::test(IctTrainingSummary::class)
         ->assertViewHas(
-            'teachersWithIct',
+            'teachersByCollege',
             fn ($teachers): bool => $teachers->flatten(1)->pluck('name')->contains('Teacher With Training Data'),
         );
 })->with(['N/A', 'No', 'NO', '-', '---', 'Nill', 'NA', '0', 'No training', ' no training ']);
@@ -43,11 +43,36 @@ test('training summary lists teachers with an empty ICT training name as without
     ]);
 
     Livewire::test(IctTrainingSummary::class)
+        ->call('showTab', 'without_ict')
         ->assertViewHas(
-            'teachersWithoutIct',
+            'teachersByCollege',
             fn ($teachers): bool => $teachers->flatten(1)->pluck('name')->contains('Teacher Without ICT Training'),
         );
 })->with([null, '']);
+
+test('training summary paginates records and only loads the active tab', function () {
+    foreach (range(1, 51) as $index) {
+        Teacher::query()->create([
+            'name' => "Trained Teacher {$index}",
+            'college_code' => '1001',
+            'ict_training_name' => 'Digital Content Creation',
+        ]);
+    }
+
+    Teacher::query()->create([
+        'name' => 'Teacher Without Training',
+        'college_code' => '1002',
+        'ict_training_name' => null,
+    ]);
+
+    Livewire::test(IctTrainingSummary::class)
+        ->assertViewHas('teachers', fn ($teachers): bool => $teachers->count() === 50 && $teachers->total() === 51)
+        ->assertDontSee('Teacher Without Training')
+        ->call('showTab', 'without_ict')
+        ->assertSet('activeTab', 'without_ict')
+        ->assertViewHas('teachers', fn ($teachers): bool => $teachers->count() === 1 && $teachers->total() === 1)
+        ->assertSee('Teacher Without Training');
+});
 
 test('each ICT training tab can be exported to its own spreadsheet', function (string $tab, string $filename) {
     Excel::fake();
