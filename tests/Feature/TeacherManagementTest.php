@@ -1,0 +1,84 @@
+<?php
+
+use App\Livewire\TeacherManagement;
+use App\Models\Teacher;
+use Livewire\Livewire;
+
+it('renders a responsive edit form with a blurred backdrop', function () {
+    Livewire::test(TeacherManagement::class)
+        ->assertSeeHtml('backdrop-blur-sm')
+        ->assertSeeHtml('sm:max-h-[calc(100vh-3rem)]')
+        ->assertSeeHtml('px-3 py-2.5')
+        ->assertSee('শিক্ষক খুঁজুন')
+        ->assertSeeHtml('lg:grid-cols-[minmax(16rem,1.25fr)_repeat(3,minmax(10rem,0.75fr))_auto]');
+});
+
+it('allows every teacher data field to be updated', function () {
+    $teacher = Teacher::query()->create([
+        'college_code' => '100',
+        'college_name' => 'Old College',
+        'tmis_id' => 'TMIS-OLD',
+        'name' => 'Old Name',
+    ]);
+
+    $updatedData = [
+        'college_code' => '200',
+        'college_name' => 'Updated College',
+        'tmis_id' => 'TMIS-NEW',
+        'ttis_id' => 'TTIS-NEW',
+        'name' => 'Updated Teacher',
+        'designation' => 'Assistant Professor',
+        'subject' => 'Physics',
+        'teacher_level' => 'College',
+        'employment_type' => 'Permanent',
+        'has_training' => 'Yes',
+        'ict_training_name' => 'Digital Content',
+        'ict_training_duration' => '10 days',
+        'other_training_name' => 'Management',
+        'other_training_duration' => '5 days',
+        'training_institute' => 'NAEM',
+        'training_year' => '2026',
+        'has_computer_lab' => 'Yes',
+        'computer_count' => 25,
+        'mobile_number' => '01700000000',
+        'email' => 'teacher@example.com',
+    ];
+
+    Livewire::test(TeacherManagement::class)
+        ->call('editTeacher', $teacher->id)
+        ->set('editForm', $updatedData)
+        ->call('updateTeacher')
+        ->assertHasNoErrors()
+        ->assertDispatched('close-edit-modal');
+
+    expect($teacher->refresh()->only(array_keys($updatedData)))->toBe($updatedData);
+});
+
+it('shows user friendly validation errors while editing teacher data', function () {
+    $teacher = Teacher::query()->create([
+        'tmis_id' => 'TMIS-ONE',
+        'name' => 'Existing Teacher',
+    ]);
+
+    Teacher::query()->create([
+        'tmis_id' => 'TMIS-TWO',
+        'name' => 'Another Teacher',
+    ]);
+
+    Livewire::test(TeacherManagement::class)
+        ->call('editTeacher', $teacher->id)
+        ->set('editForm.name', '')
+        ->set('editForm.tmis_id', 'TMIS-TWO')
+        ->set('editForm.email', 'invalid-email')
+        ->call('updateTeacher')
+        ->assertHasErrors([
+            'editForm.name' => 'required',
+            'editForm.tmis_id' => 'unique',
+            'editForm.email' => 'email',
+        ])
+        ->assertSee('তথ্য আপডেট করা যায়নি')
+        ->assertSee('শিক্ষকের নাম অবশ্যই দিতে হবে।')
+        ->assertSee('এই TMIS ID ইতোমধ্যে অন্য একজন শিক্ষকের জন্য ব্যবহার করা হয়েছে।')
+        ->assertSee('সঠিক ইমেইল ঠিকানা লিখুন।')
+        ->assertNotDispatched('close-edit-modal');
+});
