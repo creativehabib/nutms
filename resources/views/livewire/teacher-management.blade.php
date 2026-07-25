@@ -116,7 +116,13 @@
                 <thead class="bg-gray-800 text-white">
                 <tr>
                     <th class="w-12 px-4 py-3 text-center">
-                        <input type="checkbox" wire:model.live="selectAllOnPage" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" aria-label="এই পৃষ্ঠার সব শিক্ষক নির্বাচন করুন">
+                        <input
+                            type="checkbox"
+                            wire:click="toggleSelectAllOnPage"
+                            class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            aria-label="এই পৃষ্ঠার সব শিক্ষক নির্বাচন করুন"
+                            @checked($selectAllOnPage)
+                        >
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">TMIS ID</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">কলেজ কোড</th>
@@ -134,7 +140,7 @@
                             <input
                                 type="checkbox"
                                 wire:key="teacher-select-{{ $teacher->id }}"
-                                wire:model.live="selectedTeacherIds"
+                                wire:click="toggleTeacherSelection({{ $teacher->id }})"
                                 value="{{ $teacher->id }}"
                                 class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                 aria-label="{{ $teacher->name }} নির্বাচন করুন"

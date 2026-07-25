@@ -103,6 +103,25 @@ class TeacherManagement extends Component
         $this->selectAllOnPage = false;
     }
 
+    public function toggleSelectAllOnPage(): void
+    {
+        $this->selectAllOnPage = ! $this->selectAllOnPage;
+        $this->updatedSelectAllOnPage($this->selectAllOnPage);
+    }
+
+    public function toggleTeacherSelection(int $teacherId): void
+    {
+        $teacherId = (string) $teacherId;
+
+        if (in_array($teacherId, $this->selectedTeacherIds, true)) {
+            $this->selectedTeacherIds = array_values(array_diff($this->selectedTeacherIds, [$teacherId]));
+        } else {
+            $this->selectedTeacherIds[] = $teacherId;
+        }
+
+        $this->selectAllOnPage = false;
+    }
+
     public function toggleTrashed(): void
     {
         $this->showTrashed = ! $this->showTrashed;
