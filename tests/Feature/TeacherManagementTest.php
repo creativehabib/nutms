@@ -4,6 +4,13 @@ use App\Livewire\TeacherManagement;
 use App\Models\Teacher;
 use Livewire\Livewire;
 
+it('renders a responsive edit form with a blurred backdrop', function () {
+    Livewire::test(TeacherManagement::class)
+        ->assertSeeHtml('backdrop-blur-sm')
+        ->assertSeeHtml('sm:max-h-[calc(100vh-3rem)]')
+        ->assertSeeHtml('px-3 py-2.5');
+});
+
 it('allows every teacher data field to be updated', function () {
     $teacher = Teacher::query()->create([
         'college_code' => '100',
