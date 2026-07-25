@@ -53,3 +53,32 @@ it('allows every teacher data field to be updated', function () {
 
     expect($teacher->refresh()->only(array_keys($updatedData)))->toBe($updatedData);
 });
+
+it('shows user friendly validation errors while editing teacher data', function () {
+    $teacher = Teacher::query()->create([
+        'tmis_id' => 'TMIS-ONE',
+        'name' => 'Existing Teacher',
+    ]);
+
+    Teacher::query()->create([
+        'tmis_id' => 'TMIS-TWO',
+        'name' => 'Another Teacher',
+    ]);
+
+    Livewire::test(TeacherManagement::class)
+        ->call('editTeacher', $teacher->id)
+        ->set('editForm.name', '')
+        ->set('editForm.tmis_id', 'TMIS-TWO')
+        ->set('editForm.email', 'invalid-email')
+        ->call('updateTeacher')
+        ->assertHasErrors([
+            'editForm.name' => 'required',
+            'editForm.tmis_id' => 'unique',
+            'editForm.email' => 'email',
+        ])
+        ->assertSee('তথ্য আপডেট করা যায়নি')
+        ->assertSee('শিক্ষকের নাম অবশ্যই দিতে হবে।')
+        ->assertSee('এই TMIS ID ইতোমধ্যে অন্য একজন শিক্ষকের জন্য ব্যবহার করা হয়েছে।')
+        ->assertSee('সঠিক ইমেইল ঠিকানা লিখুন।')
+        ->assertNotDispatched('close-edit-modal');
+});

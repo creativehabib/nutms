@@ -116,6 +116,14 @@ class TeacherManagement extends Component
             'editForm.computer_count' => ['nullable', 'integer', 'min:0'],
             'editForm.mobile_number' => 'nullable|string|max:50',
             'editForm.email' => 'nullable|email|max:255',
+        ], [
+            'editForm.name.required' => 'শিক্ষকের নাম অবশ্যই দিতে হবে।',
+            'editForm.tmis_id.unique' => 'এই TMIS ID ইতোমধ্যে অন্য একজন শিক্ষকের জন্য ব্যবহার করা হয়েছে।',
+            'editForm.has_computer_lab.in' => 'কম্পিউটার ল্যাবের সঠিক অবস্থা নির্বাচন করুন।',
+            'editForm.computer_count.integer' => 'কম্পিউটার সংখ্যা অবশ্যই পূর্ণসংখ্যা হতে হবে।',
+            'editForm.computer_count.min' => 'কম্পিউটার সংখ্যা শূন্যের কম হতে পারবে না।',
+            'editForm.email.email' => 'সঠিক ইমেইল ঠিকানা লিখুন।',
+            'editForm.*.max' => 'এই তথ্যটি অনুমোদিত দৈর্ঘ্যের চেয়ে বড় হয়েছে।',
         ]);
 
         // ডেটাবেসে আপডেট করা
