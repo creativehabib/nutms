@@ -34,4 +34,21 @@ class IctTrainingSummary extends Component
             'teachersWithoutIct' => $teachersWithoutIct,
         ]);
     }
+
+    private function whereMeaningfulTrainingName(Builder $query, string $column): Builder
+    {
+        return $query->whereNotIn($this->normalizedColumn($column), self::NON_TRAINING_VALUES);
+    }
+
+    private function normalizedColumn(string $column): Expression
+    {
+        return DB::raw("LOWER(TRIM(COALESCE({$column}, '')))");
+    }
+
+    private function meaningfulTrainingName(?string $trainingName): ?string
+    {
+        $normalizedTrainingName = Str::of($trainingName ?? '')->trim()->lower()->toString();
+
+        return in_array($normalizedTrainingName, self::NON_TRAINING_VALUES, true) ? null : $trainingName;
+    }
 }
