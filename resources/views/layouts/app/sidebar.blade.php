@@ -12,19 +12,19 @@
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                    <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
-                <flux:sidebar.item icon="home" :href="route('teachers.manage')" :current="request()->routeIs('teachers.manage')" wire:navigate>
+                <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.manage')" wire:navigate>
                     {{ __('Teacher Management') }}
                 </flux:sidebar.item>
 
-                <flux:sidebar.item icon="home" :href="route('lab.summary')" :current="request()->routeIs('lab.summary')" wire:navigate>
+                <flux:sidebar.item icon="computer-desktop" :href="route('lab.summary')" :current="request()->routeIs('lab.summary')" wire:navigate>
                     {{ __('Lab Summary') }}
                 </flux:sidebar.item>
 
-                <flux:sidebar.item icon="home" :href="route('ict.summary')" :current="request()->routeIs('ict.summary')" wire:navigate>
+                <flux:sidebar.item icon="academic-cap" :href="route('ict.summary')" :current="request()->routeIs('ict.summary')" wire:navigate>
                     {{ __('ICT Training Summary') }}
                 </flux:sidebar.item>
 

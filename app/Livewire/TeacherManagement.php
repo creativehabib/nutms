@@ -287,6 +287,11 @@ class TeacherManagement extends Component
     public function render(): View
     {
         $query = $this->filteredTeachersQuery();
+        $collegeCount = (clone $query)
+            ->whereNotNull('college_code')
+            ->where('college_code', '!=', '')
+            ->distinct()
+            ->count('college_code');
 
         // ড্রপডাউনের জন্য ডেটাবেস থেকে ইউনিক সাবজেক্ট এবং কলেজ কোড বের করা
         $subjects = Teacher::select('subject')->distinct()->whereNotNull('subject')->pluck('subject');
@@ -294,6 +299,7 @@ class TeacherManagement extends Component
 
         return view('livewire.teacher-management', [
             'teachers' => $query->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
+            'collegeCount' => $collegeCount,
             'subjects' => $subjects,
             'collegeCodes' => $collegeCodes,
         ]);

@@ -13,9 +13,14 @@
                     <h2 class="text-lg font-bold text-slate-900">শিক্ষক ব্যবস্থাপনা</h2>
                     <p class="text-sm text-slate-500">সার্চ ও ফিল্টার ব্যবহার করে প্রয়োজনীয় শিক্ষক খুঁজুন।</p>
                 </div>
-                <span class="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
-                    মোট {{ $teachers->total() }} জন শিক্ষক
-                </span>
+                <div class="flex flex-wrap gap-2">
+                    <span class="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+                        মোট {{ $teachers->total() }} জন শিক্ষক
+                    </span>
+                    <span class="inline-flex w-fit items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm">
+                        মোট {{ $collegeCount }}টি কলেজ
+                    </span>
+                </div>
             </div>
 
             <div class="grid gap-3 lg:grid-cols-[minmax(16rem,1.25fr)_repeat(3,minmax(10rem,0.75fr))_auto] lg:items-end">

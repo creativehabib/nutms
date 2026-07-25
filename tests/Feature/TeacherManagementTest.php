@@ -14,6 +14,16 @@ it('renders a responsive edit form with a blurred backdrop', function () {
         ->assertSeeHtml('lg:grid-cols-[minmax(16rem,1.25fr)_repeat(3,minmax(10rem,0.75fr))_auto]');
 });
 
+it('shows the distinct college count beside the teacher count', function () {
+    Teacher::query()->create(['college_code' => '100', 'name' => 'First Teacher']);
+    Teacher::query()->create(['college_code' => '100', 'name' => 'Second Teacher']);
+    Teacher::query()->create(['college_code' => '200', 'name' => 'Third Teacher']);
+
+    Livewire::test(TeacherManagement::class)
+        ->assertSee('মোট 3 জন শিক্ষক')
+        ->assertSee('মোট 2টি কলেজ');
+});
+
 it('allows every teacher data field to be updated', function () {
     $teacher = Teacher::query()->create([
         'college_code' => '100',
