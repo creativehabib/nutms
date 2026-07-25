@@ -86,6 +86,7 @@ class TeacherManagement extends Component
     {
         if (! $selected) {
             $this->selectedTeacherIds = [];
+            $this->dispatch('teacher-selection-updated', selected: false);
 
             return;
         }
@@ -96,6 +97,8 @@ class TeacherManagement extends Component
             ->pluck('id')
             ->map(fn (int $teacherId): string => (string) $teacherId)
             ->all();
+
+        $this->dispatch('teacher-selection-updated', selected: true);
     }
 
     public function updatedSelectedTeacherIds(): void

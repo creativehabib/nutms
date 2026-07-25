@@ -2,7 +2,8 @@
      x-data="{ showImportModal: false, showEditModal: false }"
      @close-modal.window="showImportModal = false"
      @open-edit-modal.window="showEditModal = true"
-     @close-edit-modal.window="showEditModal = false">
+     @close-edit-modal.window="showEditModal = false"
+     @teacher-selection-updated.window="$el.querySelectorAll('[data-teacher-checkbox]').forEach((checkbox) => checkbox.checked = $event.detail.selected)">
 
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
 
@@ -142,6 +143,7 @@
                                 wire:key="teacher-select-{{ $teacher->id }}"
                                 wire:click="toggleTeacherSelection({{ $teacher->id }})"
                                 value="{{ $teacher->id }}"
+                                data-teacher-checkbox
                                 class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                 aria-label="{{ $teacher->name }} নির্বাচন করুন"
                                 @checked(in_array((string) $teacher->id, $selectedTeacherIds, true))
