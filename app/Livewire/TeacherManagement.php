@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\Teacher;
+use Illuminate\Contracts\View\View;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -19,9 +21,24 @@ class TeacherManagement extends Component
     // এডিট করার জন্য নতুন প্রপার্টি
     public $editingId = null;
     public $editForm = [
+        'college_code' => '',
+        'college_name' => '',
+        'tmis_id' => '',
+        'ttis_id' => '',
         'name' => '',
         'designation' => '',
         'subject' => '',
+        'teacher_level' => '',
+        'employment_type' => '',
+        'has_training' => '',
+        'ict_training_name' => '',
+        'ict_training_duration' => '',
+        'other_training_name' => '',
+        'other_training_duration' => '',
+        'training_institute' => '',
+        'training_year' => '',
+        'has_computer_lab' => '',
+        'computer_count' => null,
         'mobile_number' => '',
         'email' => '',
     ];
@@ -48,9 +65,24 @@ class TeacherManagement extends Component
 
         // ফর্মের ইনপুটে বর্তমান ডেটা সেট করা
         $this->editForm = [
+            'college_code' => $teacher->college_code,
+            'college_name' => $teacher->college_name,
+            'tmis_id' => $teacher->tmis_id,
+            'ttis_id' => $teacher->ttis_id,
             'name' => $teacher->name,
             'designation' => $teacher->designation,
             'subject' => $teacher->subject,
+            'teacher_level' => $teacher->teacher_level,
+            'employment_type' => $teacher->employment_type,
+            'has_training' => $teacher->has_training,
+            'ict_training_name' => $teacher->ict_training_name,
+            'ict_training_duration' => $teacher->ict_training_duration,
+            'other_training_name' => $teacher->other_training_name,
+            'other_training_duration' => $teacher->other_training_duration,
+            'training_institute' => $teacher->training_institute,
+            'training_year' => $teacher->training_year,
+            'has_computer_lab' => $teacher->has_computer_lab,
+            'computer_count' => $teacher->computer_count,
             'mobile_number' => $teacher->mobile_number,
             'email' => $teacher->email,
         ];
@@ -63,10 +95,25 @@ class TeacherManagement extends Component
     public function updateTeacher()
     {
         // ভ্যালিডেশন
-        $this->validate([
+        $validated = $this->validate([
+            'editForm.college_code' => ['nullable', 'string', 'max:255'],
+            'editForm.college_name' => ['nullable', 'string', 'max:255'],
+            'editForm.tmis_id' => ['nullable', 'string', 'max:255', Rule::unique('teachers', 'tmis_id')->ignore($this->editingId)],
+            'editForm.ttis_id' => ['nullable', 'string', 'max:255'],
             'editForm.name' => 'required|string|max:255',
             'editForm.designation' => 'nullable|string|max:255',
             'editForm.subject' => 'nullable|string|max:255',
+            'editForm.teacher_level' => ['nullable', 'string', 'max:255'],
+            'editForm.employment_type' => ['nullable', 'string', 'max:255'],
+            'editForm.has_training' => ['nullable', 'string', 'max:255'],
+            'editForm.ict_training_name' => ['nullable', 'string'],
+            'editForm.ict_training_duration' => ['nullable', 'string'],
+            'editForm.other_training_name' => ['nullable', 'string'],
+            'editForm.other_training_duration' => ['nullable', 'string'],
+            'editForm.training_institute' => ['nullable', 'string'],
+            'editForm.training_year' => ['nullable', 'string', 'max:255'],
+            'editForm.has_computer_lab' => ['nullable', Rule::in(['Yes', 'No'])],
+            'editForm.computer_count' => ['nullable', 'integer', 'min:0'],
             'editForm.mobile_number' => 'nullable|string|max:50',
             'editForm.email' => 'nullable|email|max:255',
         ]);
@@ -74,13 +121,7 @@ class TeacherManagement extends Component
         // ডেটাবেসে আপডেট করা
         if ($this->editingId) {
             $teacher = Teacher::findOrFail($this->editingId);
-            $teacher->update([
-                'name' => $this->editForm['name'],
-                'designation' => $this->editForm['designation'],
-                'subject' => $this->editForm['subject'],
-                'mobile_number' => $this->editForm['mobile_number'],
-                'email' => $this->editForm['email'],
-            ]);
+            $teacher->update($validated['editForm']);
 
             session()->flash('message', 'শিক্ষকের তথ্য সফলভাবে আপডেট করা হয়েছে!');
 
@@ -89,7 +130,7 @@ class TeacherManagement extends Component
         }
     }
 
-    public function render()
+    public function render(): View
     {
         $query = Teacher::query();
 
