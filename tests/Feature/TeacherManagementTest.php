@@ -82,3 +82,19 @@ it('shows user friendly validation errors while editing teacher data', function 
         ->assertSee('সঠিক ইমেইল ঠিকানা লিখুন।')
         ->assertNotDispatched('close-edit-modal');
 });
+
+it('requires Flux confirmation before deleting a teacher', function () {
+    $teacher = Teacher::query()->create([
+        'name' => 'Teacher To Delete',
+    ]);
+
+    Livewire::test(TeacherManagement::class)
+        ->call('confirmTeacherDeletion', $teacher->id)
+        ->assertSet('deletingTeacherId', $teacher->id)
+        ->assertSet('deletingTeacherName', 'Teacher To Delete')
+        ->assertSee('শিক্ষকের তথ্য মুছে ফেলবেন?')
+        ->assertSee('Teacher To Delete')
+        ->call('deleteTeacher');
+
+    expect($teacher->fresh())->toBeNull();
+});

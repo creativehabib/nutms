@@ -4,12 +4,6 @@
      @open-edit-modal.window="showEditModal = true"
      @close-edit-modal.window="showEditModal = false">
 
-    @if (session()->has('message'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded shadow-sm">
-            {{ session('message') }}
-        </div>
-    @endif
-
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
 
         <!-- টপবার: সার্চ, ফিল্টার এবং ইম্পোর্ট বাটন -->
@@ -139,7 +133,7 @@
                             <button wire:click="editTeacher({{ $teacher->id }})" class="text-indigo-600 hover:text-indigo-900 bg-indigo-100 hover:bg-indigo-200 px-3 py-1 rounded transition mr-2">
                                 Edit
                             </button>
-                            <button wire:click="deleteTeacher({{ $teacher->id }})" wire:confirm="আপনি কি নিশ্চিত?" class="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-3 py-1 rounded transition">Delete</button>
+                            <button wire:click="confirmTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200 hover:text-red-900">Delete</button>
                         </td>
                     </tr>
                 @empty
@@ -206,6 +200,28 @@
                 </div>
             </div>
         </div>
+
+        <flux:modal name="confirm-teacher-deletion" focusable class="max-w-lg">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">শিক্ষকের তথ্য মুছে ফেলবেন?</flux:heading>
+                    <flux:subheading class="mt-2">
+                        <strong>{{ $deletingTeacherName }}</strong>-এর তথ্য স্থায়ীভাবে মুছে যাবে। এই কাজটি আর ফিরিয়ে নেওয়া যাবে না।
+                    </flux:subheading>
+                </div>
+
+                <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <flux:modal.close>
+                        <flux:button variant="filled" class="w-full sm:w-auto">বাতিল</flux:button>
+                    </flux:modal.close>
+
+                    <flux:button variant="danger" wire:click="deleteTeacher" wire:loading.attr="disabled" wire:target="deleteTeacher" class="w-full sm:w-auto">
+                        <span wire:loading.remove wire:target="deleteTeacher">হ্যাঁ, মুছে ফেলুন</span>
+                        <span wire:loading wire:target="deleteTeacher">মুছে ফেলা হচ্ছে...</span>
+                    </flux:button>
+                </div>
+            </div>
+        </flux:modal>
 
         <!-- এডিট মডাল (Edit Modal) -->
         <div x-show="showEditModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-6" aria-labelledby="modal-title" role="dialog" aria-modal="true" @keydown.escape.window="showEditModal = false">

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Imports\TeachersImport;
 use App\Models\Teacher;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -44,6 +45,7 @@ class TeacherDataImport extends Component
                 $this->messageType = 'warning';
                 $this->message = "{$collegeIdentifier} কলেজের শিক্ষক তথ্য ইতোমধ্যে ইম্পোর্ট করা হয়েছে।";
                 $this->reset('file');
+                Flux::toast(variant: 'warning', text: $this->message);
 
                 return;
             }
@@ -53,10 +55,12 @@ class TeacherDataImport extends Component
             $this->messageType = 'success';
             $this->message = 'ডেটা সফলভাবে ইম্পোর্ট এবং প্রসেস করা হয়েছে!';
             $this->reset('file');
+            Flux::toast(variant: 'success', text: $this->message);
             $this->dispatch('close-modal');
         } catch (\Exception $e) {
             $this->messageType = 'error';
             $this->message = 'এরর: ' . $e->getMessage();
+            Flux::toast(variant: 'danger', text: 'ডেটা ইম্পোর্ট করা যায়নি। ফাইলটি পরীক্ষা করে আবার চেষ্টা করুন।');
         }
     }
 
