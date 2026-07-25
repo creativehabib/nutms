@@ -116,7 +116,13 @@
                 <thead class="bg-gray-800 text-white">
                 <tr>
                     <th class="w-12 px-4 py-3 text-center">
-                        <input type="checkbox" wire:model.live="selectAllOnPage" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" aria-label="এই পৃষ্ঠার সব শিক্ষক নির্বাচন করুন">
+                        <input
+                            type="checkbox"
+                            wire:click="toggleSelectAllOnPage"
+                            class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            aria-label="এই পৃষ্ঠার সব শিক্ষক নির্বাচন করুন"
+                            @checked($selectAllOnPage)
+                        >
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">TMIS ID</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">কলেজ কোড</th>
@@ -129,9 +135,17 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200 text-sm">
                 @forelse ($teachers as $teacher)
-                    <tr class="hover:bg-gray-50 transition-colors">
+                    <tr wire:key="teacher-row-{{ $teacher->id }}" class="hover:bg-gray-50 transition-colors">
                         <td class="px-4 py-4 text-center">
-                            <input type="checkbox" wire:model.live="selectedTeacherIds" value="{{ $teacher->id }}" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" aria-label="{{ $teacher->name }} নির্বাচন করুন">
+                            <input
+                                type="checkbox"
+                                wire:key="teacher-select-{{ $teacher->id }}"
+                                wire:click="toggleTeacherSelection({{ $teacher->id }})"
+                                value="{{ $teacher->id }}"
+                                class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                aria-label="{{ $teacher->name }} নির্বাচন করুন"
+                                @checked(in_array((string) $teacher->id, $selectedTeacherIds, true))
+                            >
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                             {{ $teacher->tmis_id ?? 'N/A' }}

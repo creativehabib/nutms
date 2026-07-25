@@ -29,10 +29,29 @@ it('keeps every row checkbox checked when selecting the current page', function 
     Teacher::query()->create(['name' => 'Second Selected Teacher']);
     $expectedTeacherIds = Teacher::query()->latest()->pluck('id')->map(fn (int $id): string => (string) $id)->all();
 
-    Livewire::test(TeacherManagement::class)
-        ->set('selectAllOnPage', true)
+    $component = Livewire::test(TeacherManagement::class)
+        ->call('toggleSelectAllOnPage')
         ->assertSet('selectAllOnPage', true)
         ->assertSet('selectedTeacherIds', $expectedTeacherIds);
+
+    foreach ($expectedTeacherIds as $teacherId) {
+        expect($component->html())->toMatch('/value="'.preg_quote($teacherId, '/').'"[^>]*checked/');
+    }
+});
+
+it('uses the same explicit multi-select behavior in active and trash tables', function () {
+    $activeTeacher = Teacher::query()->create(['name' => 'Active Teacher']);
+    $trashedTeacher = Teacher::query()->create(['name' => 'Trashed Teacher']);
+    $trashedTeacher->delete();
+
+    Livewire::test(TeacherManagement::class)
+        ->call('toggleTeacherSelection', $activeTeacher->id)
+        ->assertSet('selectedTeacherIds', [(string) $activeTeacher->id])
+        ->call('toggleTeacherSelection', $activeTeacher->id)
+        ->assertSet('selectedTeacherIds', [])
+        ->call('toggleTrashed')
+        ->call('toggleTeacherSelection', $trashedTeacher->id)
+        ->assertSet('selectedTeacherIds', [(string) $trashedTeacher->id]);
 });
 
 it('allows every teacher data field to be updated', function () {
