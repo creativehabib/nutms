@@ -51,10 +51,14 @@ class IctTrainingSummary extends Component
                         $teacher->college_code ?? '-',
                         $teacher->college_name ?? '-',
                         $teacher->name ?? '-',
+                        $teacher->subject ?: 'উল্লেখ নেই',
+                        $teacher->designation ?: 'উল্লেখ নেই',
+                        $teacher->teacher_level ?: 'উল্লেখ নেই',
+                        $teacher->employment_type ?: 'উল্লেখ নেই',
                         'ট্রেনিং নেই',
                     ],
                 )->all(),
-                ['ক্র.নং', 'কলেজ কোড', 'কলেজের নাম', 'শিক্ষকের নাম', 'অবস্থা'],
+                ['ক্র.নং', 'কলেজ কোড', 'কলেজের নাম', 'শিক্ষকের নাম', 'বিষয়', 'পদবি', 'শিক্ষক স্তর', 'চাকরির ধরন', 'অবস্থা'],
                 'teachers-without-ict-training.xlsx',
             ],
             default => abort(404),
@@ -87,7 +91,7 @@ class IctTrainingSummary extends Component
 
     private function teachersWithoutIctQuery(): Builder
     {
-        return Teacher::select('id', 'college_code', 'college_name', 'name')
+        return Teacher::select('id', 'college_code', 'college_name', 'name', 'subject', 'designation', 'teacher_level', 'employment_type')
             ->where(function (Builder $query): void {
                 $query->whereNull('ict_training_name')
                     ->orWhere('ict_training_name', '');

@@ -104,6 +104,10 @@
                         <tr>
                             <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border w-16">ক্র.নং</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border min-w-[200px]">শিক্ষকের নাম</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">বিষয়</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">পদবি</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">শিক্ষক স্তর</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">চাকরির ধরন</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border">অবস্থা</th>
                         </tr>
                         </thead>
@@ -113,7 +117,7 @@
                         @forelse ($teachersByCollege as $collegeCode => $collegeTeachers)
                             <!-- কলেজ হেডার রো -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
-                                <td colspan="3" class="px-4 py-2 font-bold text-red-800 dark:text-red-300 border text-center college-header text-base">
+                                <td colspan="7" class="px-4 py-2 font-bold text-red-800 dark:text-red-300 border text-center college-header text-base">
                                     কলেজ কোড: {{ $collegeCode }} - {{ $collegeTeachers->first()->college_name ?? 'নাম উল্লেখ নেই' }}
                                 </td>
                             </tr>
@@ -123,6 +127,10 @@
                                 <tr class="hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
                                     <td class="px-6 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
                                     <td class="px-6 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->name }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->subject ?: 'উল্লেখ নেই' }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->designation ?: 'উল্লেখ নেই' }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->teacher_level ?: 'উল্লেখ নেই' }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->employment_type ?: 'উল্লেখ নেই' }}</td>
                                     <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600">
                                         ট্রেনিং নেই
                                     </td>
@@ -130,7 +138,7 @@
                             @endforeach
                         @empty
                             <tr>
-                                <td colspan="3" class="px-6 py-8 text-center text-gray-500 dark:text-slate-400 font-medium border">কোনো ডেটা নেই</td>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-slate-400 font-medium border">কোনো ডেটা নেই</td>
                             </tr>
                         @endforelse
                         </tbody>
