@@ -1,5 +1,6 @@
 <?php
 
+use App\Exports\SummaryExport;
 use App\Livewire\IctTrainingSummary;
 use App\Models\Teacher;
 use Livewire\Livewire;
@@ -50,6 +51,29 @@ test('training summary lists teachers with an empty ICT training name as without
         );
 })->with([null, '']);
 
+test('teachers without ICT training show their professional details', function () {
+    Teacher::query()->create([
+        'name' => 'Teacher With Professional Details',
+        'college_code' => '1001',
+        'ict_training_name' => null,
+        'subject' => 'Accounting',
+        'designation' => 'Assistant Professor',
+        'teacher_level' => 'Degree',
+        'employment_type' => 'Permanent',
+    ]);
+
+    Livewire::test(IctTrainingSummary::class)
+        ->call('showTab', 'without_ict')
+        ->assertSee('বিষয়')
+        ->assertSee('পদবি')
+        ->assertSee('শিক্ষক স্তর')
+        ->assertSee('চাকরির ধরন')
+        ->assertSee('Accounting')
+        ->assertSee('Assistant Professor')
+        ->assertSee('Degree')
+        ->assertSee('Permanent');
+});
+
 test('training summary paginates records and only loads the active tab', function () {
     foreach (range(1, 51) as $index) {
         Teacher::query()->create([
@@ -91,3 +115,38 @@ test('each ICT training tab can be exported to its own spreadsheet', function (s
     ['with_ict', 'teachers-with-ict-training.xlsx'],
     ['without_ict', 'teachers-without-ict-training.xlsx'],
 ]);
+
+test('teachers without ICT training export includes their professional details', function () {
+    Excel::fake();
+
+    Teacher::query()->create([
+        'name' => 'Exported Teacher Details',
+        'college_code' => '1001',
+        'college_name' => 'Export College',
+        'ict_training_name' => null,
+        'subject' => 'Accounting',
+        'designation' => 'Assistant Professor',
+        'teacher_level' => 'Degree',
+        'employment_type' => 'Permanent',
+    ]);
+
+    Livewire::test(IctTrainingSummary::class)->call('export', 'without_ict');
+
+    Excel::assertDownloaded('teachers-without-ict-training.xlsx', function (SummaryExport $export): bool {
+        expect($export->headings())->toBe([
+            'ক্র.নং',
+            'কলেজ কোড',
+            'কলেজের নাম',
+            'শিক্ষকের নাম',
+            'বিষয়',
+            'পদবি',
+            'শিক্ষক স্তর',
+            'চাকরির ধরন',
+            'অবস্থা',
+        ])->and($export->array())->toBe([
+            [1, '1001', 'Export College', 'Exported Teacher Details', 'Accounting', 'Assistant Professor', 'Degree', 'Permanent', 'ট্রেনিং নেই'],
+        ]);
+
+        return true;
+    });
+});
