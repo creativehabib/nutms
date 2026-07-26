@@ -2,6 +2,7 @@
 
 use App\Models\Teacher;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 
 test('guests are redirected to the login page', function () {
     $response = $this->get(route('dashboard'));
@@ -23,6 +24,7 @@ test('dashboard shows college lab and ICT training report totals', function () {
         'name' => 'Trained Teacher',
         'college_code' => '1001',
         'has_computer_lab' => 'yes',
+        'computer_count' => 25,
         'ict_training_name' => 'Digital Content Creation',
     ]);
     Teacher::query()->create([
@@ -45,12 +47,18 @@ test('dashboard shows college lab and ICT training report totals', function () {
             'collegesWithLab' => 1,
             'collegesWithoutLab' => 1,
             'totalColleges' => 2,
+            'totalComputers' => 25,
+            'labCoverage' => 50.0,
             'teachersWithIctTraining' => 1,
             'teachersWithoutIctTraining' => 2,
             'totalTeachers' => 3,
+            'ictTrainingCoverage' => 33.3,
+            'lastUpdatedAt' => Carbon::parse(Teacher::query()->max('updated_at'))->format('d M Y, h:i A'),
         ])
         ->assertSee('কম্পিউটার ল্যাব রিপোর্ট')
-        ->assertSee('আইসিটি ট্রেনিং রিপোর্ট');
+        ->assertSee('আইসিটি ট্রেনিং রিপোর্ট')
+        ->assertSee('মোট কম্পিউটার')
+        ->assertSee('আইসিটি ট্রেনিং কভারেজ');
 });
 
 test('sidebar menu items use icons that match their destinations', function () {
