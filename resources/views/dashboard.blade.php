@@ -1,18 +1,131 @@
 <x-layouts::app :title="__('Dashboard')">
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+    <div class="flex w-full flex-1 flex-col gap-6">
+        <header class="relative overflow-hidden rounded-2xl bg-linear-to-br from-indigo-700 via-indigo-600 to-sky-500 px-6 py-7 text-white shadow-lg sm:px-8">
+            <div class="absolute -end-16 -top-20 size-56 rounded-full bg-white/10"></div>
+            <div class="absolute -bottom-24 end-28 size-48 rounded-full bg-sky-300/20"></div>
+            <div class="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+                <div>
+                    <div class="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold ring-1 ring-white/20">
+                        <flux:icon.chart-bar-square class="size-4" />
+                        প্রতিষ্ঠান ও শিক্ষক তথ্যচিত্র
+                    </div>
+                    <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">ড্যাশবোর্ড রিপোর্ট</h1>
+                    <p class="mt-2 max-w-2xl text-sm text-indigo-100 sm:text-base">কম্পিউটার ল্যাব এবং আইসিটি ট্রেনিংয়ের বর্তমান অবস্থা এক নজরে দেখুন।</p>
+                </div>
+
+                @if ($report['lastUpdatedAt'])
+                    <div class="flex items-center gap-2 text-xs text-indigo-100">
+                        <flux:icon.clock class="size-4" />
+                        সর্বশেষ তথ্য: {{ $report['lastUpdatedAt'] }}
+                    </div>
+                @endif
             </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+        </header>
+
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="rounded-lg bg-indigo-50 p-2.5 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300"><flux:icon.building-library class="size-6" /></div>
+                    <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">সকল প্রতিষ্ঠান</span>
+                </div>
+                <p class="mt-5 text-3xl font-bold text-zinc-950 dark:text-white">{{ number_format($report['totalColleges']) }}</p>
+                <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">মোট কলেজ</p>
             </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="rounded-lg bg-sky-50 p-2.5 text-sky-600 dark:bg-sky-950 dark:text-sky-300"><flux:icon.user-group class="size-6" /></div>
+                    <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">সকল শিক্ষক</span>
+                </div>
+                <p class="mt-5 text-3xl font-bold text-zinc-950 dark:text-white">{{ number_format($report['totalTeachers']) }}</p>
+                <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">মোট শিক্ষক</p>
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="rounded-lg bg-emerald-50 p-2.5 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300"><flux:icon.computer-desktop class="size-6" /></div>
+                    <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">ল্যাবভুক্ত কলেজে</span>
+                </div>
+                <p class="mt-5 text-3xl font-bold text-zinc-950 dark:text-white">{{ number_format($report['totalComputers']) }}</p>
+                <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">মোট কম্পিউটার</p>
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="rounded-lg bg-violet-50 p-2.5 text-violet-600 dark:bg-violet-950 dark:text-violet-300"><flux:icon.academic-cap class="size-6" /></div>
+                    <span class="text-xs font-medium text-violet-600 dark:text-violet-400">ট্রেনিং অগ্রগতি</span>
+                </div>
+                <p class="mt-5 text-3xl font-bold text-zinc-950 dark:text-white">{{ number_format($report['ictTrainingCoverage'], 1) }}%</p>
+                <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">আইসিটি ট্রেনিং কভারেজ</p>
             </div>
         </div>
-        <div class="relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+
+        <div class="grid gap-6 xl:grid-cols-2">
+            <section aria-labelledby="college-report-heading" class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <flux:heading id="college-report-heading" size="lg">কম্পিউটার ল্যাব রিপোর্ট</flux:heading>
+                        <flux:text class="mt-1">কলেজগুলোর ল্যাব সুবিধার তুলনামূলক চিত্র</flux:text>
+                    </div>
+                    <flux:button :href="route('lab.summary')" variant="ghost" size="sm" icon-trailing="arrow-up-right" wire:navigate>বিস্তারিত</flux:button>
+                </div>
+
+                <div class="mt-7 flex items-end justify-between gap-4">
+                    <div>
+                        <p class="text-4xl font-bold text-zinc-950 dark:text-white">{{ number_format($report['labCoverage'], 1) }}%</p>
+                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">কলেজে কম্পিউটার ল্যাব আছে</p>
+                    </div>
+                    <div class="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">{{ number_format($report['collegesWithLab']) }} / {{ number_format($report['totalColleges']) }}</div>
+                </div>
+
+                <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-rose-100 dark:bg-rose-950">
+                    <div class="h-full rounded-full bg-emerald-500" style="width: {{ $report['labCoverage'] }}%"></div>
+                </div>
+
+                <div class="mt-6 grid grid-cols-2 divide-x divide-zinc-200 rounded-xl bg-zinc-50 py-4 dark:divide-zinc-700 dark:bg-zinc-800/60">
+                    <div class="px-4">
+                        <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400"><span class="size-2.5 rounded-full bg-emerald-500"></span>ল্যাব আছে</div>
+                        <p class="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{{ number_format($report['collegesWithLab']) }}</p>
+                    </div>
+                    <div class="px-4">
+                        <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400"><span class="size-2.5 rounded-full bg-rose-500"></span>ল্যাব নেই</div>
+                        <p class="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{{ number_format($report['collegesWithoutLab']) }}</p>
+                    </div>
+                </div>
+            </section>
+
+            <section aria-labelledby="training-report-heading" class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <flux:heading id="training-report-heading" size="lg">আইসিটি ট্রেনিং রিপোর্ট</flux:heading>
+                        <flux:text class="mt-1">শিক্ষকদের প্রশিক্ষণ অগ্রগতির তুলনামূলক চিত্র</flux:text>
+                    </div>
+                    <flux:button :href="route('ict.summary')" variant="ghost" size="sm" icon-trailing="arrow-up-right" wire:navigate>বিস্তারিত</flux:button>
+                </div>
+
+                <div class="mt-7 flex items-end justify-between gap-4">
+                    <div>
+                        <p class="text-4xl font-bold text-zinc-950 dark:text-white">{{ number_format($report['ictTrainingCoverage'], 1) }}%</p>
+                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">শিক্ষক আইসিটি ট্রেনিং পেয়েছেন</p>
+                    </div>
+                    <div class="rounded-full bg-sky-50 px-3 py-1 text-sm font-semibold text-sky-700 dark:bg-sky-950 dark:text-sky-300">{{ number_format($report['teachersWithIctTraining']) }} / {{ number_format($report['totalTeachers']) }}</div>
+                </div>
+
+                <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-amber-100 dark:bg-amber-950">
+                    <div class="h-full rounded-full bg-sky-500" style="width: {{ $report['ictTrainingCoverage'] }}%"></div>
+                </div>
+
+                <div class="mt-6 grid grid-cols-2 divide-x divide-zinc-200 rounded-xl bg-zinc-50 py-4 dark:divide-zinc-700 dark:bg-zinc-800/60">
+                    <div class="px-4">
+                        <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400"><span class="size-2.5 rounded-full bg-sky-500"></span>ট্রেনিংপ্রাপ্ত</div>
+                        <p class="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{{ number_format($report['teachersWithIctTraining']) }}</p>
+                    </div>
+                    <div class="px-4">
+                        <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400"><span class="size-2.5 rounded-full bg-amber-500"></span>ট্রেনিংবিহীন</div>
+                        <p class="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{{ number_format($report['teachersWithoutIctTraining']) }}</p>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 </x-layouts::app>
