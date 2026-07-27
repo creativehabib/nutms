@@ -65,7 +65,6 @@
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 text-sm">
                         <!-- কলেজ অনুযায়ী গ্রুপ লুপ -->
-                        @php($rowNumber = $teachers->firstItem())
                         @forelse ($teachersByCollege as $collegeCode => $collegeTeachers)
                             <!-- কলেজ হেডার রো -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
@@ -75,6 +74,7 @@
                             </tr>
 
                             <!-- ওই কলেজের শিক্ষকদের লুপ -->
+                            @php($rowNumber = 1)
                             @foreach ($collegeTeachers as $teacher)
                                 <tr class="hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors">
                                     <td class="px-4 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
@@ -113,7 +113,6 @@
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 text-sm">
                         <!-- কলেজ অনুযায়ী গ্রুপ লুপ -->
-                        @php($rowNumber = $teachers->firstItem())
                         @forelse ($teachersByCollege as $collegeCode => $collegeTeachers)
                             <!-- কলেজ হেডার রো -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
@@ -123,6 +122,7 @@
                             </tr>
 
                             <!-- ওই কলেজের শিক্ষকদের লুপ -->
+                            @php($rowNumber = 1)
                             @foreach ($collegeTeachers as $teacher)
                                 <tr class="hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
                                     <td class="px-6 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
