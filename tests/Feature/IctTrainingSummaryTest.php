@@ -150,3 +150,53 @@ test('teachers without ICT training export includes their professional details',
         return true;
     });
 });
+
+test('teacher serial numbers restart for every college in both tabs', function (string $tab, ?string $trainingName) {
+    foreach (['1001', '1002'] as $collegeCode) {
+        Teacher::query()->create([
+            'name' => "Teacher {$collegeCode}",
+            'college_code' => $collegeCode,
+            'college_name' => "College {$collegeCode}",
+            'ict_training_name' => $trainingName,
+        ]);
+    }
+
+    $component = Livewire::test(IctTrainingSummary::class);
+
+    if ($tab === 'without_ict') {
+        $component->call('showTab', $tab);
+    }
+
+    expect($component->html())->toMatch('/College 1001.*?>1<.*?College 1002.*?>1</s');
+})->with([
+    'teachers with ICT training' => ['with_ict', 'Digital Content Creation'],
+    'teachers without ICT training' => ['without_ict', null],
+]);
+
+test('teacher serial numbers restart for every college in both exports', function (string $tab, ?string $trainingName) {
+    Excel::fake();
+
+    foreach (['1001', '1002'] as $collegeCode) {
+        Teacher::query()->create([
+            'name' => "Exported Teacher {$collegeCode}",
+            'college_code' => $collegeCode,
+            'college_name' => "Export College {$collegeCode}",
+            'ict_training_name' => $trainingName,
+        ]);
+    }
+
+    Livewire::test(IctTrainingSummary::class)->call('export', $tab);
+
+    $filename = $tab === 'with_ict'
+        ? 'teachers-with-ict-training.xlsx'
+        : 'teachers-without-ict-training.xlsx';
+
+    Excel::assertDownloaded($filename, function (SummaryExport $export): bool {
+        expect(array_column($export->array(), 0))->toBe([1, 1]);
+
+        return true;
+    });
+})->with([
+    'teachers with ICT training' => ['with_ict', 'Digital Content Creation'],
+    'teachers without ICT training' => ['without_ict', null],
+]);

@@ -30,34 +30,38 @@ class IctTrainingSummary extends Component
     {
         [$rows, $headings, $filename] = match ($tab) {
             'with_ict' => [
-                $this->teachersWithIct()->flatten(1)->values()->map(
-                    fn (Teacher $teacher, int $index): array => [
-                        $index + 1,
-                        $teacher->college_code ?? '-',
-                        $teacher->college_name ?? '-',
-                        $teacher->name ?? '-',
-                        $teacher->ict_training_name ?? '-',
-                        $teacher->other_training_name ?: 'উল্লেখ নেই',
-                        $teacher->training_institute ?: 'উল্লেখ নেই',
-                    ],
-                )->all(),
+                $this->teachersWithIct()->flatMap(
+                    fn (Collection $teachers): Collection => $teachers->values()->map(
+                        fn (Teacher $teacher, int $index): array => [
+                            $index + 1,
+                            $teacher->college_code ?? '-',
+                            $teacher->college_name ?? '-',
+                            $teacher->name ?? '-',
+                            $teacher->ict_training_name ?? '-',
+                            $teacher->other_training_name ?: 'উল্লেখ নেই',
+                            $teacher->training_institute ?: 'উল্লেখ নেই',
+                        ],
+                    ),
+                )->values()->all(),
                 ['ক্র.নং', 'কলেজ কোড', 'কলেজের নাম', 'শিক্ষকের নাম', 'আইসিটি ট্রেনিংয়ের নাম', 'অন্যান্য ট্রেনিংয়ের নাম', 'ট্রেনিং ইনস্টিটিউট'],
                 'teachers-with-ict-training.xlsx',
             ],
             'without_ict' => [
-                $this->teachersWithoutIct()->flatten(1)->values()->map(
-                    fn (Teacher $teacher, int $index): array => [
-                        $index + 1,
-                        $teacher->college_code ?? '-',
-                        $teacher->college_name ?? '-',
-                        $teacher->name ?? '-',
-                        $teacher->subject ?: 'উল্লেখ নেই',
-                        $teacher->designation ?: 'উল্লেখ নেই',
-                        $teacher->teacher_level ?: 'উল্লেখ নেই',
-                        $teacher->employment_type ?: 'উল্লেখ নেই',
-                        'ট্রেনিং নেই',
-                    ],
-                )->all(),
+                $this->teachersWithoutIct()->flatMap(
+                    fn (Collection $teachers): Collection => $teachers->values()->map(
+                        fn (Teacher $teacher, int $index): array => [
+                            $index + 1,
+                            $teacher->college_code ?? '-',
+                            $teacher->college_name ?? '-',
+                            $teacher->name ?? '-',
+                            $teacher->subject ?: 'উল্লেখ নেই',
+                            $teacher->designation ?: 'উল্লেখ নেই',
+                            $teacher->teacher_level ?: 'উল্লেখ নেই',
+                            $teacher->employment_type ?: 'উল্লেখ নেই',
+                            'ট্রেনিং নেই',
+                        ],
+                    ),
+                )->values()->all(),
                 ['ক্র.নং', 'কলেজ কোড', 'কলেজের নাম', 'শিক্ষকের নাম', 'বিষয়', 'পদবি', 'শিক্ষক স্তর', 'চাকরির ধরন', 'অবস্থা'],
                 'teachers-without-ict-training.xlsx',
             ],
