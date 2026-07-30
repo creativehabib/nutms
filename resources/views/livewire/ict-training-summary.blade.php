@@ -79,9 +79,9 @@
                                 <tr class="hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors">
                                     <td class="px-4 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
                                     <td class="px-4 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->name }}</td>
-                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->ict_training_name ?: 'উল্লেখ নেই' }}</td>
+                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $this->trainingDetails($teacher) }}</td>
                                     <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->other_training_name ?: 'উল্লেখ নেই' }}</td>
-                                    <td class="px-4 py-3 text-gray-600 dark:text-slate-400 border text-xs">{{ $teacher->training_institute ?? 'উল্লেখ নেই' }}</td>
+                                    <td class="px-4 py-3 text-gray-600 dark:text-slate-400 border text-xs">{{ $this->trainingInstitutes($teacher) }}</td>
                                 </tr>
                             @endforeach
                         @empty
