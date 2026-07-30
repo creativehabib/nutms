@@ -25,7 +25,22 @@
                 <div class="rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
                     <div class="flex items-center justify-between"><flux:heading>কলেজ লেভেল, কোর্স ও বিষয়</flux:heading><flux:button type="button" size="sm" wire:click="addProgram">যোগ করুন</flux:button></div>
                     <flux:text class="mt-1">ডিগ্রির ক্ষেত্রে BA/BSS/BBS/BSc এবং অনার্স/মাস্টার্সে বিষয়ের নাম লিখুন।</flux:text>
-                    <div class="mt-3 grid gap-3">@foreach($programs as $index => $program)<div wire:key="college-program-{{ $index }}" class="grid gap-2 sm:grid-cols-[10rem_1fr_auto]"><flux:select wire:model="programs.{{ $index }}.level"><option value="degree">ডিগ্রি</option><option value="honours">অনার্স</option><option value="masters">মাস্টার্স</option><option value="professional">প্রফেশনাল</option><option value="other">অন্যান্য</option></flux:select><flux:input wire:model="programs.{{ $index }}.name" placeholder="কোর্স/বিষয়—যেমন BA বা বাংলা" /><flux:button type="button" size="sm" variant="danger" wire:click="removeProgram({{ $index }})">বাদ</flux:button></div>@error("programs.$index.name")<flux:text class="text-red-600">{{ $message }}</flux:text>@enderror @endforeach</div>
+                    <div class="mt-3 grid gap-4">
+                        @foreach($programs as $index => $program)
+                            <div wire:key="college-program-{{ $index }}" class="rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+                                <div class="grid gap-2 sm:grid-cols-[10rem_1fr_auto]">
+                                    <flux:select wire:model.live="programs.{{ $index }}.level"><option value="degree">ডিগ্রি</option><option value="honours">অনার্স</option><option value="masters">মাস্টার্স</option><option value="professional">প্রফেশনাল</option><option value="other">অন্যান্য</option></flux:select>
+                                    <div class="flex gap-2"><flux:input wire:model="programs.{{ $index }}.new_name" wire:keydown.enter.prevent="addProgramTag({{ $index }})" :placeholder="$program['level'] === 'degree' ? 'কোর্স লিখুন—যেমন BA' : 'বিষয় লিখুন—যেমন বাংলা'" /><flux:button type="button" size="sm" wire:click="addProgramTag({{ $index }})">ট্যাগ যোগ</flux:button></div>
+                                    <flux:button type="button" size="sm" variant="danger" wire:click="removeProgram({{ $index }})">গ্রুপ বাদ</flux:button>
+                                </div>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @forelse($program['names'] as $tagIndex => $programName)<span wire:key="program-tag-{{ $index }}-{{ $tagIndex }}" class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-800 dark:bg-indigo-950 dark:text-indigo-200">{{ $programName }}<button type="button" wire:click="removeProgramTag({{ $index }}, {{ $tagIndex }})" class="rounded-full px-1 hover:bg-indigo-200 dark:hover:bg-indigo-900" aria-label="{{ $programName }} বাদ দিন">×</button></span>@empty<flux:text>এখনও কোনো ট্যাগ যোগ করা হয়নি।</flux:text>@endforelse
+                                </div>
+                                @error("programs.$index.level")<flux:text class="mt-2 text-red-600">{{ $message }}</flux:text>@enderror
+                                @error("programs.$index.names")<flux:text class="mt-2 text-red-600">{{ $message }}</flux:text>@enderror
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
                 <flux:switch wire:model="isActive" label="সক্রিয়" />
                 <div class="flex justify-end gap-2">@if($editingId)<flux:button type="button" wire:click="cancelEdit">বাতিল</flux:button>@endif<flux:button type="submit" variant="primary">{{ $editingId ? 'আপডেট' : 'সংরক্ষণ' }}</flux:button></div>

@@ -3,13 +3,13 @@
 namespace App\Livewire;
 
 use App\Models\College;
-use App\Models\CollegeProgram;
 use App\Models\District;
 use App\Models\Division;
 use App\Models\Thana;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -35,7 +35,7 @@ class CollegeManagement extends Component
     public string $laptopCount = '';
     public bool $isActive = true;
 
-    /** @var array<int, array{level: string, name: string}> */
+    /** @var array<int, array{level: string, names: array<int, string>, new_name: string}> */
     public array $programs = [];
 
     public function updatedSearch(): void
@@ -71,13 +71,44 @@ class CollegeManagement extends Component
 
     public function addProgram(): void
     {
-        $this->programs[] = ['level' => 'degree', 'name' => ''];
+        $this->programs[] = ['level' => 'degree', 'names' => [], 'new_name' => ''];
     }
 
     public function removeProgram(int $index): void
     {
         unset($this->programs[$index]);
         $this->programs = array_values($this->programs);
+    }
+
+    public function addProgramTag(int $index): void
+    {
+        $name = trim($this->programs[$index]['new_name'] ?? '');
+        if ($name === '') {
+            return;
+        }
+
+        $existingNames = collect($this->programs[$index]['names'])
+            ->map(fn (string $existingName): string => mb_strtolower($existingName));
+        if (! $existingNames->contains(mb_strtolower($name))) {
+            $this->programs[$index]['names'][] = $name;
+        }
+        $this->programs[$index]['new_name'] = '';
+        $this->resetValidation("programs.{$index}.names");
+    }
+
+    public function removeProgramTag(int $groupIndex, int $tagIndex): void
+    {
+        unset($this->programs[$groupIndex]['names'][$tagIndex]);
+        $this->programs[$groupIndex]['names'] = array_values($this->programs[$groupIndex]['names']);
+    }
+
+    public function updatedPrograms(mixed $value, ?string $key = null): void
+    {
+        if ($key !== null && preg_match('/^(\d+)\.level$/', $key, $matches) === 1) {
+            $index = (int) $matches[1];
+            $this->programs[$index]['names'] = [];
+            $this->programs[$index]['new_name'] = '';
+        }
     }
 
     public function edit(int $id): void
@@ -97,7 +128,9 @@ class CollegeManagement extends Component
         $this->desktopCount = (string) ($college->desktop_count ?? '');
         $this->laptopCount = (string) ($college->laptop_count ?? '');
         $this->isActive = $college->is_active;
-        $this->programs = $college->programs->map(fn (CollegeProgram $program): array => ['level' => $program->level, 'name' => $program->name])->all();
+        $this->programs = $college->programs->groupBy('level')->map(
+            fn (Collection $programs, string $level): array => ['level' => $level, 'names' => $programs->pluck('name')->values()->all(), 'new_name' => ''],
+        )->values()->all();
     }
 
     public function save(): void
@@ -117,8 +150,10 @@ class CollegeManagement extends Component
             'laptopCount' => [Rule::requiredIf($this->hasComputerLab === '1' && in_array($this->labEquipmentType, ['laptop', 'both'], true)), 'nullable', 'integer', 'min:1', 'max:100000'],
             'isActive' => ['boolean'],
             'programs' => ['array'],
-            'programs.*.level' => ['required', Rule::in(['degree', 'honours', 'masters', 'professional', 'other'])],
-            'programs.*.name' => ['required', 'string', 'max:255'],
+            'programs.*.level' => ['required', 'distinct', Rule::in(['degree', 'honours', 'masters', 'professional', 'other'])],
+            'programs.*.names' => ['required', 'array', 'min:1'],
+            'programs.*.names.*' => ['required', 'string', 'max:255'],
+            'programs.*.new_name' => ['nullable', 'string', 'max:255'],
         ], [
             'name.required' => 'কলেজের নাম অবশ্যই দিতে হবে।',
             'divisionId.required' => 'বিভাগ নির্বাচন করুন।',
@@ -131,7 +166,9 @@ class CollegeManagement extends Component
             'labEquipmentType.required' => 'ল্যাবে ডেস্কটপ, ল্যাপটপ অথবা উভয় আছে কি না নির্বাচন করুন।',
             'desktopCount.required' => 'ল্যাবে ডেস্কটপ কম্পিউটারের সংখ্যা দিন।',
             'laptopCount.required' => 'ল্যাবে ল্যাপটপের সংখ্যা দিন।',
-            'programs.*.name.required' => 'কোর্স অথবা বিষয়ের নাম দিন।',
+            'programs.*.names.required' => 'অন্তত একটি কোর্স অথবা বিষয় ট্যাগ যোগ করুন।',
+            'programs.*.names.min' => 'অন্তত একটি কোর্স অথবা বিষয় ট্যাগ যোগ করুন।',
+            'programs.*.level.distinct' => 'একই কলেজ লেভেল একাধিকবার যোগ করা যাবে না; একই গ্রুপে সব ট্যাগ দিন।',
         ]);
 
         if (! District::query()->whereKey($validated['districtId'])->where('division_id', $validated['divisionId'])->exists()) {
@@ -158,7 +195,11 @@ class CollegeManagement extends Component
                 'is_active' => $validated['isActive'],
             ]);
             $college->programs()->delete();
-            $college->programs()->createMany(collect($validated['programs'])->unique(fn (array $program): string => $program['level'].'|'.mb_strtolower($program['name']))->values()->all());
+            $programs = collect($validated['programs'])->flatMap(fn (array $group): array => collect($group['names'])
+                ->map(fn (string $name): array => ['level' => $group['level'], 'name' => trim($name)])->all())
+                ->unique(fn (array $program): string => $program['level'].'|'.mb_strtolower($program['name']))
+                ->values()->all();
+            $college->programs()->createMany($programs);
             DB::table('teachers')->where('college_id', $college->id)->update(['college_code' => $college->code, 'college_name' => $college->name]);
         });
 
