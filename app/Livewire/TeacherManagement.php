@@ -3,6 +3,11 @@
 namespace App\Livewire;
 
 use App\Models\Teacher;
+use App\Models\College;
+use App\Models\Designation;
+use App\Models\Employment;
+use App\Models\Subject;
+use App\Models\TeacherLevel;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -348,7 +353,14 @@ class TeacherManagement extends Component
         // ডেটাবেসে আপডেট করা
         if ($this->editingId) {
             $teacher = Teacher::findOrFail($this->editingId);
-            $teacher->update($validated['editForm']);
+            $teacherData = $validated['editForm'];
+            $teacherData['subject_id'] = Subject::query()->where('name', $teacherData['subject'])->value('id');
+            $teacherData['designation_id'] = Designation::query()->where('name', $teacherData['designation'])->value('id');
+            $teacherData['teacher_level_id'] = TeacherLevel::query()->where('name', $teacherData['teacher_level'])->value('id');
+            $teacherData['employment_id'] = Employment::query()->where('name', $teacherData['employment_type'])->value('id');
+            $teacherData['college_id'] = College::query()->where('code', $teacherData['college_code'])
+                ->orWhere('name', $teacherData['college_name'])->value('id');
+            $teacher->update($teacherData);
 
             Flux::toast(variant: 'success', text: 'শিক্ষকের তথ্য সফলভাবে আপডেট করা হয়েছে।');
 
@@ -367,14 +379,18 @@ class TeacherManagement extends Component
             ->count('college_code');
 
         // ড্রপডাউনের জন্য ডেটাবেস থেকে ইউনিক সাবজেক্ট এবং কলেজ কোড বের করা
-        $subjects = Teacher::select('subject')->distinct()->whereNotNull('subject')->pluck('subject');
-        $collegeCodes = Teacher::select('college_code')->distinct()->whereNotNull('college_code')->pluck('college_code');
+        $subjects = Subject::query()->where('is_active', true)->orderBy('name')->pluck('name');
+        $collegeCodes = College::query()->where('is_active', true)->whereNotNull('code')->orderBy('code')->pluck('code');
 
         return view('livewire.teacher-management', [
             'teachers' => $query->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
             'collegeCount' => $collegeCount,
             'subjects' => $subjects,
             'collegeCodes' => $collegeCodes,
+            'colleges' => College::query()->where('is_active', true)->orderBy('name')->get(['code', 'name']),
+            'designations' => Designation::query()->where('is_active', true)->orderBy('name')->pluck('name'),
+            'teacherLevels' => TeacherLevel::query()->where('is_active', true)->orderBy('name')->pluck('name'),
+            'employments' => Employment::query()->where('is_active', true)->orderBy('name')->pluck('name'),
         ]);
     }
 
