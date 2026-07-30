@@ -71,7 +71,6 @@ it('allows every teacher data field to be updated', function () {
         'college_code' => '200',
         'college_name' => 'Updated College',
         'tmis_id' => 'TMIS-NEW',
-        'ttis_id' => 'TTIS-NEW',
         'name' => 'Updated Teacher',
         'designation' => 'Assistant Professor',
         'subject' => 'Physics',
@@ -84,8 +83,6 @@ it('allows every teacher data field to be updated', function () {
         'other_training_duration' => '5 days',
         'training_institute' => 'NAEM',
         'training_year' => '2026',
-        'has_computer_lab' => 'Yes',
-        'computer_count' => 25,
         'mobile_number' => '01700000000',
         'email' => 'teacher@example.com',
     ];
