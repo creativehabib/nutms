@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\College;
+use App\Models\CollegeProgram;
 use App\Models\District;
 use App\Models\Division;
 use App\Models\Subject;
@@ -130,7 +131,11 @@ class CollegeManagement extends Component
         $this->laptopCount = (string) ($college->laptop_count ?? '');
         $this->isActive = $college->is_active;
         $this->programs = $college->programs->groupBy('level')->map(
-            fn (Collection $programs, string $level): array => ['level' => $level, 'names' => $programs->pluck('name')->values()->all(), 'new_name' => ''],
+            fn (Collection $programs, string $level): array => [
+                'level' => $level,
+                'names' => $programs->flatMap(fn (CollegeProgram $program): array => $program->items ?: [$program->name])->filter()->unique()->values()->all(),
+                'new_name' => '',
+            ],
         )->values()->all();
     }
 
@@ -196,10 +201,12 @@ class CollegeManagement extends Component
                 'is_active' => $validated['isActive'],
             ]);
             $college->programs()->delete();
-            $programs = collect($validated['programs'])->flatMap(fn (array $group): array => collect($group['names'])
-                ->map(fn (string $name): array => ['level' => $group['level'], 'name' => trim($name)])->all())
-                ->unique(fn (array $program): string => $program['level'].'|'.mb_strtolower($program['name']))
-                ->values()->all();
+            $programs = collect($validated['programs'])->map(function (array $group): array {
+                $items = collect($group['names'])->map(fn (string $name): string => trim($name))
+                    ->unique(fn (string $name): string => mb_strtolower($name))->values()->all();
+
+                return ['level' => $group['level'], 'name' => $items[0], 'items' => $items];
+            })->values()->all();
             $college->programs()->createMany($programs);
             DB::table('teachers')->where('college_id', $college->id)->update(['college_code' => $college->code, 'college_name' => $college->name]);
         });

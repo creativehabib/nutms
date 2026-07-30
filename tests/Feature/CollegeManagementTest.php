@@ -53,7 +53,9 @@ it('stores a complete college profile with multiple academic programs', function
         ->and($college->lab_equipment_type)->toBe('both')
         ->and($college->desktop_count)->toBe(25)
         ->and($college->laptop_count)->toBe(10)
-        ->and($college->programs)->toHaveCount(4);
+        ->and($college->programs)->toHaveCount(3)
+        ->and($college->programs->firstWhere('level', 'degree')->items)->toBe(['BA', 'BSc'])
+        ->and($college->programs->firstWhere('level', 'honours')->items)->toBe(['বাংলা']);
 });
 
 it('adds degree courses and honours subjects as unique tags', function () {
@@ -62,7 +64,9 @@ it('adds degree courses and honours subjects as unique tags', function () {
     Livewire::test(CollegeManagement::class)
         ->assertSee('BA')
         ->assertSee('বাংলা')
-        ->assertSee('সাজেশন থেকে বেছে নিন')
+        ->assertSee('Enter চাপলেই সেটি নিচে pill হিসেবে যুক্ত হবে')
+        ->assertSee('লিখে Enter চাপুন')
+        ->assertDontSee('ট্যাগ যোগ')
         ->call('addProgram')
         ->set('programs.0.new_name', 'BA')
         ->call('addProgramTag', 0)
