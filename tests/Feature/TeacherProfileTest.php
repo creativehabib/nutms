@@ -23,6 +23,8 @@ it('creates a teacher linked to a college with contact and bank information', fu
     $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
+    $institute = TrainingInstitute::query()->create(['name' => 'Profile Training Institute']);
+    $training = TrainingType::query()->create(['training_institute_id' => $institute->id, 'name' => 'Profile ICT Training', 'duration_value' => 7, 'duration_unit' => 'days']);
 
     Livewire::test(TeacherProfileForm::class)
         ->set('collegeId', (string) $college->id)->set('name', 'New Teacher')->set('tmisId', 'TMIS-PROFILE')
@@ -30,6 +32,11 @@ it('creates a teacher linked to a college with contact and bank information', fu
         ->set('presentAddress', 'Present Address')->set('permanentAddress', 'Permanent Address')
         ->set('mobileNumber', '01700000000')->set('email', 'profile@example.com')
         ->set('bankName', 'Sonali Bank')->set('bankBranchName', 'Main Branch')->set('bankRoutingNumber', '123456789')
+        ->set('trainingEntries', [[
+            'kind' => 'catalog', 'training_institute_id' => (string) $institute->id, 'institute_name' => '',
+            'training_type_id' => (string) $training->id, 'name' => '', 'duration_value' => '',
+            'duration_unit' => 'days', 'training_year' => '2026',
+        ]])
         ->call('save')->assertHasNoErrors()->assertRedirect(route('teachers.manage'));
 
     $teacher = Teacher::query()->where('tmis_id', 'TMIS-PROFILE')->firstOrFail();
@@ -37,7 +44,9 @@ it('creates a teacher linked to a college with contact and bank information', fu
         ->and($teacher->college_name)->toBe('Teacher College')
         ->and($teacher->present_address)->toBe('Present Address')
         ->and($teacher->bank_name)->toBe('Sonali Bank')
-        ->and($teacher->bank_routing_number)->toBe('123456789');
+        ->and($teacher->bank_routing_number)->toBe('123456789')
+        ->and($teacher->trainingTypes)->toHaveCount(1)
+        ->and($teacher->trainingTypes->first()->pivot->training_year)->toBe(2026);
 });
 
 it('updates profile fields without changing existing institutional training history', function () {
@@ -51,6 +60,8 @@ it('updates profile fields without changing existing institutional training hist
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
 
     Livewire::test(TeacherProfileForm::class, ['teacher' => $teacher])
+        ->assertSet('trainingEntries.0.training_type_id', (string) $training->id)
+        ->assertSee('প্রতিষ্ঠানভিত্তিক ট্রেনিং ইতিহাস')
         ->set('divisionId', (string) $division->id)->set('districtId', (string) $district->id)->set('thanaId', (string) $thana->id)
         ->set('presentAddress', 'Updated Present')->set('permanentAddress', 'Updated Permanent')->set('mobileNumber', '01800000000')
         ->call('save')->assertHasNoErrors();
