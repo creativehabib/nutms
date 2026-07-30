@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Teacher;
+use App\Models\TeacherOtherTraining;
 use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use Illuminate\Support\Collection;
@@ -126,13 +127,9 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
         $instituteName = trim((string) $data['training_institute']) ?: 'অনির্ধারিত প্রতিষ্ঠান';
         $institute = TrainingInstitute::query()->firstOrCreate(['name' => $instituteName]);
 
-        foreach ([['ict_training_name', 'ict_training_duration'], ['other_training_name', 'other_training_duration']] as [$nameKey, $durationKey]) {
-            $trainingName = trim((string) $data[$nameKey]);
-            if ($trainingName === '') {
-                continue;
-            }
-
-            [$durationValue, $durationUnit] = $this->parseDuration((string) $data[$durationKey]);
+        $trainingName = trim((string) $data['ict_training_name']);
+        if ($trainingName !== '') {
+            [$durationValue, $durationUnit] = $this->parseDuration((string) $data['ict_training_duration']);
             $trainingType = TrainingType::query()->firstOrCreate(
                 ['training_institute_id' => $institute->id, 'name' => $trainingName],
                 ['duration_value' => $durationValue, 'duration_unit' => $durationUnit],
@@ -142,6 +139,20 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
             if (! $alreadyLinked) {
                 $teacher->trainingTypes()->attach($trainingType->id, ['training_year' => $year]);
             }
+        }
+
+        $otherTrainingName = trim((string) $data['other_training_name']);
+        if ($otherTrainingName !== '') {
+            [$durationValue, $durationUnit] = $this->parseDuration((string) $data['other_training_duration']);
+            TeacherOtherTraining::query()->firstOrCreate([
+                'teacher_id' => $teacher->id,
+                'name' => $otherTrainingName,
+                'training_year' => $year,
+            ], [
+                'training_institute_id' => $institute->id,
+                'duration_value' => $durationValue,
+                'duration_unit' => $durationUnit,
+            ]);
         }
     }
 

@@ -52,6 +52,7 @@ it('stores the completion year on each teachers training record', function () {
     Livewire::test(TeacherManagement::class)
         ->call('editTeacher', $teacher->id)
         ->set('trainingEntries', [[
+            'kind' => 'catalog',
             'training_institute_id' => (string) $institute->id,
             'training_type_id' => (string) $trainingType->id,
             'training_year' => '2025',
@@ -77,6 +78,7 @@ it('rejects a training type that does not belong to the selected institute', fun
     Livewire::test(TeacherManagement::class)
         ->call('editTeacher', $teacher->id)
         ->set('trainingEntries', [[
+            'kind' => 'catalog',
             'training_institute_id' => (string) $selectedInstitute->id,
             'training_type_id' => (string) $trainingType->id,
             'training_year' => '2025',
@@ -130,4 +132,34 @@ it('shows normalized training, completion year, and duration in the training sum
         ->assertSee('Trained Teacher')
         ->assertSee('Digital Content (2025, 10 দিন)')
         ->assertSee('NAEM');
+});
+
+it('stores an uncatalogued other training with its own institute duration and year', function () {
+    $teacher = Teacher::query()->create(['name' => 'Teacher With Other Training']);
+
+    Livewire::test(TeacherManagement::class)
+        ->call('editTeacher', $teacher->id)
+        ->set('trainingEntries', [[
+            'kind' => 'other',
+            'training_institute_id' => '',
+            'institute_name' => 'International Training Centre',
+            'training_type_id' => '',
+            'name' => 'Inclusive Education Workshop',
+            'duration_value' => '3',
+            'duration_unit' => 'days',
+            'training_year' => '2026',
+        ]])
+        ->call('updateTeacher')
+        ->assertHasNoErrors();
+
+    $otherTraining = $teacher->refresh()->otherTrainings()->firstOrFail();
+    expect($otherTraining->name)->toBe('Inclusive Education Workshop')
+        ->and($otherTraining->institute_name)->toBe('International Training Centre')
+        ->and($otherTraining->duration_value)->toBe(3)
+        ->and($otherTraining->training_year)->toBe(2026);
+
+    Livewire::test(IctTrainingSummary::class)
+        ->assertSee('Teacher With Other Training')
+        ->assertSee('Inclusive Education Workshop (অন্যান্য, 2026, 3 দিন)')
+        ->assertSee('International Training Centre');
 });
