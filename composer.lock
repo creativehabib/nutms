@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "82ec9af0450f80b1d3dc6a8b8e837f42",
+    "content-hash": "3602b656ac5d30a7260789aa3553848d",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -2582,6 +2582,67 @@
                 }
             ],
             "time": "2026-03-08T20:05:35+00:00"
+        },
+        {
+            "name": "lemonpatwari/bangladeshgeocode",
+            "version": "v3.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/lemonpatwari/laravel-bangladesh-geocode.git",
+                "reference": "1915ad41ad285417b95d9087e7415630a507253d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/lemonpatwari/laravel-bangladesh-geocode/zipball/1915ad41ad285417b95d9087e7415630a507253d",
+                "reference": "1915ad41ad285417b95d9087e7415630a507253d",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "lemonpatwari\\bangladeshgeocode\\BangladeshGeocodeServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "lemonpatwari\\bangladeshgeocode\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lemon Patwari",
+                    "email": "lemonpatwari@gmail.com",
+                    "homepage": "https://lemonpatwari.com"
+                }
+            ],
+            "description": "A Laravel package for Bangladesh geolocation with divisions, districts, upazilas, and unions.",
+            "homepage": "https://github.com/lemonpatwari/laravel-bangladesh-geocode",
+            "keywords": [
+                "bangladesh",
+                "bangladesh districts",
+                "bangladesh divisions",
+                "bangladesh upazila",
+                "bangladesh-geocode",
+                "geocode",
+                "geolocation",
+                "laravel",
+                "laravel bangladesh address",
+                "lemonpatwari"
+            ],
+            "support": {
+                "issues": "https://github.com/lemonpatwari/laravel-bangladesh-geocode/issues",
+                "source": "https://github.com/lemonpatwari/laravel-bangladesh-geocode/tree/v3.2"
+            },
+            "time": "2026-03-05T16:11:55+00:00"
         },
         {
             "name": "livewire/blaze",
