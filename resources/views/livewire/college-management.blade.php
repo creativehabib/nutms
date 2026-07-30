@@ -32,14 +32,16 @@
                                     <flux:select wire:model.live="programs.{{ $index }}.level" label="কলেজ লেভেল"><option value="degree">ডিগ্রি</option><option value="honours">অনার্স</option><option value="masters">মাস্টার্স</option><option value="professional">প্রফেশনাল</option><option value="other">অন্যান্য</option></flux:select>
                                     <flux:field>
                                         <flux:label>{{ $program['level'] === 'degree' ? 'ডিগ্রি কোর্স' : 'বিষয়ের নাম' }}</flux:label>
-                                        <flux:input class="w-full" wire:model="programs.{{ $index }}.new_name" wire:keydown.enter.prevent.stop="addProgramTag({{ $index }})" list="program-suggestions-{{ $index }}" autocomplete="off" :placeholder="$program['level'] === 'degree' ? 'যেমন BA লিখে Enter চাপুন' : 'যেমন বাংলা লিখে Enter চাপুন'" aria-label="কোর্স অথবা বিষয় লিখে Enter চাপুন" />
+                                        <div data-program-pillbox class="flex min-h-11 w-full flex-wrap items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-2.5 py-2 shadow-sm transition focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 dark:border-zinc-600 dark:bg-zinc-900">
+                                            @foreach($program['names'] as $tagIndex => $programName)
+                                                <flux:badge wire:key="program-tag-{{ $index }}-{{ $tagIndex }}" color="indigo" class="gap-1 py-1">{{ $programName }}<button type="button" wire:click="removeProgramTag({{ $index }}, {{ $tagIndex }})" class="rounded-full px-1 hover:bg-indigo-200 dark:hover:bg-indigo-900" aria-label="{{ $programName }} বাদ দিন">×</button></flux:badge>
+                                            @endforeach
+                                            <input class="min-w-32 flex-1 border-0 bg-transparent px-1 py-0.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-zinc-100" wire:model="programs.{{ $index }}.new_name" wire:keydown.enter.prevent.stop="addProgramTag({{ $index }})" list="program-suggestions-{{ $index }}" autocomplete="off" placeholder="{{ $program['names'] === [] ? ($program['level'] === 'degree' ? 'BA লিখে Enter চাপুন' : 'বাংলা লিখে Enter চাপুন') : 'আরও যোগ করুন...' }}" aria-label="কোর্স অথবা বিষয় লিখে Enter চাপুন">
+                                        </div>
                                         <flux:description>লিখে Enter চাপুন</flux:description>
                                         <datalist id="program-suggestions-{{ $index }}">@foreach($program['level'] === 'degree' ? $degreeCourseSuggestions : $subjectSuggestions as $suggestion)<option value="{{ $suggestion }}"></option>@endforeach</datalist>
                                     </flux:field>
                                     <flux:button type="button" size="sm" variant="danger" wire:click="removeProgram({{ $index }})">গ্রুপ বাদ</flux:button>
-                                </div>
-                                <div class="mt-3 flex flex-wrap gap-2">
-                                    @forelse($program['names'] as $tagIndex => $programName)<flux:badge wire:key="program-tag-{{ $index }}-{{ $tagIndex }}" color="indigo" class="gap-1 py-1">{{ $programName }}<button type="button" wire:click="removeProgramTag({{ $index }}, {{ $tagIndex }})" class="rounded-full px-1 hover:bg-indigo-200 dark:hover:bg-indigo-900" aria-label="{{ $programName }} বাদ দিন">×</button></flux:badge>@empty<flux:text>এখনও কোনো কোর্স বা বিষয় নির্বাচন করা হয়নি।</flux:text>@endforelse
                                 </div>
                                 @error("programs.$index.level")<flux:text class="mt-2 text-red-600">{{ $message }}</flux:text>@enderror
                                 @error("programs.$index.names")<flux:text class="mt-2 text-red-600">{{ $message }}</flux:text>@enderror

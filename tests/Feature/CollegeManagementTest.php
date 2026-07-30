@@ -67,6 +67,7 @@ it('adds degree courses and honours subjects as unique tags', function () {
         ->assertSee('Enter চাপলেই সেটি নিচে pill হিসেবে যুক্ত হবে')
         ->assertSee('লিখে Enter চাপুন')
         ->assertDontSee('ট্যাগ যোগ')
+        ->assertSeeHtml('data-program-pillbox')
         ->call('addProgram')
         ->set('programs.0.new_name', 'BA')
         ->call('addProgramTag', 0)
