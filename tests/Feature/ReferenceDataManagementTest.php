@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\ReferenceDataManagement;
-use App\Models\College;
 use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
@@ -9,7 +8,7 @@ use Livewire\Livewire;
 
 it('protects all reference data pages with authentication', function (string $type) {
     $this->get(route('reference-data.manage', $type))->assertRedirect(route('login'));
-})->with(['subjects', 'designations', 'colleges', 'teacher-levels', 'employments']);
+})->with(['subjects', 'designations', 'teacher-levels', 'employments']);
 
 it('creates and updates subject reference data', function () {
     Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
@@ -40,13 +39,6 @@ it('does not delete reference data used by a teacher', function () {
     Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])->call('delete', $subject->id);
 
     expect($subject->fresh())->not->toBeNull();
-});
-
-it('creates colleges with unique codes', function () {
-    Livewire::test(ReferenceDataManagement::class, ['type' => 'colleges'])
-        ->set('code', '1010')->set('name', 'Government College')->call('save')->assertHasNoErrors();
-
-    expect(College::query()->where('code', '1010')->value('name'))->toBe('Government College');
 });
 
 it('allows authenticated users to open a reference data page', function () {

@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Models\College;
 use App\Models\Designation;
 use App\Models\Employment;
 use App\Models\Subject;
@@ -34,7 +33,6 @@ class ReferenceDataManagement extends Component
     private const TYPES = [
         'subjects' => ['model' => Subject::class, 'title' => 'সাবজেক্ট', 'legacy' => 'subject', 'foreign_key' => 'subject_id'],
         'designations' => ['model' => Designation::class, 'title' => 'পদবি', 'legacy' => 'designation', 'foreign_key' => 'designation_id'],
-        'colleges' => ['model' => College::class, 'title' => 'কলেজ', 'legacy' => 'college_name', 'foreign_key' => 'college_id'],
         'teacher-levels' => ['model' => TeacherLevel::class, 'title' => 'শিক্ষক স্তর', 'legacy' => 'teacher_level', 'foreign_key' => 'teacher_level_id'],
         'employments' => ['model' => Employment::class, 'title' => 'চাকরির ধরন', 'legacy' => 'employment_type', 'foreign_key' => 'employment_id'],
     ];
@@ -67,9 +65,6 @@ class ReferenceDataManagement extends Component
             'name' => ['required', 'string', 'max:255', Rule::unique($table, 'name')->ignore($this->editingId)],
             'isActive' => ['boolean'],
         ];
-        if ($this->type === 'colleges') {
-            $rules['code'] = ['nullable', 'string', 'max:255', Rule::unique($table, 'code')->ignore($this->editingId)];
-        }
         $validated = $this->validate($rules, [
             'name.required' => 'নাম অবশ্যই দিতে হবে।',
             'name.unique' => 'এই নামটি ইতোমধ্যে আছে।',
@@ -80,14 +75,10 @@ class ReferenceDataManagement extends Component
             $record = $this->editingId === null ? new $modelClass : $this->modelQuery()->findOrFail($this->editingId);
             $oldName = $record->exists ? $record->getAttribute('name') : null;
             $record->fill(['name' => $validated['name'], 'is_active' => $validated['isActive']]);
-            if ($this->type === 'colleges') {
-                $record->setAttribute('code', blank($validated['code']) ? null : $validated['code']);
-            }
             $record->save();
 
             if ($oldName !== null) {
                 $teacherUpdates = [$this->configuration()['legacy'] => $record->getAttribute('name')];
-                if ($this->type === 'colleges') { $teacherUpdates['college_code'] = $record->getAttribute('code'); }
                 DB::table('teachers')->where($this->configuration()['foreign_key'], $record->getKey())->update($teacherUpdates);
             }
         });
@@ -115,14 +106,13 @@ class ReferenceDataManagement extends Component
     public function render(): View
     {
         $records = $this->modelQuery()->withCount('teachers')
-            ->when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query->where('name', 'like', "%{$this->search}%")
-                ->when($this->type === 'colleges', fn ($query) => $query->orWhere('code', 'like', "%{$this->search}%"))))
+            ->when($this->search !== '', fn ($query) => $query->where('name', 'like', "%{$this->search}%"))
             ->orderBy('name')->paginate(10);
 
         return view('livewire.reference-data-management', [
             'records' => $records,
             'title' => $this->configuration()['title'],
-            'isCollege' => $this->type === 'colleges',
+            'isCollege' => false,
         ]);
     }
 

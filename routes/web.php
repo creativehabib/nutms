@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Livewire\CollegeLabSummary;
+use App\Livewire\CollegeManagement;
 use App\Livewire\IctTrainingSummary;
 use App\Livewire\ReferenceDataManagement;
 use App\Livewire\TeacherManagement;
@@ -15,8 +16,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/teacher-management', TeacherManagement::class)->name('teachers.manage');
     Route::get('/reference-data/{type}', ReferenceDataManagement::class)
-        ->whereIn('type', ['subjects', 'designations', 'colleges', 'teacher-levels', 'employments'])
+        ->whereIn('type', ['subjects', 'designations', 'teacher-levels', 'employments'])
         ->name('reference-data.manage');
+    Route::get('/colleges', CollegeManagement::class)->name('colleges.manage');
     Route::get('/training-catalog', TrainingCatalogManagement::class)->name('training-catalog.manage');
     Route::get('/lab-summary', CollegeLabSummary::class)->name('lab.summary');
     Route::get('/ict-training-summary', IctTrainingSummary::class)->name('ict.summary');
