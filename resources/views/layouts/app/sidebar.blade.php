@@ -16,6 +16,10 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+
+                <flux:sidebar.item icon="presentation-chart-bar" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>
+                    ট্রেনিং ক্যাটালগ
+                </flux:sidebar.item>
                 <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.manage')" wire:navigate>
                     {{ __('Teacher Management') }}
                 </flux:sidebar.item>

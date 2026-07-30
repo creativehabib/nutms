@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Exports\SummaryExport;
 use App\Models\Teacher;
+use App\Models\TrainingType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -37,9 +38,9 @@ class IctTrainingSummary extends Component
                             $teacher->college_code ?? '-',
                             $teacher->college_name ?? '-',
                             $teacher->name ?? '-',
-                            $teacher->ict_training_name ?? '-',
+                            $this->trainingDetails($teacher),
                             $teacher->other_training_name ?: 'উল্লেখ নেই',
-                            $teacher->training_institute ?: 'উল্লেখ নেই',
+                            $this->trainingInstitutes($teacher),
                         ],
                     ),
                 )->values()->all(),
@@ -86,8 +87,13 @@ class IctTrainingSummary extends Component
     private function teachersWithIctQuery(): Builder
     {
         return Teacher::select('id', 'college_code', 'college_name', 'name', 'ict_training_name', 'other_training_name', 'training_institute')
-            ->whereNotNull('ict_training_name')
-            ->where('ict_training_name', '!=', '')
+            ->with('trainingTypes.trainingInstitute')
+            ->where(function (Builder $query): void {
+                $query->whereHas('trainingTypes')
+                    ->orWhere(function (Builder $query): void {
+                        $query->whereNotNull('ict_training_name')->where('ict_training_name', '!=', '');
+                    });
+            })
             ->orderBy('college_code')
             ->orderBy('name')
             ->orderBy('id');
@@ -96,6 +102,7 @@ class IctTrainingSummary extends Component
     private function teachersWithoutIctQuery(): Builder
     {
         return Teacher::select('id', 'college_code', 'college_name', 'name', 'subject', 'designation', 'teacher_level', 'employment_type')
+            ->doesntHave('trainingTypes')
             ->where(function (Builder $query): void {
                 $query->whereNull('ict_training_name')
                     ->orWhere('ict_training_name', '');
@@ -103,6 +110,32 @@ class IctTrainingSummary extends Component
             ->orderBy('college_code')
             ->orderBy('name')
             ->orderBy('id');
+    }
+
+    public function trainingDetails(Teacher $teacher): string
+    {
+        if ($teacher->trainingTypes->isEmpty()) {
+            return $teacher->ict_training_name ?: 'উল্লেখ নেই';
+        }
+
+        $units = ['hours' => 'ঘণ্টা', 'days' => 'দিন', 'weeks' => 'সপ্তাহ', 'months' => 'মাস'];
+
+        return $teacher->trainingTypes->map(function (TrainingType $trainingType) use ($units): string {
+            $duration = $trainingType->duration_value
+                ? "{$trainingType->duration_value} ".($units[$trainingType->duration_unit] ?? '')
+                : 'সময়কাল অনির্ধারিত';
+
+            return "{$trainingType->name} ({$trainingType->pivot->training_year}, {$duration})";
+        })->implode(', ');
+    }
+
+    public function trainingInstitutes(Teacher $teacher): string
+    {
+        if ($teacher->trainingTypes->isEmpty()) {
+            return $teacher->training_institute ?: 'উল্লেখ নেই';
+        }
+
+        return $teacher->trainingTypes->pluck('trainingInstitute.name')->filter()->unique()->implode(', ');
     }
 
     /**

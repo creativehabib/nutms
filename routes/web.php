@@ -5,6 +5,7 @@ use App\Livewire\CollegeLabSummary;
 use App\Livewire\IctTrainingSummary;
 use App\Livewire\ReferenceDataManagement;
 use App\Livewire\TeacherManagement;
+use App\Livewire\TrainingCatalogManagement;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -16,6 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reference-data/{type}', ReferenceDataManagement::class)
         ->whereIn('type', ['subjects', 'designations', 'colleges', 'teacher-levels', 'employments'])
         ->name('reference-data.manage');
+    Route::get('/training-catalog', TrainingCatalogManagement::class)->name('training-catalog.manage');
     Route::get('/lab-summary', CollegeLabSummary::class)->name('lab.summary');
     Route::get('/ict-training-summary', IctTrainingSummary::class)->name('ict.summary');
 });
