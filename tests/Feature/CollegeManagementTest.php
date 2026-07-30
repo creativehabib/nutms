@@ -183,3 +183,36 @@ it('allows authenticated users to open the college management page', function ()
         ->assertSet('editingId', $college->id)
         ->assertSet('name', 'Editable College');
 });
+
+it('shows a concise college table and a separate full details page', function () {
+    $college = College::query()->create([
+        'name' => 'Details College',
+        'code' => 'DETAIL-1',
+        'address' => 'Complete College Address',
+        'principal_name' => 'Principal Details',
+        'has_computer_lab' => true,
+        'lab_equipment_type' => 'both',
+        'desktop_count' => 20,
+        'laptop_count' => 5,
+    ]);
+    $college->programs()->create(['level' => 'degree', 'name' => 'BA', 'items' => ['BA', 'BSS']]);
+
+    Livewire::test(CollegeManagement::class)
+        ->assertSee('Details College')
+        ->assertSee('দেখুন')
+        ->assertDontSee('Complete College Address')
+        ->assertDontSee('Principal Details')
+        ->assertDontSee('BSS');
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('colleges.show', $college))
+        ->assertSuccessful()
+        ->assertSee('Complete College Address')
+        ->assertSee('Principal Details')
+        ->assertSee('ডেস্কটপ')
+        ->assertSee('20')
+        ->assertSee('ল্যাপটপ')
+        ->assertSee('5')
+        ->assertSee('BA')
+        ->assertSee('BSS');
+});

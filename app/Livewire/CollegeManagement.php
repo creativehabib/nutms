@@ -35,7 +35,7 @@ class CollegeManagement extends Component
     public function render(): View
     {
         return view('livewire.college-management', [
-            'colleges' => College::query()->with(['division:id,name', 'district:id,name', 'thana:id,name', 'programs'])->withCount('teachers')
+            'colleges' => College::query()->with(['district:id,name', 'thana:id,name'])->withCount('teachers')
                 ->when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query->where('name', 'like', "%{$this->search}%")->orWhere('code', 'like', "%{$this->search}%")))
                 ->orderBy('name')->paginate(10),
         ]);
