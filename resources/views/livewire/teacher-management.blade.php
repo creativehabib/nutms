@@ -25,7 +25,7 @@
                 </div>
             </div>
 
-            <div class="grid gap-3 lg:grid-cols-[minmax(16rem,1.25fr)_repeat(3,minmax(10rem,0.75fr))_auto] lg:items-end">
+            <div class="grid gap-3 lg:grid-cols-[minmax(16rem,1.25fr)_repeat(2,minmax(10rem,0.75fr))_auto] lg:items-end">
 
                 <!-- সার্চ ইনপুট -->
                 <div>
@@ -62,16 +62,6 @@
                             @foreach($collegeCodes as $code)
                                 <option value="{{ $code }}">{{ $code }}</option>
                             @endforeach
-                        </select>
-                    </div>
-
-                    <!-- ল্যাব ফিল্টার -->
-                    <div>
-                        <label for="lab-filter" class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">ল্যাব অবস্থা</label>
-                        <select id="lab-filter" wire:model.live="labFilter" class="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                            <option value="">সব অবস্থা</option>
-                            <option value="Yes">ল্যাব আছে</option>
-                            <option value="No">ল্যাব নেই</option>
                         </select>
                     </div>
 
@@ -136,7 +126,6 @@
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">কলেজ কোড</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">শিক্ষকের নাম</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">পদবী ও বিষয়</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">ল্যাব ও কম্পিউটার</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">যোগাযোগ</th>
                     <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">অ্যাকশন</th>
                 </tr>
@@ -169,20 +158,6 @@
                             <span class="block text-gray-800 dark:text-slate-200 font-semibold">{{ $teacher->designation }}</span>
                             <span class="block text-gray-500 dark:text-slate-400 text-xs">{{ $teacher->subject }}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            @if($teacher->has_computer_lab === 'Yes')
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300">
-                                    ল্যাব আছে
-                                </span>
-                                <span class="block text-gray-500 dark:text-slate-400 text-xs mt-1">কম্পিউটার: {{ $teacher->computer_count ?? 0 }}টি</span>
-                            @elseif($teacher->has_computer_lab === 'No')
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300">
-                                    ল্যাব নেই
-                                </span>
-                            @else
-                                <span class="text-gray-400 dark:text-slate-500">-</span>
-                            @endif
-                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="block text-gray-800 dark:text-slate-200">{{ $teacher->mobile_number ?? '-' }}</span>
                             <span class="block text-blue-600 text-xs">{{ $teacher->email ?? '-' }}</span>
@@ -200,7 +175,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
                             কোনো ডেটা পাওয়া যায়নি!
                         </td>
                     </tr>
@@ -432,22 +407,8 @@
                             </fieldset>
 
                             <fieldset class="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
-                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">ল্যাব ও যোগাযোগ</legend>
-                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">কম্পিউটার ল্যাব</label>
-                                    <select wire:model="editForm.has_computer_lab" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                        <option value="">নির্বাচন করুন</option>
-                                        <option value="Yes">আছে</option>
-                                        <option value="No">নেই</option>
-                                    </select>
-                                    @error('editForm.has_computer_lab') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">কম্পিউটার সংখ্যা</label>
-                                    <input type="number" min="0" wire:model="editForm.computer_count" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                    @error('editForm.computer_count') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                </div>
+                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">যোগাযোগ</legend>
+                                <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">মোবাইল নম্বর</label>
                                     <input type="text" wire:model="editForm.mobile_number" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">

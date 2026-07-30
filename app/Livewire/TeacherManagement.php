@@ -29,7 +29,6 @@ class TeacherManagement extends Component
     public $search = '';
     public $subjectFilter = '';
     public $collegeCodeFilter = '';
-    public $labFilter = '';
 
     /** @var array<int, string> */
     public array $selectedTeacherIds = [];
@@ -67,8 +66,6 @@ class TeacherManagement extends Component
         'other_training_duration' => '',
         'training_institute' => '',
         'training_year' => '',
-        'has_computer_lab' => '',
-        'computer_count' => null,
         'mobile_number' => '',
         'email' => '',
     ];
@@ -88,11 +85,6 @@ class TeacherManagement extends Component
     }
 
     public function updatedCollegeCodeFilter(): void
-    {
-        $this->resetFiltersAndSelection();
-    }
-
-    public function updatedLabFilter(): void
     {
         $this->resetFiltersAndSelection();
     }
@@ -306,8 +298,6 @@ class TeacherManagement extends Component
             'other_training_duration' => $teacher->other_training_duration,
             'training_institute' => $teacher->training_institute,
             'training_year' => $teacher->training_year,
-            'has_computer_lab' => $teacher->has_computer_lab,
-            'computer_count' => $teacher->computer_count,
             'mobile_number' => $teacher->mobile_number,
             'email' => $teacher->email,
         ];
@@ -362,8 +352,6 @@ class TeacherManagement extends Component
                 'editForm.other_training_duration' => ['nullable', 'string'],
                 'editForm.training_institute' => ['nullable', 'string'],
                 'editForm.training_year' => ['nullable', 'string', 'max:255'],
-                'editForm.has_computer_lab' => ['nullable', Rule::in(['Yes', 'No'])],
-                'editForm.computer_count' => ['nullable', 'integer', 'min:0'],
                 'editForm.mobile_number' => 'nullable|string|max:50',
                 'editForm.email' => 'nullable|email|max:255',
                 'trainingEntries' => ['array'],
@@ -378,9 +366,6 @@ class TeacherManagement extends Component
             ], [
                 'editForm.name.required' => 'শিক্ষকের নাম অবশ্যই দিতে হবে।',
                 'editForm.tmis_id.unique' => 'এই TMIS ID ইতোমধ্যে অন্য একজন শিক্ষকের জন্য ব্যবহার করা হয়েছে।',
-                'editForm.has_computer_lab.in' => 'কম্পিউটার ল্যাবের সঠিক অবস্থা নির্বাচন করুন।',
-                'editForm.computer_count.integer' => 'কম্পিউটার সংখ্যা অবশ্যই পূর্ণসংখ্যা হতে হবে।',
-                'editForm.computer_count.min' => 'কম্পিউটার সংখ্যা শূন্যের কম হতে পারবে না।',
                 'editForm.email.email' => 'সঠিক ইমেইল ঠিকানা লিখুন।',
                 'editForm.*.max' => 'এই তথ্যটি অনুমোদিত দৈর্ঘ্যের চেয়ে বড় হয়েছে।',
                 'trainingEntries.*.training_year.integer' => 'ট্রেনিং বছর চার সংখ্যার হতে হবে।',
@@ -541,11 +526,6 @@ class TeacherManagement extends Component
         // কলেজ কোড অনুযায়ী ফিল্টার
         if (!empty($this->collegeCodeFilter)) {
             $query->where('college_code', $this->collegeCodeFilter);
-        }
-
-        // ল্যাব আছে কি নেই অনুযায়ী ফিল্টার
-        if (!empty($this->labFilter)) {
-            $query->where('has_computer_lab', $this->labFilter);
         }
 
         return $query;

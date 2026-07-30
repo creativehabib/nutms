@@ -76,7 +76,9 @@ it('shows all teacher profile sections on a dedicated details page', function ()
     Livewire::test(TeacherDetails::class, ['teacher' => $teacher])
         ->assertSee('Details Teacher')->assertSee('Teacher Present')->assertSee('Teacher Permanent')
         ->assertSee('01900000000')->assertSee('Agrani Bank')->assertSee('Town Branch')->assertSee('987654321')
-        ->assertSee('প্রতিষ্ঠানভিত্তিক ট্রেনিং ইতিহাস');
+        ->assertSee('প্রতিষ্ঠানভিত্তিক ট্রেনিং ইতিহাস')
+        ->assertDontSee('কম্পিউটার ল্যাব')
+        ->assertDontSee('কম্পিউটার সংখ্যা');
 });
 
 it('protects teacher create edit and details pages with authentication', function () {
