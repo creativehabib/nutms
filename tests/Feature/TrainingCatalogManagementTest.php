@@ -103,6 +103,23 @@ it('protects training types that are used by teachers from deletion', function (
     expect($trainingType->fresh())->not->toBeNull();
 });
 
+it('uses the existing teacher training pivot table from both relationship directions', function () {
+    $institute = TrainingInstitute::query()->create(['name' => 'Relationship Institute']);
+    $trainingType = TrainingType::query()->create([
+        'training_institute_id' => $institute->id,
+        'name' => 'Relationship Training',
+        'duration_value' => 2,
+        'duration_unit' => 'days',
+    ]);
+    $teacher = Teacher::query()->create(['name' => 'Relationship Teacher']);
+    $teacher->trainingTypes()->attach($trainingType->id, ['training_year' => 2025]);
+
+    expect($teacher->trainingTypes()->getTable())->toBe('teacher_training')
+        ->and($trainingType->teachers()->getTable())->toBe('teacher_training')
+        ->and($trainingType->teachers()->count())->toBe(1)
+        ->and($teacher->trainingTypes()->count())->toBe(1);
+});
+
 it('shows normalized training, completion year, and duration in the training summary', function () {
     $institute = TrainingInstitute::query()->create(['name' => 'NAEM']);
     $trainingType = TrainingType::query()->create(['training_institute_id' => $institute->id, 'name' => 'Digital Content', 'duration_value' => 10, 'duration_unit' => 'days']);

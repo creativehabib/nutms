@@ -24,7 +24,7 @@ class TrainingType extends Model
 
     public function teachers(): BelongsToMany
     {
-        return $this->belongsToMany(Teacher::class)
+        return $this->belongsToMany(Teacher::class, 'teacher_training')
             ->withPivot(['training_year'])
             ->withTimestamps();
     }

@@ -70,7 +70,7 @@ class Teacher extends Model
 
     public function trainingTypes(): BelongsToMany
     {
-        return $this->belongsToMany(TrainingType::class)
+        return $this->belongsToMany(TrainingType::class, 'teacher_training')
             ->withPivot(['training_year'])
             ->withTimestamps();
     }
