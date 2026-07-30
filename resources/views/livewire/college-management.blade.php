@@ -24,17 +24,21 @@
                 @endif
                 <div class="rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
                     <div class="flex items-center justify-between"><flux:heading>কলেজ লেভেল, কোর্স ও বিষয়</flux:heading><flux:button type="button" size="sm" wire:click="addProgram">যোগ করুন</flux:button></div>
-                    <flux:text class="mt-1">ডিগ্রির ক্ষেত্রে BA/BSS/BBS/BSc এবং অনার্স/মাস্টার্সে বিষয়ের নাম লিখুন।</flux:text>
+                    <flux:text class="mt-1">সাজেশন থেকে বেছে নিন অথবা নতুন নাম লিখে Enter চাপুন। প্রতিটি নির্বাচন আলাদা pill হিসেবে যোগ হবে।</flux:text>
                     <div class="mt-3 grid gap-4">
                         @foreach($programs as $index => $program)
                             <div wire:key="college-program-{{ $index }}" class="rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
                                 <div class="grid gap-2 sm:grid-cols-[10rem_1fr_auto]">
                                     <flux:select wire:model.live="programs.{{ $index }}.level"><option value="degree">ডিগ্রি</option><option value="honours">অনার্স</option><option value="masters">মাস্টার্স</option><option value="professional">প্রফেশনাল</option><option value="other">অন্যান্য</option></flux:select>
-                                    <div class="flex gap-2"><flux:input wire:model="programs.{{ $index }}.new_name" wire:keydown.enter.prevent="addProgramTag({{ $index }})" :placeholder="$program['level'] === 'degree' ? 'কোর্স লিখুন—যেমন BA' : 'বিষয় লিখুন—যেমন বাংলা'" /><flux:button type="button" size="sm" wire:click="addProgramTag({{ $index }})">ট্যাগ যোগ</flux:button></div>
+                                    <div class="flex gap-2">
+                                        <flux:input wire:model="programs.{{ $index }}.new_name" wire:keydown.enter.prevent="addProgramTag({{ $index }})" list="program-suggestions-{{ $index }}" autocomplete="off" :placeholder="$program['level'] === 'degree' ? 'কোর্স খুঁজুন—যেমন BA' : 'বিষয় খুঁজুন—যেমন বাংলা'" aria-label="কোর্স অথবা বিষয় খুঁজে যোগ করুন" />
+                                        <datalist id="program-suggestions-{{ $index }}">@foreach($program['level'] === 'degree' ? $degreeCourseSuggestions : $subjectSuggestions as $suggestion)<option value="{{ $suggestion }}"></option>@endforeach</datalist>
+                                        <flux:button type="button" size="sm" variant="primary" wire:click="addProgramTag({{ $index }})">যোগ করুন</flux:button>
+                                    </div>
                                     <flux:button type="button" size="sm" variant="danger" wire:click="removeProgram({{ $index }})">গ্রুপ বাদ</flux:button>
                                 </div>
                                 <div class="mt-3 flex flex-wrap gap-2">
-                                    @forelse($program['names'] as $tagIndex => $programName)<span wire:key="program-tag-{{ $index }}-{{ $tagIndex }}" class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-800 dark:bg-indigo-950 dark:text-indigo-200">{{ $programName }}<button type="button" wire:click="removeProgramTag({{ $index }}, {{ $tagIndex }})" class="rounded-full px-1 hover:bg-indigo-200 dark:hover:bg-indigo-900" aria-label="{{ $programName }} বাদ দিন">×</button></span>@empty<flux:text>এখনও কোনো ট্যাগ যোগ করা হয়নি।</flux:text>@endforelse
+                                    @forelse($program['names'] as $tagIndex => $programName)<flux:badge wire:key="program-tag-{{ $index }}-{{ $tagIndex }}" color="indigo" class="gap-1 py-1">{{ $programName }}<button type="button" wire:click="removeProgramTag({{ $index }}, {{ $tagIndex }})" class="rounded-full px-1 hover:bg-indigo-200 dark:hover:bg-indigo-900" aria-label="{{ $programName }} বাদ দিন">×</button></flux:badge>@empty<flux:text>এখনও কোনো কোর্স বা বিষয় নির্বাচন করা হয়নি।</flux:text>@endforelse
                                 </div>
                                 @error("programs.$index.level")<flux:text class="mt-2 text-red-600">{{ $message }}</flux:text>@enderror
                                 @error("programs.$index.names")<flux:text class="mt-2 text-red-600">{{ $message }}</flux:text>@enderror

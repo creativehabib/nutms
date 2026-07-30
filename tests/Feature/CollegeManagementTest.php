@@ -57,7 +57,12 @@ it('stores a complete college profile with multiple academic programs', function
 });
 
 it('adds degree courses and honours subjects as unique tags', function () {
+    \App\Models\Subject::query()->create(['name' => 'বাংলা']);
+
     Livewire::test(CollegeManagement::class)
+        ->assertSee('BA')
+        ->assertSee('বাংলা')
+        ->assertSee('সাজেশন থেকে বেছে নিন')
         ->call('addProgram')
         ->set('programs.0.new_name', 'BA')
         ->call('addProgramTag', 0)

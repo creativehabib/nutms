@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\College;
 use App\Models\District;
 use App\Models\Division;
+use App\Models\Subject;
 use App\Models\Thana;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
@@ -231,6 +232,8 @@ class CollegeManagement extends Component
             'divisions' => Division::query()->where('status', true)->orderBy('name')->get(['id', 'name', 'bn_name']),
             'districts' => District::query()->where('division_id', $this->divisionId ?: 0)->where('status', true)->orderBy('name')->get(['id', 'name', 'bn_name']),
             'thanas' => Thana::query()->where('district_id', $this->districtId ?: 0)->where('status', true)->orderBy('name')->get(['id', 'name', 'bn_name']),
+            'subjectSuggestions' => Subject::query()->where('is_active', true)->orderBy('name')->pluck('name'),
+            'degreeCourseSuggestions' => collect(['BA', 'BSS', 'BBS', 'BSc']),
         ]);
     }
 
