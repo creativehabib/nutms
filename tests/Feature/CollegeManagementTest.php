@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\CollegeManagement;
+use App\Livewire\CollegeForm;
 use App\Models\College;
 use App\Models\District;
 use App\Models\Division;
@@ -25,7 +25,7 @@ it('stores a complete college profile with multiple academic programs', function
     $district = District::query()->whereBelongsTo($division)->firstOrFail();
     $thana = Thana::query()->whereBelongsTo($district)->firstOrFail();
 
-    Livewire::test(CollegeManagement::class)
+    Livewire::test(CollegeForm::class)
         ->set('code', '1201')
         ->set('name', 'Professional College')
         ->set('divisionId', (string) $division->id)
@@ -44,7 +44,8 @@ it('stores a complete college profile with multiple academic programs', function
             ['level' => 'masters', 'names' => ['ইংরেজি'], 'new_name' => ''],
         ])
         ->call('save')
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertRedirect(route('colleges.manage'));
 
     $college = College::query()->where('code', '1201')->firstOrFail();
     expect($college->principal_name)->toBe('Professor Rahman')
@@ -61,7 +62,7 @@ it('stores a complete college profile with multiple academic programs', function
 it('adds degree courses and honours subjects as unique tags', function () {
     \App\Models\Subject::query()->create(['name' => 'বাংলা']);
 
-    Livewire::test(CollegeManagement::class)
+    Livewire::test(CollegeForm::class)
         ->assertSee('BA')
         ->assertSee('বাংলা')
         ->assertSee('Enter চাপলেই সেটি নিচে pill হিসেবে যুক্ত হবে')
@@ -88,7 +89,7 @@ it('rejects a district and thana outside the selected administrative hierarchy',
     $unrelatedDistrict = District::query()->where('name', 'Test District Two')->firstOrFail();
     $thana = Thana::query()->whereBelongsTo($unrelatedDistrict)->firstOrFail();
 
-    Livewire::test(CollegeManagement::class)
+    Livewire::test(CollegeForm::class)
         ->set('name', 'Invalid Location College')
         ->set('divisionId', (string) $division->id)
         ->set('districtId', (string) $unrelatedDistrict->id)
@@ -106,7 +107,7 @@ it('requires device counts when a college has a computer lab', function () {
     $district = District::query()->whereBelongsTo($division)->firstOrFail();
     $thana = Thana::query()->whereBelongsTo($district)->firstOrFail();
 
-    Livewire::test(CollegeManagement::class)
+    Livewire::test(CollegeForm::class)
         ->set('name', 'Lab College')
         ->set('divisionId', (string) $division->id)
         ->set('districtId', (string) $district->id)
@@ -125,7 +126,7 @@ it('supports a lab containing only one device category', function (string $equip
     $district = District::query()->whereBelongsTo($division)->firstOrFail();
     $thana = Thana::query()->whereBelongsTo($district)->firstOrFail();
 
-    Livewire::test(CollegeManagement::class)
+    Livewire::test(CollegeForm::class)
         ->set('name', "{$equipmentType} Only College")
         ->set('divisionId', (string) $division->id)
         ->set('districtId', (string) $district->id)
@@ -152,7 +153,7 @@ it('stores null device counts when a college does not have a lab', function () {
     $district = District::query()->whereBelongsTo($division)->firstOrFail();
     $thana = Thana::query()->whereBelongsTo($district)->firstOrFail();
 
-    Livewire::test(CollegeManagement::class)
+    Livewire::test(CollegeForm::class)
         ->set('name', 'No Lab College')
         ->set('divisionId', (string) $division->id)
         ->set('districtId', (string) $district->id)
@@ -171,5 +172,14 @@ it('stores null device counts when a college does not have a lab', function () {
 });
 
 it('allows authenticated users to open the college management page', function () {
-    $this->actingAs(User::factory()->create())->get(route('colleges.manage'))->assertSuccessful();
+    $user = User::factory()->create();
+    $college = College::query()->create(['name' => 'Editable College']);
+
+    $this->actingAs($user)->get(route('colleges.manage'))->assertSuccessful()->assertSee('নতুন কলেজ তৈরি');
+    $this->actingAs($user)->get(route('colleges.create'))->assertSuccessful()->assertSee('নতুন কলেজ তৈরি');
+    $this->actingAs($user)->get(route('colleges.edit', $college))->assertSuccessful()->assertSee('কলেজ সম্পাদনা');
+
+    Livewire::test(CollegeForm::class, ['college' => $college])
+        ->assertSet('editingId', $college->id)
+        ->assertSet('name', 'Editable College');
 });
