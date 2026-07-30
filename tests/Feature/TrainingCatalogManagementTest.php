@@ -1,0 +1,116 @@
+<?php
+
+use App\Livewire\IctTrainingSummary;
+use App\Livewire\TeacherManagement;
+use App\Livewire\TrainingCatalogManagement;
+use App\Models\Teacher;
+use App\Models\TrainingInstitute;
+use App\Models\TrainingType;
+use App\Models\User;
+use Livewire\Livewire;
+
+it('requires authentication to manage the training catalog', function () {
+    $this->get(route('training-catalog.manage'))->assertRedirect(route('login'));
+});
+
+it('allows authenticated users to open the training catalog', function () {
+    $this->actingAs(User::factory()->create())->get(route('training-catalog.manage'))->assertSuccessful();
+});
+
+it('creates an institute and an institute-specific training type with duration', function () {
+    Livewire::test(TrainingCatalogManagement::class)
+        ->set('instituteName', 'NAEM')
+        ->call('saveInstitute')
+        ->assertHasNoErrors();
+
+    $institute = TrainingInstitute::query()->where('name', 'NAEM')->firstOrFail();
+
+    Livewire::test(TrainingCatalogManagement::class)
+        ->set('trainingInstituteId', (string) $institute->id)
+        ->set('trainingTypeName', 'Digital Content Development')
+        ->set('durationValue', '10')
+        ->set('durationUnit', 'days')
+        ->call('saveTrainingType')
+        ->assertHasNoErrors();
+
+    $trainingType = TrainingType::query()->firstOrFail();
+    expect($trainingType->training_institute_id)->toBe($institute->id)
+        ->and($trainingType->duration_value)->toBe(10)
+        ->and($trainingType->duration_unit)->toBe('days');
+});
+
+it('stores the completion year on each teachers training record', function () {
+    $institute = TrainingInstitute::query()->create(['name' => 'NAEM']);
+    $trainingType = TrainingType::query()->create([
+        'training_institute_id' => $institute->id,
+        'name' => 'Digital Content Development',
+        'duration_value' => 10,
+        'duration_unit' => 'days',
+    ]);
+    $teacher = Teacher::query()->create(['name' => 'Teacher']);
+
+    Livewire::test(TeacherManagement::class)
+        ->call('editTeacher', $teacher->id)
+        ->set('trainingEntries', [[
+            'training_institute_id' => (string) $institute->id,
+            'training_type_id' => (string) $trainingType->id,
+            'training_year' => '2025',
+        ]])
+        ->call('updateTeacher')
+        ->assertHasNoErrors();
+
+    expect($teacher->refresh()->trainingTypes)->toHaveCount(1)
+        ->and($teacher->trainingTypes->first()->pivot->training_year)->toBe(2025);
+});
+
+it('rejects a training type that does not belong to the selected institute', function () {
+    $selectedInstitute = TrainingInstitute::query()->create(['name' => 'Selected Institute']);
+    $differentInstitute = TrainingInstitute::query()->create(['name' => 'Different Institute']);
+    $trainingType = TrainingType::query()->create([
+        'training_institute_id' => $differentInstitute->id,
+        'name' => 'Mismatched Training',
+        'duration_value' => 5,
+        'duration_unit' => 'days',
+    ]);
+    $teacher = Teacher::query()->create(['name' => 'Teacher']);
+
+    Livewire::test(TeacherManagement::class)
+        ->call('editTeacher', $teacher->id)
+        ->set('trainingEntries', [[
+            'training_institute_id' => (string) $selectedInstitute->id,
+            'training_type_id' => (string) $trainingType->id,
+            'training_year' => '2025',
+        ]])
+        ->call('updateTeacher')
+        ->assertHasErrors(['trainingEntries.0.training_type_id']);
+
+    expect($teacher->refresh()->trainingTypes)->toBeEmpty();
+});
+
+it('protects training types that are used by teachers from deletion', function () {
+    $institute = TrainingInstitute::query()->create(['name' => 'NAEM']);
+    $trainingType = TrainingType::query()->create([
+        'training_institute_id' => $institute->id,
+        'name' => 'Protected Training',
+        'duration_value' => 3,
+        'duration_unit' => 'days',
+    ]);
+    $teacher = Teacher::query()->create(['name' => 'Teacher']);
+    $teacher->trainingTypes()->attach($trainingType->id, ['training_year' => 2024]);
+
+    Livewire::test(TrainingCatalogManagement::class)->call('deleteTrainingType', $trainingType->id);
+
+    expect($trainingType->fresh())->not->toBeNull();
+});
+
+it('shows normalized training, completion year, and duration in the training summary', function () {
+    $institute = TrainingInstitute::query()->create(['name' => 'NAEM']);
+    $trainingType = TrainingType::query()->create(['training_institute_id' => $institute->id, 'name' => 'Digital Content', 'duration_value' => 10, 'duration_unit' => 'days']);
+    $teacher = Teacher::query()->create(['name' => 'Trained Teacher', 'college_code' => '1001']);
+    $teacher->trainingTypes()->attach($trainingType->id, ['training_year' => 2025]);
+
+    Livewire::test(IctTrainingSummary::class)
+        ->assertSee('Trained Teacher')
+        ->assertSee('Digital Content (2025, 10 দিন)')
+        ->assertSee('NAEM');
+});
