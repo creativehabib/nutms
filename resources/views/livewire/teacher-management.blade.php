@@ -385,22 +385,22 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">পদবী</label>
-                                        <input type="text" wire:model="editForm.designation" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        <select wire:model="editForm.designation" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">নির্বাচন করুন</option>@foreach($designations as $designation)<option value="{{ $designation }}">{{ $designation }}</option>@endforeach</select>
                                         @error('editForm.designation') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">বিষয়</label>
-                                        <input type="text" wire:model="editForm.subject" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        <select wire:model="editForm.subject" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">নির্বাচন করুন</option>@foreach($subjects as $subject)<option value="{{ $subject }}">{{ $subject }}</option>@endforeach</select>
                                         @error('editForm.subject') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">শিক্ষক স্তর</label>
-                                        <input type="text" wire:model="editForm.teacher_level" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        <select wire:model="editForm.teacher_level" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">নির্বাচন করুন</option>@foreach($teacherLevels as $level)<option value="{{ $level }}">{{ $level }}</option>@endforeach</select>
                                         @error('editForm.teacher_level') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">চাকরির ধরন</label>
-                                        <input type="text" wire:model="editForm.employment_type" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        <select wire:model="editForm.employment_type" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">নির্বাচন করুন</option>@foreach($employments as $employment)<option value="{{ $employment }}">{{ $employment }}</option>@endforeach</select>
                                         @error('editForm.employment_type') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
