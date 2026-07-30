@@ -15,6 +15,7 @@
                     <p class="text-sm text-slate-500 dark:text-slate-400">সার্চ ও ফিল্টার ব্যবহার করে প্রয়োজনীয় শিক্ষক খুঁজুন।</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    <flux:button variant="primary" icon="plus" :href="route('teachers.create')" wire:navigate>নতুন শিক্ষক</flux:button>
                     <span class="inline-flex w-fit items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400 shadow-sm">
                         মোট {{ $teachers->total() }} জন শিক্ষক
                     </span>
@@ -191,9 +192,8 @@
                                 <button wire:click="restoreTeacher({{ $teacher->id }})" class="mr-2 rounded bg-emerald-100 px-3 py-1 text-emerald-700 transition hover:bg-emerald-200 hover:text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900">Restore</button>
                                 <button wire:click="confirmPermanentTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-700 transition hover:bg-red-200 hover:text-red-900 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900">Permanent Delete</button>
                             @else
-                                <button wire:click="editTeacher({{ $teacher->id }})" class="mr-2 rounded bg-indigo-100 px-3 py-1 text-indigo-600 transition hover:bg-indigo-200 hover:text-indigo-900 dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-900">
-                                    Edit
-                                </button>
+                                <flux:button size="sm" icon="eye" :href="route('teachers.show', $teacher)" wire:navigate>দেখুন</flux:button>
+                                <flux:button size="sm" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate>সম্পাদনা</flux:button>
                                 <button wire:click="confirmTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200 hover:text-red-900 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900">Delete</button>
                             @endif
                         </td>

@@ -7,7 +7,9 @@ use App\Livewire\CollegeLabSummary;
 use App\Livewire\CollegeManagement;
 use App\Livewire\IctTrainingSummary;
 use App\Livewire\ReferenceDataManagement;
+use App\Livewire\TeacherDetails;
 use App\Livewire\TeacherManagement;
+use App\Livewire\TeacherProfileForm;
 use App\Livewire\TrainingCatalogManagement;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +19,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     Route::get('/teacher-management', TeacherManagement::class)->name('teachers.manage');
+    Route::get('/teachers/create', TeacherProfileForm::class)->name('teachers.create');
+    Route::get('/teachers/{teacher}/edit', TeacherProfileForm::class)->name('teachers.edit');
+    Route::get('/teachers/{teacher}', TeacherDetails::class)->name('teachers.show');
     Route::get('/reference-data/{type}', ReferenceDataManagement::class)
         ->whereIn('type', ['subjects', 'designations', 'teacher-levels', 'employments'])
         ->name('reference-data.manage');
