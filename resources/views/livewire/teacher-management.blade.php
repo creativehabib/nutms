@@ -342,11 +342,6 @@
                                         <input type="text" wire:model="editForm.tmis_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                                         @error('editForm.tmis_id') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">TTIS ID</label>
-                                        <input type="text" wire:model="editForm.ttis_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                        @error('editForm.ttis_id') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
                                 </div>
                             </fieldset>
 

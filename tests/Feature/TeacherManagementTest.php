@@ -71,7 +71,6 @@ it('allows every teacher data field to be updated', function () {
         'college_code' => '200',
         'college_name' => 'Updated College',
         'tmis_id' => 'TMIS-NEW',
-        'ttis_id' => 'TTIS-NEW',
         'name' => 'Updated Teacher',
         'designation' => 'Assistant Professor',
         'subject' => 'Physics',

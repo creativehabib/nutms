@@ -42,11 +42,22 @@ it('creates a teacher linked to a college with contact and bank information', fu
     $teacher = Teacher::query()->where('tmis_id', 'TMIS-PROFILE')->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
         ->and($teacher->college_name)->toBe('Teacher College')
+        ->and($teacher->ttis_id)->toBe('TTIS-'.str_pad((string) $teacher->id, 8, '0', STR_PAD_LEFT))
         ->and($teacher->present_address)->toBe('Present Address')
         ->and($teacher->bank_name)->toBe('Sonali Bank')
         ->and($teacher->bank_routing_number)->toBe('123456789')
         ->and($teacher->trainingTypes)->toHaveCount(1)
         ->and($teacher->trainingTypes->first()->pivot->training_year)->toBe(2026);
+});
+
+it('keeps an existing TTIS ID unchanged when a teacher profile is edited', function () {
+    $teacher = Teacher::query()->create(['name' => 'Imported Teacher', 'ttis_id' => 'LEGACY-TTIS-100']);
+
+    expect($teacher->ttis_id)->toBe('LEGACY-TTIS-100');
+
+    $teacher->update(['name' => 'Updated Imported Teacher']);
+
+    expect($teacher->refresh()->ttis_id)->toBe('LEGACY-TTIS-100');
 });
 
 it('updates profile fields without changing existing institutional training history', function () {

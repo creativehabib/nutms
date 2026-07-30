@@ -42,6 +42,28 @@ class Teacher extends Model
                 $teacher->college_id = null;
             }
         });
+
+        static::created(function (Teacher $teacher): void {
+            if (blank($teacher->ttis_id)) {
+                $teacher->updateQuietly([
+                    'ttis_id' => self::generateTtisId($teacher->getKey()),
+                ]);
+            }
+        });
+    }
+
+    private static function generateTtisId(int $teacherId): string
+    {
+        $baseTtisId = 'TTIS-'.str_pad((string) $teacherId, 8, '0', STR_PAD_LEFT);
+        $ttisId = $baseTtisId;
+        $suffix = 2;
+
+        while (self::withTrashed()->where('ttis_id', $ttisId)->exists()) {
+            $ttisId = $baseTtisId.'-'.$suffix;
+            $suffix++;
+        }
+
+        return $ttisId;
     }
 
     public function subject(): BelongsTo

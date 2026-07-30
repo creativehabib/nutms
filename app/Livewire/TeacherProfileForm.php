@@ -124,7 +124,6 @@ class TeacherProfileForm extends Component
         $validated = $this->validate([
             'collegeId' => ['required', Rule::exists('colleges', 'id')->where('is_active', true)],
             'tmisId' => ['nullable', 'string', 'max:255', Rule::unique('teachers', 'tmis_id')->ignore($this->editingId)],
-            'ttisId' => ['nullable', 'string', 'max:255'],
             'name' => ['required', 'string', 'max:255'],
             'designation' => ['nullable', 'string', 'max:255'],
             'subject' => ['nullable', 'string', 'max:255'],
@@ -175,7 +174,7 @@ class TeacherProfileForm extends Component
             $college = College::query()->findOrFail($validated['collegeId']);
             $teacher = Teacher::query()->updateOrCreate(['id' => $this->editingId], [
                 'college_id' => $college->id, 'college_code' => $college->code, 'college_name' => $college->name,
-                'tmis_id' => $validated['tmisId'] ?: null, 'ttis_id' => $validated['ttisId'] ?: null,
+                'tmis_id' => $validated['tmisId'] ?: null,
                 'name' => $validated['name'], 'designation' => $validated['designation'] ?: null,
                 'subject' => $validated['subject'] ?: null, 'teacher_level' => $validated['teacherLevel'] ?: null,
                 'employment_type' => $validated['employmentType'] ?: null,
