@@ -29,6 +29,10 @@ class CollegeManagement extends Component
     public string $address = '';
     public string $principalName = '';
     public string $collegeType = '';
+    public string $hasComputerLab = '';
+    public string $labEquipmentType = '';
+    public string $desktopCount = '';
+    public string $laptopCount = '';
     public bool $isActive = true;
 
     /** @var array<int, array{level: string, name: string}> */
@@ -47,6 +51,22 @@ class CollegeManagement extends Component
     public function updatedDistrictId(): void
     {
         $this->reset('thanaId');
+    }
+
+    public function updatedHasComputerLab(string $value): void
+    {
+        if ($value === '0') {
+            $this->reset('labEquipmentType', 'desktopCount', 'laptopCount');
+        }
+    }
+
+    public function updatedLabEquipmentType(string $value): void
+    {
+        if ($value === 'desktop') {
+            $this->reset('laptopCount');
+        } elseif ($value === 'laptop') {
+            $this->reset('desktopCount');
+        }
     }
 
     public function addProgram(): void
@@ -72,6 +92,10 @@ class CollegeManagement extends Component
         $this->address = (string) ($college->address ?? '');
         $this->principalName = (string) ($college->principal_name ?? '');
         $this->collegeType = (string) ($college->college_type ?? '');
+        $this->hasComputerLab = $college->has_computer_lab === null ? '' : ($college->has_computer_lab ? '1' : '0');
+        $this->labEquipmentType = (string) ($college->lab_equipment_type ?? $this->inferLabEquipmentType($college->desktop_count, $college->laptop_count));
+        $this->desktopCount = (string) ($college->desktop_count ?? '');
+        $this->laptopCount = (string) ($college->laptop_count ?? '');
         $this->isActive = $college->is_active;
         $this->programs = $college->programs->map(fn (CollegeProgram $program): array => ['level' => $program->level, 'name' => $program->name])->all();
     }
@@ -87,6 +111,10 @@ class CollegeManagement extends Component
             'address' => ['required', 'string', 'max:2000'],
             'principalName' => ['required', 'string', 'max:255'],
             'collegeType' => ['required', Rule::in(['government', 'non_government', 'other'])],
+            'hasComputerLab' => ['required', Rule::in(['0', '1'])],
+            'labEquipmentType' => [Rule::requiredIf($this->hasComputerLab === '1'), 'nullable', Rule::in(['desktop', 'laptop', 'both'])],
+            'desktopCount' => [Rule::requiredIf($this->hasComputerLab === '1' && in_array($this->labEquipmentType, ['desktop', 'both'], true)), 'nullable', 'integer', 'min:1', 'max:100000'],
+            'laptopCount' => [Rule::requiredIf($this->hasComputerLab === '1' && in_array($this->labEquipmentType, ['laptop', 'both'], true)), 'nullable', 'integer', 'min:1', 'max:100000'],
             'isActive' => ['boolean'],
             'programs' => ['array'],
             'programs.*.level' => ['required', Rule::in(['degree', 'honours', 'masters', 'professional', 'other'])],
@@ -99,6 +127,10 @@ class CollegeManagement extends Component
             'address.required' => 'কলেজের ঠিকানা দিন।',
             'principalName.required' => 'অধ্যক্ষের নাম দিন।',
             'collegeType.required' => 'কলেজের ধরন নির্বাচন করুন।',
+            'hasComputerLab.required' => 'কলেজে কম্পিউটার ল্যাব আছে কি না নির্বাচন করুন।',
+            'labEquipmentType.required' => 'ল্যাবে ডেস্কটপ, ল্যাপটপ অথবা উভয় আছে কি না নির্বাচন করুন।',
+            'desktopCount.required' => 'ল্যাবে ডেস্কটপ কম্পিউটারের সংখ্যা দিন।',
+            'laptopCount.required' => 'ল্যাবে ল্যাপটপের সংখ্যা দিন।',
             'programs.*.name.required' => 'কোর্স অথবা বিষয়ের নাম দিন।',
         ]);
 
@@ -119,6 +151,10 @@ class CollegeManagement extends Component
                 'address' => $validated['address'],
                 'principal_name' => $validated['principalName'],
                 'college_type' => $validated['collegeType'],
+                'has_computer_lab' => $validated['hasComputerLab'] === '1',
+                'lab_equipment_type' => $validated['hasComputerLab'] === '1' ? $validated['labEquipmentType'] : null,
+                'desktop_count' => $validated['hasComputerLab'] === '1' && in_array($validated['labEquipmentType'], ['desktop', 'both'], true) ? ($validated['desktopCount'] ?? null) : null,
+                'laptop_count' => $validated['hasComputerLab'] === '1' && in_array($validated['labEquipmentType'], ['laptop', 'both'], true) ? ($validated['laptopCount'] ?? null) : null,
                 'is_active' => $validated['isActive'],
             ]);
             $college->programs()->delete();
@@ -159,8 +195,18 @@ class CollegeManagement extends Component
 
     private function resetForm(): void
     {
-        $this->reset('editingId', 'code', 'name', 'divisionId', 'districtId', 'thanaId', 'address', 'principalName', 'collegeType', 'programs');
+        $this->reset('editingId', 'code', 'name', 'divisionId', 'districtId', 'thanaId', 'address', 'principalName', 'collegeType', 'hasComputerLab', 'labEquipmentType', 'desktopCount', 'laptopCount', 'programs');
         $this->isActive = true;
         $this->resetValidation();
+    }
+
+    private function inferLabEquipmentType(?int $desktopCount, ?int $laptopCount): string
+    {
+        return match (true) {
+            $desktopCount !== null && $laptopCount !== null => 'both',
+            $desktopCount !== null => 'desktop',
+            $laptopCount !== null => 'laptop',
+            default => '',
+        };
     }
 }

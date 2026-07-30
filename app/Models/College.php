@@ -10,12 +10,18 @@ class College extends Model
 {
     protected $fillable = [
         'code', 'name', 'division_id', 'district_id', 'thana_id', 'address',
-        'principal_name', 'college_type', 'is_active',
+        'principal_name', 'college_type', 'has_computer_lab', 'lab_equipment_type',
+        'desktop_count', 'laptop_count', 'is_active',
     ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return [
+            'has_computer_lab' => 'boolean',
+            'desktop_count' => 'integer',
+            'laptop_count' => 'integer',
+            'is_active' => 'boolean',
+        ];
     }
 
     public function teachers(): HasMany
