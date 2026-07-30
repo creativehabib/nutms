@@ -385,65 +385,49 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">পদবী</label>
-                                        <input type="text" wire:model="editForm.designation" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        <select wire:model="editForm.designation" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">নির্বাচন করুন</option>@foreach($designations as $designation)<option value="{{ $designation }}">{{ $designation }}</option>@endforeach</select>
                                         @error('editForm.designation') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">বিষয়</label>
-                                        <input type="text" wire:model="editForm.subject" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        <select wire:model="editForm.subject" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">নির্বাচন করুন</option>@foreach($subjects as $subject)<option value="{{ $subject }}">{{ $subject }}</option>@endforeach</select>
                                         @error('editForm.subject') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">শিক্ষক স্তর</label>
-                                        <input type="text" wire:model="editForm.teacher_level" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        <select wire:model="editForm.teacher_level" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">নির্বাচন করুন</option>@foreach($teacherLevels as $level)<option value="{{ $level }}">{{ $level }}</option>@endforeach</select>
                                         @error('editForm.teacher_level') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">চাকরির ধরন</label>
-                                        <input type="text" wire:model="editForm.employment_type" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                        <select wire:model="editForm.employment_type" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">নির্বাচন করুন</option>@foreach($employments as $employment)<option value="{{ $employment }}">{{ $employment }}</option>@endforeach</select>
                                         @error('editForm.employment_type') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
                             </fieldset>
 
                             <fieldset class="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
-                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">প্রশিক্ষণের তথ্য</legend>
-                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">প্রশিক্ষণ আছে?</label>
-                                        <input type="text" wire:model="editForm.has_training" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                        @error('editForm.has_training') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">প্রশিক্ষণ প্রতিষ্ঠান</label>
-                                        <input type="text" wire:model="editForm.training_institute" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                        @error('editForm.training_institute') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">প্রশিক্ষণের বছর</label>
-                                        <input type="text" wire:model="editForm.training_year" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                        @error('editForm.training_year') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">ICT প্রশিক্ষণের নাম</label>
-                                        <textarea wire:model="editForm.ict_training_name" rows="2" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
-                                        @error('editForm.ict_training_name') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">ICT প্রশিক্ষণের মেয়াদ</label>
-                                        <textarea wire:model="editForm.ict_training_duration" rows="2" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
-                                        @error('editForm.ict_training_duration') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">অন্যান্য প্রশিক্ষণের নাম</label>
-                                        <textarea wire:model="editForm.other_training_name" rows="2" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
-                                        @error('editForm.other_training_name') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">অন্যান্য প্রশিক্ষণের মেয়াদ</label>
-                                        <textarea wire:model="editForm.other_training_duration" rows="2" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
-                                        @error('editForm.other_training_duration') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
+                                <div class="flex items-center justify-between gap-3">
+                                    <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">প্রতিষ্ঠানভিত্তিক ট্রেনিং ইতিহাস</legend>
+                                    <flux:button type="button" size="sm" wire:click="addTrainingEntry">আরেকটি ট্রেনিং যোগ করুন</flux:button>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">প্রতিষ্ঠান নির্বাচন করলে শুধু সেই প্রতিষ্ঠানের ট্রেনিং দেখা যাবে। সময়কাল ক্যাটালগ থেকে স্বয়ংক্রিয়ভাবে প্রযোজ্য হবে; এখানে শিক্ষক যে বছরে ট্রেনিং সম্পন্ন করেছেন সেটি দিন।</p>
+                                <div class="grid gap-3">
+                                    @foreach ($trainingEntries as $index => $entry)
+                                        <div wire:key="teacher-training-{{ $index }}" class="grid gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700 sm:grid-cols-2 lg:grid-cols-4">
+                                            <div><label class="block text-sm font-medium">ট্রেনিংয়ের ধরন</label><select wire:model.live="trainingEntries.{{ $index }}.kind" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="catalog">নির্ধারিত ট্রেনিং</option><option value="other">অন্যান্য ট্রেনিং</option></select></div>
+                                            <div><label class="block text-sm font-medium">প্রতিষ্ঠান</label><select wire:model.live="trainingEntries.{{ $index }}.training_institute_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="">{{ $entry['kind'] === 'other' ? 'তালিকার বাইরে' : 'নির্বাচন করুন' }}</option>@foreach ($trainingInstitutes as $institute)<option value="{{ $institute->id }}">{{ $institute->name }}</option>@endforeach</select></div>
+                                            @if ($entry['kind'] === 'catalog')
+                                                <div><label class="block text-sm font-medium">ট্রেনিং টাইপ</label><select wire:model="trainingEntries.{{ $index }}.training_type_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="">নির্বাচন করুন</option>@foreach ($trainingTypes->where('training_institute_id', (int) $entry['training_institute_id']) as $trainingType)<option value="{{ $trainingType->id }}">{{ $trainingType->name }} — {{ $trainingType->duration_value }} {{ ['hours' => 'ঘণ্টা', 'days' => 'দিন', 'weeks' => 'সপ্তাহ', 'months' => 'মাস'][$trainingType->duration_unit] ?? '' }}</option>@endforeach</select>@error("trainingEntries.$index.training_type_id")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
+                                            @else
+                                                <div><label class="block text-sm font-medium">অন্যান্য ট্রেনিংয়ের নাম</label><input type="text" wire:model="trainingEntries.{{ $index }}.name" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900">@error("trainingEntries.$index.name")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
+                                                @if (blank($entry['training_institute_id']))<div><label class="block text-sm font-medium">অন্যান্য প্রতিষ্ঠানের নাম</label><input type="text" wire:model="trainingEntries.{{ $index }}.institute_name" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"></div>@endif
+                                                <div class="grid grid-cols-2 gap-2"><div><label class="block text-sm font-medium">সময়কাল</label><input type="number" min="1" wire:model="trainingEntries.{{ $index }}.duration_value" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"></div><div><label class="block text-sm font-medium">একক</label><select wire:model="trainingEntries.{{ $index }}.duration_unit" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="hours">ঘণ্টা</option><option value="days">দিন</option><option value="weeks">সপ্তাহ</option><option value="months">মাস</option></select></div></div>
+                                            @endif
+                                            <div><label class="block text-sm font-medium">সম্পন্নের বছর</label><input type="number" min="1950" max="{{ date('Y') + 1 }}" wire:model="trainingEntries.{{ $index }}.training_year" placeholder="{{ date('Y') }}" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900">@error("trainingEntries.$index.training_year")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
+                                            <div class="flex items-end"><flux:button type="button" size="sm" variant="danger" wire:click="removeTrainingEntry({{ $index }})">বাদ দিন</flux:button></div>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </fieldset>
 
