@@ -39,10 +39,9 @@ it('stores a complete college profile with multiple academic programs', function
         ->set('desktopCount', '25')
         ->set('laptopCount', '10')
         ->set('programs', [
-            ['level' => 'degree', 'name' => 'BA'],
-            ['level' => 'degree', 'name' => 'BSc'],
-            ['level' => 'honours', 'name' => 'বাংলা'],
-            ['level' => 'masters', 'name' => 'ইংরেজি'],
+            ['level' => 'degree', 'names' => ['BA', 'BSc'], 'new_name' => ''],
+            ['level' => 'honours', 'names' => ['বাংলা'], 'new_name' => ''],
+            ['level' => 'masters', 'names' => ['ইংরেজি'], 'new_name' => ''],
         ])
         ->call('save')
         ->assertHasNoErrors();
@@ -55,6 +54,23 @@ it('stores a complete college profile with multiple academic programs', function
         ->and($college->desktop_count)->toBe(25)
         ->and($college->laptop_count)->toBe(10)
         ->and($college->programs)->toHaveCount(4);
+});
+
+it('adds degree courses and honours subjects as unique tags', function () {
+    Livewire::test(CollegeManagement::class)
+        ->call('addProgram')
+        ->set('programs.0.new_name', 'BA')
+        ->call('addProgramTag', 0)
+        ->set('programs.0.new_name', 'ba')
+        ->call('addProgramTag', 0)
+        ->assertSet('programs.0.names', ['BA'])
+        ->call('addProgram')
+        ->set('programs.1.level', 'honours')
+        ->set('programs.1.new_name', 'বাংলা')
+        ->call('addProgramTag', 1)
+        ->assertSet('programs.1.names', ['বাংলা'])
+        ->call('removeProgramTag', 0, 0)
+        ->assertSet('programs.0.names', []);
 });
 
 it('rejects a district and thana outside the selected administrative hierarchy', function () {
