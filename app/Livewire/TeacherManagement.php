@@ -93,7 +93,7 @@ class TeacherManagement extends Component
         abort_unless(auth()->user()->can('teachers.approve'), 403);
         $teacher = $this->accessibleTeachersQuery()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
         $teacher->update(['approval_status' => ApprovalStatus::Approved, 'approved_by' => auth()->id(), 'approved_at' => now()]);
-        $teacher->user?->update(['teacher_id' => $teacher->id, 'college_id' => $teacher->college_id]);
+        $teacher->user?->update(['college_id' => $teacher->college_id]);
         Flux::toast(variant: 'success', text: 'শিক্ষক প্রোফাইল অনুমোদিত হয়েছে।');
     }
 
@@ -147,7 +147,6 @@ class TeacherManagement extends Component
 
             $user->role = $newRole;
             $user->college_id = $teacher->college_id;
-            $user->teacher_id = $teacher->id;
             $user->save();
             $user->syncRoles([$newRole->value]);
         });
@@ -408,7 +407,7 @@ class TeacherManagement extends Component
             $validated = $this->validate([
                 'editForm.college_code' => ['nullable', 'string', 'max:255'],
                 'editForm.college_name' => ['nullable', 'string', 'max:255'],
-                'editForm.tmis_id' => ['nullable', 'string', 'max:255', Rule::unique('teachers', 'tmis_id')->ignore($this->editingId)],
+                'editForm.tmis_id' => ['nullable', 'string', 'max:255', Rule::unique('teacher_profiles', 'tmis_id')->ignore($this->editingId)],
                 'editForm.name' => 'required|string|max:255',
                 'editForm.designation' => 'nullable|string|max:255',
                 'editForm.subject' => 'nullable|string|max:255',

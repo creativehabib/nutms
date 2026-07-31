@@ -11,10 +11,13 @@ beforeEach(function () {
 });
 
 it('does not keep obsolete legacy training columns on teachers', function () {
-    expect(Schema::hasColumn('teachers', 'has_training'))->toBeFalse()
-        ->and(Schema::hasColumn('teachers', 'ict_training_duration'))->toBeFalse()
-        ->and(Schema::hasColumn('teachers', 'other_training_duration'))->toBeFalse()
-        ->and(Schema::hasColumn('teachers', 'training_year'))->toBeFalse();
+    expect(Schema::hasTable('teachers'))->toBeFalse()
+        ->and(Schema::hasTable('teacher_profiles'))->toBeTrue()
+        ->and(Schema::hasColumn('users', 'teacher_id'))->toBeFalse()
+        ->and(Schema::hasColumn('teacher_profiles', 'has_training'))->toBeFalse()
+        ->and(Schema::hasColumn('teacher_profiles', 'ict_training_duration'))->toBeFalse()
+        ->and(Schema::hasColumn('teacher_profiles', 'other_training_duration'))->toBeFalse()
+        ->and(Schema::hasColumn('teacher_profiles', 'training_year'))->toBeFalse();
 });
 
 it('renders a responsive edit form with a blurred backdrop', function () {

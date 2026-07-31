@@ -101,7 +101,7 @@ it('submits a teacher profile under the selected college for principal approval'
     expect($teacher->college_id)->toBe($college->id)
         ->and($teacher->approval_status)->toBe(ApprovalStatus::Pending)
         ->and($teacher->email)->toBe('registered-teacher@example.com')
-        ->and($user->refresh()->teacher_id)->toBe($teacher->id)
+        ->and($user->refresh()->teacherProfile?->is($teacher))->toBeTrue()
         ->and($user->name)->toBe($teacher->name);
 });
 
@@ -170,7 +170,6 @@ it('allows a teacher to view and update their profile after principal approval',
         'approved_by' => $principal->id,
         'approved_at' => now(),
     ]);
-    $user->update(['teacher_id' => $teacher->id]);
 
     $this->actingAs($user)->get(route('teachers.show', $teacher))
         ->assertSuccessful()
@@ -202,7 +201,6 @@ it('does not allow a teacher to edit a profile before it is approved', function 
         'user_id' => $user->id,
         'approval_status' => $status,
     ]);
-    $user->update(['teacher_id' => $teacher->id]);
 
     $this->actingAs($user)->get(route('teachers.edit', $teacher))->assertForbidden();
 })->with([

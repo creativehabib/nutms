@@ -61,7 +61,7 @@ class ApprovalManagement extends Component
 
         DB::transaction(function () use ($teacher, $user): void {
             $teacher->update(['approval_status' => ApprovalStatus::Approved, 'approved_by' => $user->id, 'approved_at' => now()]);
-            $teacher->user?->update(['teacher_id' => $teacher->id, 'college_id' => $teacher->college_id]);
+            $teacher->user?->update(['college_id' => $teacher->college_id]);
         });
         Flux::toast(variant: 'success', text: 'শিক্ষক প্রোফাইল অনুমোদিত হয়েছে।');
     }

@@ -77,12 +77,10 @@ class DatabaseSeeder extends Seeder
         $principal = $this->createDemoUser('Demo Principal', 'principal@example.com', UserRole::Principal, $college, $admin);
         $teacherUser = $this->createDemoUser('Demo Teacher', 'teacher@example.com', UserRole::Teacher, $college, $admin);
 
-        $principalTeacher = $this->createDemoTeacher($principal, $college, $division, $district, $thana, $subject, $designation, $teacherLevel, $employment, $admin);
+        $this->createDemoTeacher($principal, $college, $division, $district, $thana, $subject, $designation, $teacherLevel, $employment, $admin);
         $teacher = $this->createDemoTeacher($teacherUser, $college, $division, $district, $thana, $subject, $designation, $teacherLevel, $employment, $admin);
         $teacher->trainingTypes()->attach($trainingType->id, ['training_year' => (int) date('Y')]);
 
-        $principal->update(['teacher_id' => $principalTeacher->id]);
-        $teacherUser->update(['teacher_id' => $teacher->id]);
         $college->update(['submitted_by' => $principal->id]);
         $college->programs()->create(['level' => 'honours', 'name' => 'Honours', 'items' => ['Information and Communication Technology']]);
     }
