@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole as Role;
+use App\Enums\ApprovalStatus;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -28,12 +31,13 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    protected $fillable = ['name', 'email', 'password', 'role', 'college_id', 'teacher_id', 'approval_status', 'approved_by', 'approved_at'];
 
     /**
      * Get the attributes that should be cast.
@@ -45,7 +49,35 @@ class User extends Authenticatable implements PasskeyUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => Role::class,
+            'approval_status' => ApprovalStatus::class,
+            'approved_at' => 'datetime',
         ];
+    }
+
+    public function college(): BelongsTo
+    {
+        return $this->belongsTo(College::class);
+    }
+
+    public function teacher(): BelongsTo
+    {
+        return $this->belongsTo(Teacher::class);
+    }
+
+    public function teacherProfile(): HasOne
+    {
+        return $this->hasOne(Teacher::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === Role::Admin;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approval_status === ApprovalStatus::Approved;
     }
 
     /**
