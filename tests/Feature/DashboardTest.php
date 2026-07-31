@@ -149,6 +149,45 @@ test('teacher dashboard shows only their profile workflow', function () {
         ->assertDontSee('আইসিটি ট্রেনিং রিপোর্ট');
 });
 
+test('teacher dashboard shows personal retirement training and update information', function () {
+    SystemSetting::query()->updateOrCreate(['key' => SystemSetting::RETIREMENT_AGE], ['value' => '59']);
+    $college = College::query()->create(['name' => 'Teacher Dashboard College']);
+    $user = User::factory()->create(['role' => UserRole::Teacher, 'college_id' => $college->id]);
+    $profile = Teacher::query()->create([
+        'user_id' => $user->id,
+        'college_id' => $college->id,
+        'name' => 'Dashboard Teacher',
+        'birth_date' => '1990-01-15',
+        'subject' => 'Mathematics',
+        'designation' => 'Lecturer',
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    $profile->forceFill(['updated_at' => Carbon::parse('2026-07-30 14:30:00')])->saveQuietly();
+
+    $institute = TrainingInstitute::query()->create(['name' => 'Teacher Training Academy']);
+    $training = TrainingType::query()->create([
+        'training_institute_id' => $institute->id,
+        'name' => 'Digital Pedagogy',
+        'duration_value' => 5,
+        'duration_unit' => 'days',
+    ]);
+    $profile->trainingTypes()->attach($training->id, ['training_year' => 2025]);
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertViewHas('teacherStats', fn (array $stats): bool => $stats['retirementDate']->toDateString() === '2049-01-15'
+            && $stats['trainings']->count() === 1
+            && $stats['lastUpdatedAt'] === '30 Jul 2026, 02:30 PM')
+        ->assertSee('অবসরের তারিখ')
+        ->assertSee('15 Jan 2049')
+        ->assertSee('Digital Pedagogy')
+        ->assertSee('Teacher Training Academy')
+        ->assertSee('2025')
+        ->assertSee('30 Jul 2026, 02:30 PM')
+        ->assertSee('Mathematics')
+        ->assertSee('Lecturer');
+});
+
 test('sidebar menu items use icons that match their destinations', function () {
     $sidebar = file_get_contents(resource_path('views/layouts/app/sidebar.blade.php'));
 

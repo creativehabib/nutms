@@ -10,6 +10,7 @@ use App\Models\TeacherOtherTraining;
 use App\Models\TrainingType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
@@ -56,6 +57,7 @@ class DashboardController extends Controller
                     : null,
             ],
             'principalStats' => auth()->user()->role === Role::Principal ? $this->principalStats() : null,
+            'teacherStats' => auth()->user()->role === Role::Teacher ? $this->teacherStats() : null,
         ]);
     }
 
@@ -95,5 +97,63 @@ class DashboardController extends Controller
                 ->selectRaw('subject, COUNT(*) as teachers_count')->groupBy('subject')->orderBy('subject')->get(),
             'trainings' => $catalogTrainings->concat($otherTrainings)->groupBy('name')->map(fn ($rows, string $name): array => ['name' => $name, 'count' => $rows->sum('count')])->values(),
         ];
+    }
+
+    /** @return array<string, mixed>|null */
+    private function teacherStats(): ?array
+    {
+        $teacher = Teacher::query()
+            ->with(['trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if ($teacher === null) {
+            return null;
+        }
+
+        $retirementAge = SystemSetting::retirementAge();
+        $retirementDate = $teacher->birth_date?->copy()->addYears($retirementAge);
+        $today = now()->startOfDay();
+
+        return [
+            'profile' => $teacher,
+            'retirementAge' => $retirementAge,
+            'retirementDate' => $retirementDate,
+            'isRetired' => $retirementDate?->lte($today),
+            'daysUntilRetirement' => $retirementDate === null ? null : (int) $today->diffInDays($retirementDate, false),
+            'lastUpdatedAt' => $teacher->updated_at?->format('d M Y, h:i A'),
+            'trainings' => $this->teacherTrainings($teacher),
+        ];
+    }
+
+    /** @return Collection<int, array{name: string, institute: ?string, year: ?int}> */
+    private function teacherTrainings(Teacher $teacher): Collection
+    {
+        $catalogTrainings = $teacher->trainingTypes->map(fn (TrainingType $training): array => [
+            'name' => $training->name,
+            'institute' => $training->trainingInstitute?->name,
+            'year' => $training->pivot->training_year ? (int) $training->pivot->training_year : null,
+        ]);
+
+        $otherTrainings = $teacher->otherTrainings->map(fn (TeacherOtherTraining $training): array => [
+            'name' => $training->name,
+            'institute' => $training->trainingInstitute?->name ?: $training->institute_name,
+            'year' => $training->training_year,
+        ]);
+
+        $legacyTrainings = collect([$teacher->ict_training_name, $teacher->other_training_name])
+            ->filter()
+            ->map(fn (string $name): array => [
+                'name' => $name,
+                'institute' => $teacher->training_institute,
+                'year' => null,
+            ]);
+
+        return $catalogTrainings
+            ->concat($otherTrainings)
+            ->concat($legacyTrainings)
+            ->unique(fn (array $training): string => mb_strtolower($training['name']).'|'.$training['year'])
+            ->sortByDesc('year')
+            ->values();
     }
 }
