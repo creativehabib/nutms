@@ -78,7 +78,7 @@
                             @foreach ($collegeTeachers as $teacher)
                                 <tr class="hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors">
                                     <td class="px-4 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
-                                    <td class="px-4 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->name }}</td>
+                                    <td class="px-4 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->display_name }}</td>
                                     <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $this->trainingDetails($teacher) }}</td>
                                     <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->other_training_name ?: 'উল্লেখ নেই' }}</td>
                                     <td class="px-4 py-3 text-gray-600 dark:text-slate-400 border text-xs">{{ $this->trainingInstitutes($teacher) }}</td>
@@ -126,7 +126,7 @@
                             @foreach ($collegeTeachers as $teacher)
                                 <tr class="hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
                                     <td class="px-6 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
-                                    <td class="px-6 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->name }}</td>
+                                    <td class="px-6 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->display_name }}</td>
                                     <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->subject ?: 'উল্লেখ নেই' }}</td>
                                     <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->designation ?: 'উল্লেখ নেই' }}</td>
                                     <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->teacher_level ?: 'উল্লেখ নেই' }}</td>

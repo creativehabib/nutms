@@ -38,7 +38,7 @@ class IctTrainingSummary extends Component
                             $index + 1,
                             $teacher->college_code ?? '-',
                             $teacher->college_name ?? '-',
-                            $teacher->name ?? '-',
+                            $teacher->display_name ?: '-',
                             $this->trainingDetails($teacher),
                             $teacher->other_training_name ?: 'উল্লেখ নেই',
                             $this->trainingInstitutes($teacher),
@@ -55,7 +55,7 @@ class IctTrainingSummary extends Component
                             $index + 1,
                             $teacher->college_code ?? '-',
                             $teacher->college_name ?? '-',
-                            $teacher->name ?? '-',
+                            $teacher->display_name ?: '-',
                             $teacher->subject ?: 'উল্লেখ নেই',
                             $teacher->designation ?: 'উল্লেখ নেই',
                             $teacher->teacher_level ?: 'উল্লেখ নেই',
@@ -87,8 +87,8 @@ class IctTrainingSummary extends Component
 
     private function teachersWithIctQuery(): Builder
     {
-        return Teacher::select('id', 'college_code', 'college_name', 'name', 'ict_training_name', 'other_training_name', 'training_institute')
-            ->with(['trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
+        return Teacher::select('id', 'user_id', 'college_code', 'college_name', 'name', 'ict_training_name', 'other_training_name', 'training_institute')
+            ->with(['user:id,name', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
             ->where(function (Builder $query): void {
                 $query->whereHas('trainingTypes')
                     ->orWhereHas('otherTrainings')
@@ -103,7 +103,8 @@ class IctTrainingSummary extends Component
 
     private function teachersWithoutIctQuery(): Builder
     {
-        return Teacher::select('id', 'college_code', 'college_name', 'name', 'subject', 'designation', 'teacher_level', 'employment_type')
+        return Teacher::select('id', 'user_id', 'college_code', 'college_name', 'name', 'subject', 'designation', 'teacher_level', 'employment_type')
+            ->with('user:id,name')
             ->doesntHave('trainingTypes')
             ->doesntHave('otherTrainings')
             ->where(function (Builder $query): void {

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ApprovalStatus;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,19 @@ class Teacher extends Model
     protected function casts(): array
     {
         return ['approval_status' => ApprovalStatus::class, 'approved_at' => 'datetime'];
+    }
+
+    /**
+     * Use the linked account as the canonical source of the teacher's name while
+     * retaining the legacy column for imported teachers without an account.
+     *
+     * @return Attribute<string, never>
+     */
+    protected function displayName(): Attribute
+    {
+        return Attribute::get(
+            fn (): string => (string) ($this->user?->name ?: $this->name),
+        );
     }
 
     protected static function booted(): void

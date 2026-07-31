@@ -62,6 +62,21 @@ it('keeps an existing TTIS ID unchanged when a teacher profile is edited', funct
     expect($teacher->refresh()->ttis_id)->toBe('LEGACY-TTIS-100');
 });
 
+it('uses the linked user name as the canonical teacher display name', function () {
+    $user = User::factory()->create(['name' => 'Account Name']);
+    $teacher = Teacher::query()->create(['name' => 'Legacy Teacher Name', 'user_id' => $user->id]);
+
+    $user->updateQuietly(['name' => 'Canonical Account Name']);
+
+    expect($teacher->refresh()->display_name)->toBe('Canonical Account Name');
+});
+
+it('keeps the legacy teacher name available for imported teachers without accounts', function () {
+    $teacher = Teacher::query()->create(['name' => 'Imported Teacher Without Account']);
+
+    expect($teacher->display_name)->toBe('Imported Teacher Without Account');
+});
+
 it('submits a teacher profile under the selected college for principal approval', function () {
     $college = College::query()->create(['name' => 'Selected Teacher College', 'approval_status' => ApprovalStatus::Approved]);
     $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();

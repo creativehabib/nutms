@@ -159,7 +159,7 @@ class TeacherManagement extends Component
         $teacher = $this->accessibleTeachersQuery()->findOrFail($teacherId);
 
         $this->deletingTeacherIds = [$teacher->id];
-        $this->deletingTeacherName = $teacher->name ?? 'এই শিক্ষক';
+        $this->deletingTeacherName = $teacher->display_name ?: 'এই শিক্ষক';
         $this->permanentDeletion = false;
 
         Flux::modal('confirm-teacher-deletion')->show();
@@ -170,7 +170,7 @@ class TeacherManagement extends Component
         $teacher = $this->accessibleTeachersQuery(true)->findOrFail($teacherId);
 
         $this->deletingTeacherIds = [$teacher->id];
-        $this->deletingTeacherName = $teacher->name ?? 'এই শিক্ষক';
+        $this->deletingTeacherName = $teacher->display_name ?: 'এই শিক্ষক';
         $this->permanentDeletion = true;
 
         Flux::modal('confirm-teacher-deletion')->show();
@@ -183,7 +183,7 @@ class TeacherManagement extends Component
             ->unique()
             ->values();
 
-        $teachers = $this->accessibleTeachersQuery()->whereKey($teacherIds)->get(['id', 'name']);
+        $teachers = $this->accessibleTeachersQuery()->with('user:id,name')->whereKey($teacherIds)->get(['id', 'name', 'user_id']);
 
         if ($teachers->isEmpty()) {
             Flux::toast(variant: 'warning', text: 'মুছে ফেলার জন্য অন্তত একজন শিক্ষক নির্বাচন করুন।');
@@ -193,7 +193,7 @@ class TeacherManagement extends Component
 
         $this->deletingTeacherIds = $teachers->pluck('id')->all();
         $this->deletingTeacherName = $teachers->count() === 1
-            ? ($teachers->first()->name ?? 'এই শিক্ষক')
+            ? ($teachers->first()->display_name ?: 'এই শিক্ষক')
             : "নির্বাচিত {$teachers->count()} জন শিক্ষক";
         $this->permanentDeletion = false;
 
@@ -207,7 +207,7 @@ class TeacherManagement extends Component
             ->unique()
             ->values();
 
-        $teachers = $this->accessibleTeachersQuery(true)->whereKey($teacherIds)->get(['id', 'name']);
+        $teachers = $this->accessibleTeachersQuery(true)->with('user:id,name')->whereKey($teacherIds)->get(['id', 'name', 'user_id']);
 
         if ($teachers->isEmpty()) {
             Flux::toast(variant: 'warning', text: 'স্থায়ীভাবে মুছে ফেলার জন্য অন্তত একজন শিক্ষক নির্বাচন করুন।');
@@ -217,7 +217,7 @@ class TeacherManagement extends Component
 
         $this->deletingTeacherIds = $teachers->pluck('id')->all();
         $this->deletingTeacherName = $teachers->count() === 1
-            ? ($teachers->first()->name ?? 'এই শিক্ষক')
+            ? ($teachers->first()->display_name ?: 'এই শিক্ষক')
             : "নির্বাচিত {$teachers->count()} জন শিক্ষক";
         $this->permanentDeletion = true;
 
@@ -301,7 +301,7 @@ class TeacherManagement extends Component
             'college_code' => $teacher->college_code,
             'college_name' => $teacher->college_name,
             'tmis_id' => $teacher->tmis_id,
-            'name' => $teacher->name,
+            'name' => $teacher->display_name,
             'designation' => $teacher->designation,
             'subject' => $teacher->subject,
             'teacher_level' => $teacher->teacher_level,
@@ -474,7 +474,7 @@ class TeacherManagement extends Component
         $collegeCodes = College::query()->where('is_active', true)->whereNotNull('code')->orderBy('code')->pluck('code');
 
         return view('livewire.teacher-management', [
-            'teachers' => $query->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
+            'teachers' => $query->with('user:id,name')->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
             'collegeCount' => $collegeCount,
             'subjects' => $subjects,
             'collegeCodes' => $collegeCodes,
@@ -523,10 +523,11 @@ class TeacherManagement extends Component
 
         // সার্চ (নাম, TMIS ID অথবা মোবাইল নাম্বার)
         if (!empty($this->search)) {
-            $query->where(function($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('tmis_id', 'like', '%' . $this->search . '%')
-                    ->orWhere('mobile_number', 'like', '%' . $this->search . '%');
+            $query->where(function (Builder $query): void {
+                $query->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhereHas('user', fn (Builder $userQuery): Builder => $userQuery->where('name', 'like', '%'.$this->search.'%'))
+                    ->orWhere('tmis_id', 'like', '%'.$this->search.'%')
+                    ->orWhere('mobile_number', 'like', '%'.$this->search.'%');
             });
         }
 

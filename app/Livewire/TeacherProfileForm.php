@@ -69,7 +69,7 @@ class TeacherProfileForm extends Component
             $this->collegeId = (string) ($teacher->college_id ?? '');
             $this->tmisId = (string) ($teacher->tmis_id ?? '');
             $this->ttisId = (string) ($teacher->ttis_id ?? '');
-            $this->name = (string) ($teacher->name ?? '');
+            $this->name = $teacher->display_name;
             $this->designation = (string) ($teacher->designation ?? '');
             $this->subject = (string) ($teacher->subject ?? '');
             $this->teacherLevel = (string) ($teacher->teacher_level ?? '');

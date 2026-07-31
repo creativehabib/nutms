@@ -142,7 +142,7 @@
                                 value="{{ $teacher->id }}"
                                 data-teacher-checkbox
                                 class="size-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
-                                aria-label="{{ $teacher->name }} নির্বাচন করুন"
+                                aria-label="{{ $teacher->display_name }} নির্বাচন করুন"
                                 @checked(in_array((string) $teacher->id, $selectedTeacherIds, true))
                             >
                         </td>
@@ -153,7 +153,7 @@
                             {{ $teacher->college_code ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-slate-100">
-                            {{ $teacher->name }}
+                            {{ $teacher->display_name }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="block text-gray-800 dark:text-slate-200 font-semibold">{{ $teacher->designation }}</span>
