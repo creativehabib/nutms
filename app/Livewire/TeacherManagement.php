@@ -102,6 +102,29 @@ class TeacherManagement extends Component
         Flux::toast(variant: 'success', text: 'শিক্ষক প্রোফাইল অনুমোদিত হয়েছে।');
     }
 
+    public function toggleTeacherApproval(int $teacherId): void
+    {
+        abort_unless(auth()->user()->isAdmin() && auth()->user()->can('teachers.approve'), 403);
+
+        $teacher = $this->accessibleTeachersQuery()->findOrFail($teacherId);
+        $isApproved = $teacher->approval_status === ApprovalStatus::Approved;
+
+        $teacher->update([
+            'approval_status' => $isApproved ? ApprovalStatus::Pending : ApprovalStatus::Approved,
+            'approved_by' => $isApproved ? null : auth()->id(),
+            'approved_at' => $isApproved ? null : now(),
+        ]);
+
+        if (! $isApproved) {
+            $teacher->user?->update(['college_id' => $teacher->college_id]);
+        }
+
+        Flux::toast(
+            variant: 'success',
+            text: $isApproved ? 'শিক্ষক প্রোফাইলের অনুমোদন বাতিল হয়েছে।' : 'শিক্ষক প্রোফাইল অনুমোদিত হয়েছে।',
+        );
+    }
+
     public function rejectTeacher(int $teacherId): void
     {
         abort_unless(auth()->user()->can('teachers.approve'), 403);

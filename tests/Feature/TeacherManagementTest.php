@@ -57,6 +57,33 @@ it('shows the distinct college count beside the teacher count', function () {
         ->assertSee('মোট 2টি কলেজ');
 });
 
+it('lets an admin toggle a teacher approval status from the table', function () {
+    $teacher = Teacher::query()->create([
+        'name' => 'Approval Toggle Teacher',
+        'approval_status' => ApprovalStatus::Pending,
+    ]);
+
+    Livewire::test(TeacherManagement::class)
+        ->assertSee('Approval Toggle Teacher')
+        ->assertSeeHtml('wire:click="toggleTeacherApproval('.$teacher->id.')"')
+        ->call('toggleTeacherApproval', $teacher->id)
+        ->assertHasNoErrors()
+        ->assertSee('অনুমোদিত');
+
+    expect($teacher->refresh()->approval_status)->toBe(ApprovalStatus::Approved)
+        ->and($teacher->approved_by)->toBe(auth()->id())
+        ->and($teacher->approved_at)->not->toBeNull();
+
+    Livewire::test(TeacherManagement::class)
+        ->call('toggleTeacherApproval', $teacher->id)
+        ->assertHasNoErrors()
+        ->assertSee('পেন্ডিং');
+
+    expect($teacher->refresh()->approval_status)->toBe(ApprovalStatus::Pending)
+        ->and($teacher->approved_by)->toBeNull()
+        ->and($teacher->approved_at)->toBeNull();
+});
+
 it('searches teachers by profile, account, and college identifiers', function (string $searchTerm) {
     $college = College::query()->create([
         'code' => 'COL-SEARCH-01',
