@@ -176,7 +176,27 @@
                             <span class="block text-blue-600 text-xs">{{ $teacher->email ?? '-' }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <flux:badge :color="match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'green', \App\Enums\ApprovalStatus::Rejected => 'red', default => 'amber' }">{{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'অনুমোদিত', \App\Enums\ApprovalStatus::Rejected => 'প্রত্যাখ্যাত', default => 'পেন্ডিং' } }}</flux:badge>
+                            @if($isAdmin && auth()->user()->can('teachers.approve') && ! $showTrashed)
+                                <div class="inline-flex flex-col items-center gap-1.5">
+                                    <flux:switch
+                                        :checked="$teacher->approval_status === \App\Enums\ApprovalStatus::Approved"
+                                        wire:click="toggleTeacherApproval({{ $teacher->id }})"
+                                        wire:loading.attr="disabled"
+                                        wire:target="toggleTeacherApproval({{ $teacher->id }})"
+                                        aria-label="{{ $teacher->display_name }}-এর অনুমোদন পরিবর্তন করুন"
+                                    />
+                                    <span @class([
+                                        'text-xs font-semibold',
+                                        'text-emerald-600 dark:text-emerald-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Approved,
+                                        'text-red-600 dark:text-red-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Rejected,
+                                        'text-amber-600 dark:text-amber-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Pending,
+                                    ])>
+                                        {{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'অনুমোদিত', \App\Enums\ApprovalStatus::Rejected => 'প্রত্যাখ্যাত', default => 'পেন্ডিং' } }}
+                                    </span>
+                                </div>
+                            @else
+                                <flux:badge :color="match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'green', \App\Enums\ApprovalStatus::Rejected => 'red', default => 'amber' }">{{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'অনুমোদিত', \App\Enums\ApprovalStatus::Rejected => 'প্রত্যাখ্যাত', default => 'পেন্ডিং' } }}</flux:badge>
+                            @endif
                         </td>
                         @can('teachers.assign-role')
                             <td class="px-6 py-4 whitespace-nowrap text-center">
@@ -198,7 +218,7 @@
                                 <flux:button size="sm" icon="eye" :href="route('teachers.show', $teacher)" wire:navigate>দেখুন</flux:button>
                                 @can('teachers.update')<flux:button size="sm" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate>সম্পাদনা</flux:button>@endcan
                                 @can('teachers.approve')
-                                @if($teacher->approval_status === \App\Enums\ApprovalStatus::Pending)
+                                @if(! $isAdmin && $teacher->approval_status === \App\Enums\ApprovalStatus::Pending)
                                     <flux:button size="sm" variant="primary" wire:click="approveTeacher({{ $teacher->id }})">এপ্রুভ</flux:button>
                                     <flux:button size="sm" variant="danger" wire:click="rejectTeacher({{ $teacher->id }})">রিজেক্ট</flux:button>
                                 @endif
