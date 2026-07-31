@@ -8,6 +8,7 @@ use App\Livewire\CollegeManagement;
 use App\Livewire\IctTrainingSummary;
 use App\Livewire\ReferenceDataManagement;
 use App\Livewire\RolePermissionManagement;
+use App\Livewire\SystemSettings;
 use App\Livewire\TeacherDetails;
 use App\Livewire\TeacherManagement;
 use App\Livewire\TeacherProfileForm;
@@ -27,7 +28,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereIn('type', ['subjects', 'designations', 'teacher-levels', 'employments'])
         ->name('reference-data.manage');
     Route::get('/roles-permissions', RolePermissionManagement::class)->middleware(['role:admin', 'permission:roles.manage'])->name('roles-permissions.manage');
-    Route::get('/colleges', CollegeManagement::class)->middleware(['role:admin,principal', 'permission:colleges.view'])->name('colleges.manage');
+    Route::get('/system-settings', SystemSettings::class)->middleware(['role:admin', 'permission:roles.manage'])->name('system-settings.manage');
+    Route::get('/colleges', CollegeManagement::class)->middleware(['role:admin', 'permission:colleges.view'])->name('colleges.manage');
     Route::get('/colleges/create', CollegeForm::class)->middleware(['role:admin', 'permission:colleges.create'])->name('colleges.create');
     Route::get('/colleges/{college}/edit', CollegeForm::class)->middleware(['role:admin,principal', 'permission:colleges.update'])->name('colleges.edit');
     Route::get('/colleges/{college}', CollegeDetails::class)->middleware(['role:admin,principal', 'permission:colleges.view'])->name('colleges.show');

@@ -47,11 +47,11 @@ class RolePermissionManagement extends Component
         $newRole = Role::from($validated['role']);
 
         DB::transaction(function () use ($userId, $newRole): void {
-            $user = User::query()->with(['teacher', 'teacherProfile', 'college'])->lockForUpdate()->findOrFail($userId);
+            $user = User::query()->with(['teacherProfile', 'college'])->lockForUpdate()->findOrFail($userId);
             $previousRole = $user->role;
 
             if ($newRole === Role::Principal) {
-                $teacher = $user->teacher ?? $user->teacherProfile;
+                $teacher = $user->teacherProfile;
                 if ($teacher === null || $teacher->college_id === null || $teacher->approval_status !== ApprovalStatus::Approved) {
                     throw ValidationException::withMessages(['role' => 'শুধু অনুমোদিত শিক্ষক প্রোফাইল ও কলেজ থাকা user-কে Principal করা যাবে।']);
                 }
@@ -61,7 +61,6 @@ class RolePermissionManagement extends Component
                     throw ValidationException::withMessages(['role' => 'এই কলেজে ইতোমধ্যে একজন Principal রয়েছে।']);
                 }
                 $user->college_id = $teacher->college_id;
-                $user->teacher_id = $teacher->id;
                 $user->approval_status = ApprovalStatus::Approved;
                 $user->approved_by = auth()->id();
                 $user->approved_at = now();
@@ -112,7 +111,7 @@ class RolePermissionManagement extends Component
         abort_unless(auth()->user()->can('roles.manage'), 403);
 
         return view('livewire.role-permission-management', [
-            'users' => User::query()->with(['teacher.college', 'teacherProfile.college', 'college'])
+            'users' => User::query()->with(['teacherProfile.college', 'college'])
                 ->when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query->where('name', 'like', "%{$this->search}%")->orWhere('email', 'like', "%{$this->search}%")))
                 ->orderBy('name')->paginate(12),
             'roles' => Role::cases(),

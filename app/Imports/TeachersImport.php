@@ -79,22 +79,25 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
                 'subject'                 => $row[6 + $offset] ?? null,
                 'teacher_level'           => $row[7 + $offset] ?? null,
                 'employment_type'         => $row[8 + $offset] ?? null,
-                'has_training'            => $row[9 + $offset] ?? null,
                 'ict_training_name'       => $row[10 + $offset] ?? null,
                 'ict_training_duration'   => $row[11 + $offset] ?? null,
                 'other_training_name'     => $row[12 + $offset] ?? null,
                 'other_training_duration' => $row[13 + $offset] ?? null,
                 'training_institute'      => $row[14 + $offset] ?? null,
-                'training_year'           => $row[15 + $offset] ?? null,
                 'has_computer_lab'        => $row[16 + $offset] ?? null,
                 'computer_count'          => $computerCount,
                 'mobile_number'           => $mobile,
                 'email'                   => $email,
             ];
 
+            $teacherData = collect($data)->except([
+                'ict_training_duration',
+                'other_training_duration',
+            ])->all();
+
             // ডেটা সেভ বা আপডেট করা
             if ($tmisId) {
-                $teacher = Teacher::updateOrCreate(['tmis_id' => $tmisId], $data);
+                $teacher = Teacher::updateOrCreate(['tmis_id' => $tmisId], $teacherData);
             } else {
                 $teacher = Teacher::updateOrCreate(
                     [
@@ -102,10 +105,11 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
                         'subject' => $data['subject'],
                         'college_name' => $this->collegeName,
                     ],
-                    $data
+                    $teacherData
                 );
             }
 
+            $data['training_year'] = $row[15 + $offset] ?? null;
             $this->synchronizeTraining($teacher, $data);
         }
     }

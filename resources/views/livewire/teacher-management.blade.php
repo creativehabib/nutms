@@ -11,21 +11,21 @@
         <div class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/80 p-4 sm:p-5">
             <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">শিক্ষক ব্যবস্থাপনা</h2>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">সার্চ ও ফিল্টার ব্যবহার করে প্রয়োজনীয় শিক্ষক খুঁজুন।</p>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ $isAdmin ? 'শিক্ষক ব্যবস্থাপনা' : 'আমার কলেজের শিক্ষক' }}</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ $isAdmin ? 'সকল কলেজের শিক্ষক সার্চ ও ব্যবস্থাপনা করুন।' : 'শুধু আপনার কলেজের শিক্ষক সার্চ ও ব্যবস্থাপনা করুন।' }}</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <flux:button variant="primary" icon="plus" :href="route('teachers.create')" wire:navigate>নতুন শিক্ষক</flux:button>
                     <span class="inline-flex w-fit items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400 shadow-sm">
                         মোট {{ $teachers->total() }} জন শিক্ষক
                     </span>
-                    <span class="inline-flex w-fit items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm">
+                    @if($isAdmin)<span class="inline-flex w-fit items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm">
                         মোট {{ $collegeCount }}টি কলেজ
-                    </span>
+                    </span>@endif
                 </div>
             </div>
 
-            <div class="grid gap-3 lg:grid-cols-[minmax(16rem,1.25fr)_repeat(2,minmax(10rem,0.75fr))_auto] lg:items-end">
+            <div @class(['grid gap-3 lg:items-end', 'lg:grid-cols-[minmax(16rem,1.25fr)_repeat(2,minmax(10rem,0.75fr))_auto]' => $isAdmin, 'lg:grid-cols-[minmax(16rem,1.5fr)_minmax(12rem,1fr)]' => ! $isAdmin])>
 
                 <!-- সার্চ ইনপুট -->
                 <div>
@@ -54,6 +54,7 @@
                         </select>
                     </div>
 
+                    @if($isAdmin)
                     <!-- কলেজ কোড ফিল্টার -->
                     <div>
                         <label for="college-filter" class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">কলেজ কোড</label>
@@ -64,9 +65,10 @@
                             @endforeach
                         </select>
                     </div>
+                    @endif
 
                 <!-- ইম্পোর্ট বাটন -->
-                <div class="flex flex-col gap-2 sm:flex-row">
+                @if($isAdmin)<div class="flex flex-col gap-2 sm:flex-row">
                     <button
                         type="button"
                         wire:click="toggleTrashed"
@@ -81,12 +83,12 @@
                         <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14"></path></svg>
                         ডেটা ইম্পোর্ট
                     </button>
-                </div>
+                </div>@endif
             </div>
         </div>
 
         <!-- ডেটা টেবিল -->
-        @if (count($selectedTeacherIds) > 0)
+        @if ($isAdmin && count($selectedTeacherIds) > 0)
             <div class="flex flex-col gap-3 border-b border-indigo-100 bg-indigo-50 px-4 py-3 dark:border-indigo-900 dark:bg-indigo-950/40 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                 <p class="text-sm font-semibold text-indigo-900 dark:text-indigo-200">
                     {{ count($selectedTeacherIds) }} জন শিক্ষক নির্বাচিত
@@ -112,7 +114,7 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-800 dark:bg-slate-950 text-white">
                 <tr>
-                    <th class="w-12 px-4 py-3 text-center">
+                    @if($isAdmin)<th class="w-12 px-4 py-3 text-center">
                         <input
                             type="checkbox"
                             wire:click="toggleSelectAllOnPage"
@@ -121,9 +123,9 @@
                             aria-label="এই পৃষ্ঠার সব শিক্ষক নির্বাচন করুন"
                             @checked($selectAllOnPage)
                         >
-                    </th>
+                    </th>@endif
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">TMIS ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">কলেজ কোড</th>
+                    @if($isAdmin)<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">কলেজ কোড</th>@endif
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">শিক্ষকের নাম</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">পদবী ও বিষয়</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">যোগাযোগ</th>
@@ -135,7 +137,7 @@
                 <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 text-sm">
                 @forelse ($teachers as $teacher)
                     <tr wire:key="teacher-row-{{ $teacher->id }}" class="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
-                        <td class="px-4 py-4 text-center">
+                        @if($isAdmin)<td class="px-4 py-4 text-center">
                             <input
                                 type="checkbox"
                                 wire:key="teacher-select-{{ $teacher->id }}"
@@ -146,13 +148,13 @@
                                 aria-label="{{ $teacher->display_name }} নির্বাচন করুন"
                                 @checked(in_array((string) $teacher->id, $selectedTeacherIds, true))
                             >
-                        </td>
+                        </td>@endif
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-slate-100">
                             {{ $teacher->tmis_id ?? 'N/A' }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
+                        @if($isAdmin)<td class="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
                             {{ $teacher->college_code ?? '-' }}
-                        </td>
+                        </td>@endif
                         <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-slate-100">
                             {{ $teacher->display_name }}
                         </td>
@@ -198,7 +200,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ auth()->user()->can('teachers.assign-role') ? 9 : 8 }}" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
+                        <td colspan="{{ $isAdmin ? 9 : 6 }}" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
                             কোনো ডেটা পাওয়া যায়নি!
                         </td>
                     </tr>

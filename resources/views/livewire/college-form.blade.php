@@ -5,9 +5,9 @@
             <form wire:submit="save" class="mt-5 grid gap-4">
                 <div class="grid gap-4 sm:grid-cols-2"><flux:input wire:model="code" label="কলেজ কোড" /><flux:input wire:model="name" label="কলেজের নাম" required /></div>
                 <div class="grid gap-4 sm:grid-cols-3">
-                    <flux:select wire:model.live="divisionId" label="বিভাগ" required><option value="">নির্বাচন</option>@foreach($divisions as $division)<option value="{{ $division->id }}">{{ $division->bn_name ?: $division->name }}</option>@endforeach</flux:select>
-                    <flux:select wire:model.live="districtId" label="জেলা" required><option value="">নির্বাচন</option>@foreach($districts as $district)<option value="{{ $district->id }}">{{ $district->bn_name ?: $district->name }}</option>@endforeach</flux:select>
-                    <flux:select wire:model="thanaId" label="থানা" required><option value="">নির্বাচন</option>@foreach($thanas as $thana)<option value="{{ $thana->id }}">{{ $thana->bn_name ?: $thana->name }}</option>@endforeach</flux:select>
+                    <flux:select wire:model.live="divisionId" label="বিভাগ" required><option value="">নির্বাচন</option>@foreach($divisions as $division)<option value="{{ $division->id }}">{{ $division->name }}</option>@endforeach</flux:select>
+                    <flux:select wire:model.live="districtId" label="জেলা" required><option value="">নির্বাচন</option>@foreach($districts as $district)<option value="{{ $district->id }}">{{ $district->name }}</option>@endforeach</flux:select>
+                    <flux:select wire:model="thanaId" label="থানা" required><option value="">নির্বাচন</option>@foreach($thanas as $thana)<option value="{{ $thana->id }}">{{ $thana->name }}</option>@endforeach</flux:select>
                 </div>
                 @error('divisionId')<flux:text class="text-red-600">{{ $message }}</flux:text>@enderror @error('districtId')<flux:text class="text-red-600">{{ $message }}</flux:text>@enderror @error('thanaId')<flux:text class="text-red-600">{{ $message }}</flux:text>@enderror
                 <flux:textarea wire:model="address" label="পূর্ণ ঠিকানা" rows="2" required />
