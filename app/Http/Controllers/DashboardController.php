@@ -103,7 +103,7 @@ class DashboardController extends Controller
     private function teacherStats(): ?array
     {
         $teacher = Teacher::query()
-            ->with(['trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
+            ->with(['user', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
             ->where('user_id', auth()->id())
             ->first();
 
@@ -114,6 +114,7 @@ class DashboardController extends Controller
         $retirementAge = SystemSetting::retirementAge();
         $retirementDate = $teacher->birth_date?->copy()->addYears($retirementAge);
         $today = now()->startOfDay();
+        $trainings = $this->teacherTrainings($teacher);
 
         return [
             'profile' => $teacher,
@@ -122,7 +123,44 @@ class DashboardController extends Controller
             'isRetired' => $retirementDate?->lte($today),
             'daysUntilRetirement' => $retirementDate === null ? null : (int) $today->diffInDays($retirementDate, false),
             'lastUpdatedAt' => $teacher->updated_at?->format('d M Y, h:i A'),
-            'trainings' => $this->teacherTrainings($teacher),
+            'trainings' => $trainings,
+            'completeness' => $this->teacherProfileCompleteness($teacher, $trainings->isNotEmpty()),
+        ];
+    }
+
+    /** @return array{percentage: int, completed: int, total: int, missing: Collection<int, string>} */
+    private function teacherProfileCompleteness(Teacher $teacher, bool $hasTraining): array
+    {
+        $profileFields = collect([
+            'কলেজ' => $teacher->college_id,
+            'নাম' => $teacher->display_name,
+            'জন্ম তারিখ' => $teacher->birth_date,
+            'TMIS ID' => $teacher->tmis_id,
+            'পদবি' => $teacher->designation,
+            'বিষয়' => $teacher->subject,
+            'শিক্ষক স্তর' => $teacher->teacher_level,
+            'চাকরির ধরন' => $teacher->employment_type,
+            'বিভাগ' => $teacher->division_id,
+            'জেলা' => $teacher->district_id,
+            'থানা' => $teacher->thana_id,
+            'বর্তমান ঠিকানা' => $teacher->present_address,
+            'স্থায়ী ঠিকানা' => $teacher->permanent_address,
+            'মোবাইল নম্বর' => $teacher->mobile_number,
+            'ইমেইল' => $teacher->email,
+            'ব্যাংকের নাম' => $teacher->bank_name,
+            'ব্যাংক শাখা' => $teacher->bank_branch_name,
+            'ব্যাংক রাউটিং নম্বর' => $teacher->bank_routing_number,
+            'ট্রেনিং তথ্য' => $hasTraining,
+        ]);
+
+        $completed = $profileFields->filter(fn (mixed $value): bool => filled($value))->count();
+        $total = $profileFields->count();
+
+        return [
+            'percentage' => (int) round(($completed / $total) * 100),
+            'completed' => $completed,
+            'total' => $total,
+            'missing' => $profileFields->filter(fn (mixed $value): bool => blank($value))->keys()->values(),
         ];
     }
 

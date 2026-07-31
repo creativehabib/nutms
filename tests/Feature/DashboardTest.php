@@ -177,7 +177,12 @@ test('teacher dashboard shows personal retirement training and update informatio
         ->assertSuccessful()
         ->assertViewHas('teacherStats', fn (array $stats): bool => $stats['retirementDate']->toDateString() === '2049-01-15'
             && $stats['trainings']->count() === 1
+            && $stats['completeness']['percentage'] === 32
+            && $stats['completeness']['missing']->contains('মোবাইল নম্বর')
             && $stats['lastUpdatedAt'] === '30 Jul 2026, 02:30 PM')
+        ->assertSee('আপনার প্রোফাইল 32% সম্পন্ন')
+        ->assertSee('আপনার প্রোফাইল সম্পূর্ণ করুন')
+        ->assertSee(route('teachers.edit', $profile), false)
         ->assertSee('অবসরের তারিখ')
         ->assertSee('15 Jan 2049')
         ->assertSee('Digital Pedagogy')

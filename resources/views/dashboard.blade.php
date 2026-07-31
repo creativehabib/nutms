@@ -43,6 +43,21 @@
             </div>
         @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
             @if($teacherStats)
+                <flux:card class="overflow-hidden border-indigo-200 bg-linear-to-r from-indigo-50 to-sky-50 dark:border-indigo-900 dark:from-indigo-950/50 dark:to-sky-950/40">
+                    <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="max-w-2xl">
+                            <div class="flex items-center gap-3"><div class="rounded-xl bg-indigo-600 p-2.5 text-white shadow-sm"><flux:icon.clipboard-document-check class="size-6" /></div><div><flux:heading size="lg">আপনার প্রোফাইল {{ $teacherStats['completeness']['percentage'] }}% সম্পন্ন</flux:heading><flux:text>{{ $teacherStats['completeness']['completed'] }}টি তথ্য সম্পন্ন, আরও {{ $teacherStats['completeness']['total'] - $teacherStats['completeness']['completed'] }}টি তথ্য যোগ করা প্রয়োজন।</flux:text></div></div>
+                            <div class="mt-4 h-3 overflow-hidden rounded-full bg-white ring-1 ring-indigo-100 dark:bg-zinc-800 dark:ring-indigo-900" role="progressbar" aria-label="প্রোফাইল সম্পন্ন হওয়ার অগ্রগতি" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $teacherStats['completeness']['percentage'] }}"><div class="h-full rounded-full bg-linear-to-r from-indigo-600 to-sky-500 transition-all duration-500" style="width: {{ $teacherStats['completeness']['percentage'] }}%"></div></div>
+                            @if($teacherStats['completeness']['percentage'] < 100)<div class="mt-4 flex flex-wrap gap-2"><span class="text-xs font-semibold text-zinc-600 dark:text-zinc-300">অসম্পূর্ণ:</span>@foreach($teacherStats['completeness']['missing']->take(6) as $field)<flux:badge color="amber">{{ $field }}</flux:badge>@endforeach @if($teacherStats['completeness']['missing']->count() > 6)<flux:badge color="zinc">আরও {{ $teacherStats['completeness']['missing']->count() - 6 }}টি</flux:badge>@endif</div>@endif
+                        </div>
+                        @if($teacherStats['completeness']['percentage'] < 100)
+                            <div class="lg:max-w-sm"><flux:callout variant="warning" heading="আপনার প্রোফাইল সম্পূর্ণ করুন">অসম্পূর্ণ তথ্য থাকলে ড্যাশবোর্ডে অবসর, ট্রেনিং ও অন্যান্য তথ্য সম্পূর্ণভাবে দেখা যাবে না।</flux:callout>@if($teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved)<flux:button class="mt-3 w-full" variant="primary" :href="route('teachers.edit', $teacherStats['profile'])" icon="pencil-square" wire:navigate>অসম্পূর্ণ তথ্য যোগ করুন</flux:button>@else<flux:text class="mt-3 text-xs">প্রিন্সিপালের অনুমোদনের পর বাকি তথ্য আপডেট করতে পারবেন।</flux:text>@endif</div>
+                        @else
+                            <flux:badge color="green" size="lg">প্রোফাইল সম্পূর্ণ</flux:badge>
+                        @endif
+                    </div>
+                </flux:card>
+
                 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                         <div class="flex items-center justify-between gap-3"><span class="text-sm text-zinc-500 dark:text-zinc-400">প্রোফাইল অবস্থা</span><flux:icon.shield-check class="size-5 text-indigo-500" /></div>
