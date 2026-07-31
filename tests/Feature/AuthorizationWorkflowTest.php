@@ -13,7 +13,7 @@ use Spatie\Permission\Models\Role as PermissionRole;
 
 it('defines user mass assignable attributes without redeclaring the fillable property', function () {
     expect((new User)->getFillable())->toEqualCanonicalizing([
-        'name', 'email', 'password', 'role', 'college_id', 'teacher_id',
+        'name', 'email', 'password', 'role', 'college_id',
         'approval_status', 'approved_by', 'approved_at',
     ]);
 });
@@ -50,7 +50,7 @@ it('allows admin to promote an approved teacher to principal of their college', 
 
     $principal->refresh();
     expect($principal->role)->toBe(Role::Principal)
-        ->and($principal->teacher_id)->toBe($teacher->id)
+        ->and($principal->teacherProfile?->is($teacher))->toBeTrue()
         ->and($principal->approved_by)->toBe($admin->id);
     $this->actingAs($principal)->get(route('colleges.edit', $college))->assertSuccessful();
     $this->actingAs($principal)->get(route('teachers.edit', $teacher))->assertSuccessful()
@@ -134,7 +134,7 @@ it('allows only the college principal or admin to approve a teacher', function (
 
     expect($teacher->refresh()->approval_status)->toBe(ApprovalStatus::Approved)
         ->and($teacher->approved_by)->toBe($principal->id)
-        ->and($teacherUser->refresh()->teacher_id)->toBe($teacher->id);
+        ->and($teacherUser->refresh()->teacherProfile?->is($teacher))->toBeTrue();
 });
 
 it('restricts administrative pages by role', function () {
@@ -161,7 +161,6 @@ it('shows college management as a standalone admin navigation item', function ()
 it('lets a teacher access only their approved profile', function () {
     $teacherUser = User::factory()->create(['role' => Role::Teacher]);
     $teacher = Teacher::query()->create(['name' => 'Self Service Teacher', 'user_id' => $teacherUser->id, 'approval_status' => ApprovalStatus::Pending]);
-    $teacherUser->update(['teacher_id' => $teacher->id]);
 
     $this->actingAs($teacherUser)->get(route('teachers.show', $teacher))->assertForbidden();
 

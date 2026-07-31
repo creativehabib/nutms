@@ -59,8 +59,8 @@ class TeacherProfileForm extends Component
         if ($user->role === Role::Teacher && (! $teacher?->exists)) {
             $this->name = $user->name;
         }
-        if ((! $teacher?->exists) && $user->role === Role::Teacher && $user->teacher_id !== null) {
-            $teacher = $user->teacher;
+        if ((! $teacher?->exists) && $user->role === Role::Teacher && $user->teacherProfile !== null) {
+            $teacher = $user->teacherProfile;
             abort_if($teacher?->approval_status === ApprovalStatus::Pending, 403, 'প্রোফাইলটি অনুমোদনের অপেক্ষায় আছে।');
         }
         if ($teacher?->exists) {
@@ -145,7 +145,7 @@ class TeacherProfileForm extends Component
     {
         $validated = $this->validate([
             'collegeId' => ['required', Rule::exists('colleges', 'id')->where('is_active', true)],
-            'tmisId' => ['nullable', 'string', 'max:255', Rule::unique('teachers', 'tmis_id')->ignore($this->editingId)],
+            'tmisId' => ['nullable', 'string', 'max:255', Rule::unique('teacher_profiles', 'tmis_id')->ignore($this->editingId)],
             'name' => ['required', 'string', 'max:255'],
             'designation' => ['nullable', 'string', 'max:255'],
             'subject' => ['nullable', 'string', 'max:255'],
@@ -229,7 +229,7 @@ class TeacherProfileForm extends Component
                 'approved_at' => $user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_at') : now(),
             ]);
             if ($user->role === Role::Teacher) {
-                $user->update(['teacher_id' => $teacher->id, 'college_id' => $college->id]);
+                $user->update(['college_id' => $college->id]);
             }
             $teacher->trainingTypes()->detach();
             $teacher->otherTrainings()->delete();
