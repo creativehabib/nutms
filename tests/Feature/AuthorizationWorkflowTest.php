@@ -35,7 +35,6 @@ it('allows admin to promote an approved teacher to principal of their college', 
     $otherCollege = College::query()->create(['name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
     $principal = User::factory()->create(['role' => Role::Teacher]);
     $teacher = Teacher::query()->create(['name' => 'Principal Teacher', 'user_id' => $principal->id, 'college_id' => $college->id, 'approval_status' => ApprovalStatus::Approved]);
-    $principal->update(['teacher_id' => $teacher->id, 'college_id' => $college->id]);
 
     Livewire::actingAs($admin)->test(RolePermissionManagement::class)
         ->call('changeRole', $principal->id, Role::Principal->value)
@@ -43,6 +42,7 @@ it('allows admin to promote an approved teacher to principal of their college', 
 
     $principal->refresh();
     expect($principal->role)->toBe(Role::Principal)
+        ->and($principal->teacher_id)->toBe($teacher->id)
         ->and($principal->approved_by)->toBe($admin->id);
     $this->actingAs($principal)->get(route('colleges.edit', $college))->assertSuccessful();
     $this->actingAs($principal)->get(route('teachers.edit', $teacher))->assertSuccessful()
