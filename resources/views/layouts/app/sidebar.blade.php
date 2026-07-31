@@ -26,7 +26,6 @@
                 <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.*')" wire:navigate>
                     {{ __('Teacher Management') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="check-circle" :href="route('approvals.manage')" :current="request()->routeIs('approvals.manage')" wire:navigate>অনুমোদন</flux:sidebar.item>
                 @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
                     @if(auth()->user()->teacher?->approval_status === \App\Enums\ApprovalStatus::Approved)
                         <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacher_id)" :current="request()->routeIs('teachers.show')" wire:navigate>আমার প্রোফাইল</flux:sidebar.item>

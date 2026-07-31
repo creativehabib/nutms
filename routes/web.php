@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
-use App\Livewire\ApprovalManagement;
 use App\Livewire\CollegeDetails;
 use App\Livewire\CollegeForm;
 use App\Livewire\CollegeLabSummary;
@@ -30,7 +29,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/colleges/create', CollegeForm::class)->middleware('role:admin')->name('colleges.create');
     Route::get('/colleges/{college}/edit', CollegeForm::class)->middleware('role:admin,principal')->name('colleges.edit');
     Route::get('/colleges/{college}', CollegeDetails::class)->middleware('role:admin,principal')->name('colleges.show');
-    Route::get('/approvals', ApprovalManagement::class)->middleware('role:admin,principal')->name('approvals.manage');
     Route::get('/training-catalog', TrainingCatalogManagement::class)->middleware('role:admin')->name('training-catalog.manage');
     Route::get('/lab-summary', CollegeLabSummary::class)->middleware('role:admin')->name('lab.summary');
     Route::get('/ict-training-summary', IctTrainingSummary::class)->middleware('role:admin')->name('ict.summary');

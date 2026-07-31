@@ -2,7 +2,8 @@
 
 use App\Enums\ApprovalStatus;
 use App\Enums\UserRole;
-use App\Livewire\ApprovalManagement;
+use App\Livewire\CollegeManagement;
+use App\Livewire\TeacherManagement;
 use App\Models\College;
 use App\Models\Teacher;
 use App\Models\User;
@@ -18,7 +19,7 @@ it('allows an admin to approve a principal submitted college', function () {
         'is_active' => false,
     ]);
 
-    Livewire::actingAs($admin)->test(ApprovalManagement::class)
+    Livewire::actingAs($admin)->test(CollegeManagement::class)
         ->call('approveCollege', $college->id)
         ->assertHasNoErrors();
 
@@ -39,8 +40,9 @@ it('requires admin approval before a principal can manage only the selected coll
 
     $this->actingAs($principal)->get(route('colleges.edit', $college))->assertForbidden();
 
-    Livewire::actingAs($admin)->test(ApprovalManagement::class)
-        ->call('approvePrincipal', $principal->id)
+    Livewire::actingAs($admin)->test(CollegeManagement::class)
+        ->assertSee('পেন্ডিং')
+        ->call('approvePrincipal', $college->id)
         ->assertHasNoErrors();
 
     $principal->refresh();
@@ -63,11 +65,12 @@ it('allows only the college principal or admin to approve a teacher', function (
         'approval_status' => ApprovalStatus::Pending,
     ]);
 
-    Livewire::actingAs($otherPrincipal)->test(ApprovalManagement::class)
+    Livewire::actingAs($otherPrincipal)->test(TeacherManagement::class)
         ->call('approveTeacher', $teacher->id)
-        ->assertForbidden();
+        ->assertNotFound();
 
-    Livewire::actingAs($principal)->test(ApprovalManagement::class)
+    Livewire::actingAs($principal)->test(TeacherManagement::class)
+        ->assertSee('পেন্ডিং')
         ->call('approveTeacher', $teacher->id)
         ->assertHasNoErrors();
 
@@ -82,7 +85,7 @@ it('restricts administrative pages by role', function () {
 
     $this->actingAs($teacher)->get(route('training-catalog.manage'))->assertForbidden();
     $this->actingAs($teacher)->get(route('teachers.manage'))->assertForbidden();
-    $this->actingAs($principal)->get(route('approvals.manage'))->assertSuccessful();
+    $this->actingAs($principal)->get('/approvals')->assertNotFound();
 });
 
 it('lets a teacher access only their approved profile', function () {

@@ -127,6 +127,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">শিক্ষকের নাম</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">পদবী ও বিষয়</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">যোগাযোগ</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">অনুমোদন</th>
                     <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">অ্যাকশন</th>
                 </tr>
                 </thead>
@@ -162,6 +163,9 @@
                             <span class="block text-gray-800 dark:text-slate-200">{{ $teacher->mobile_number ?? '-' }}</span>
                             <span class="block text-blue-600 text-xs">{{ $teacher->email ?? '-' }}</span>
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <flux:badge :color="match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'green', \App\Enums\ApprovalStatus::Rejected => 'red', default => 'amber' }">{{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'অনুমোদিত', \App\Enums\ApprovalStatus::Rejected => 'প্রত্যাখ্যাত', default => 'পেন্ডিং' } }}</flux:badge>
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                             @if ($showTrashed)
                                 <button wire:click="restoreTeacher({{ $teacher->id }})" class="mr-2 rounded bg-emerald-100 px-3 py-1 text-emerald-700 transition hover:bg-emerald-200 hover:text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900">Restore</button>
@@ -169,6 +173,10 @@
                             @else
                                 <flux:button size="sm" icon="eye" :href="route('teachers.show', $teacher)" wire:navigate>দেখুন</flux:button>
                                 <flux:button size="sm" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate>সম্পাদনা</flux:button>
+                                @if($teacher->approval_status === \App\Enums\ApprovalStatus::Pending)
+                                    <flux:button size="sm" variant="primary" wire:click="approveTeacher({{ $teacher->id }})">এপ্রুভ</flux:button>
+                                    <flux:button size="sm" variant="danger" wire:click="rejectTeacher({{ $teacher->id }})">রিজেক্ট</flux:button>
+                                @endif
                                 <button wire:click="confirmTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200 hover:text-red-900 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900">Delete</button>
                             @endif
                         </td>

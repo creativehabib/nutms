@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Enums\ApprovalStatus;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class College extends Model
 {
@@ -35,6 +37,11 @@ class College extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function principal(): HasOne
+    {
+        return $this->hasOne(User::class)->where('role', UserRole::Principal->value);
     }
 
     public function division(): BelongsTo

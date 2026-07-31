@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Enums\ApprovalStatus;
+use App\Enums\UserRole;
 use App\Models\Teacher;
 use App\Models\College;
 use App\Models\Designation;
@@ -87,6 +89,20 @@ class TeacherManagement extends Component
     public function updatedCollegeCodeFilter(): void
     {
         $this->resetFiltersAndSelection();
+    }
+
+    public function approveTeacher(int $teacherId): void
+    {
+        $teacher = $this->accessibleTeachersQuery()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
+        $teacher->update(['approval_status' => ApprovalStatus::Approved, 'approved_by' => auth()->id(), 'approved_at' => now()]);
+        $teacher->user?->update(['teacher_id' => $teacher->id, 'college_id' => $teacher->college_id]);
+        Flux::toast(variant: 'success', text: 'শিক্ষক প্রোফাইল অনুমোদিত হয়েছে।');
+    }
+
+    public function rejectTeacher(int $teacherId): void
+    {
+        $teacher = $this->accessibleTeachersQuery()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
+        $teacher->update(['approval_status' => ApprovalStatus::Rejected, 'approved_by' => auth()->id(), 'approved_at' => now()]);
     }
 
     public function updatedSelectAllOnPage(bool $selected): void

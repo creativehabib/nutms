@@ -25,6 +25,7 @@
                     <flux:table.column>অবস্থান</flux:table.column>
                     <flux:table.column>ধরন</flux:table.column>
                     <flux:table.column>ল্যাব</flux:table.column>
+                    <flux:table.column>অনুমোদন</flux:table.column>
                     <flux:table.column>শিক্ষক</flux:table.column>
                     <flux:table.column></flux:table.column>
                 </flux:table.columns>
@@ -35,11 +36,15 @@
                             <flux:table.cell>{{ $college->thana?->name ?: '—' }}, {{ $college->district?->name ?: '—' }}</flux:table.cell>
                             <flux:table.cell><flux:badge :color="$college->college_type === 'government' ? 'green' : 'zinc'">{{ ['government'=>'সরকারি','non_government'=>'বেসরকারি','other'=>'অন্যান্য'][$college->college_type] ?? 'অনির্ধারিত' }}</flux:badge></flux:table.cell>
                             <flux:table.cell>@if($college->has_computer_lab)<span class="font-medium text-green-700 dark:text-green-400">আছে</span>@elseif($college->has_computer_lab === false)<span class="text-zinc-500">নেই</span>@else<span class="text-zinc-500">অনির্ধারিত</span>@endif</flux:table.cell>
+                            @php($approvalStatus = $college->principal?->approval_status ?? $college->approval_status)
+                            <flux:table.cell>
+                                <flux:badge :color="match($approvalStatus) { \App\Enums\ApprovalStatus::Approved => 'green', \App\Enums\ApprovalStatus::Rejected => 'red', default => 'amber' }">{{ match($approvalStatus) { \App\Enums\ApprovalStatus::Approved => 'অনুমোদিত', \App\Enums\ApprovalStatus::Rejected => 'প্রত্যাখ্যাত', default => 'পেন্ডিং' } }}</flux:badge>
+                            </flux:table.cell>
                             <flux:table.cell>{{ $college->teachers_count }} জন</flux:table.cell>
-                            <flux:table.cell><div class="flex justify-end gap-2"><flux:button size="sm" icon="eye" :href="route('colleges.show', $college)" wire:navigate>দেখুন</flux:button><flux:button size="sm" icon="pencil-square" :href="route('colleges.edit', $college)" wire:navigate>সম্পাদনা</flux:button>@if(auth()->user()->isAdmin())<flux:button size="sm" variant="danger" wire:click="delete({{ $college->id }})" wire:confirm="কলেজটি মুছবেন?">মুছুন</flux:button>@endif</div></flux:table.cell>
+                            <flux:table.cell><div class="flex flex-wrap justify-end gap-2"><flux:button size="sm" icon="eye" :href="route('colleges.show', $college)" wire:navigate>দেখুন</flux:button><flux:button size="sm" icon="pencil-square" :href="route('colleges.edit', $college)" wire:navigate>সম্পাদনা</flux:button>@if(auth()->user()->isAdmin() && $college->principal?->approval_status === \App\Enums\ApprovalStatus::Pending)<flux:button size="sm" variant="primary" wire:click="approvePrincipal({{ $college->id }})">এপ্রুভ</flux:button><flux:button size="sm" variant="danger" wire:click="rejectPrincipal({{ $college->id }})">রিজেক্ট</flux:button>@elseif(auth()->user()->isAdmin() && $college->approval_status === \App\Enums\ApprovalStatus::Pending)<flux:button size="sm" variant="primary" wire:click="approveCollege({{ $college->id }})">এপ্রুভ</flux:button>@endif @if(auth()->user()->isAdmin())<flux:button size="sm" variant="danger" wire:click="delete({{ $college->id }})" wire:confirm="কলেজটি মুছবেন?">মুছুন</flux:button>@endif</div></flux:table.cell>
                         </flux:table.row>
                     @empty
-                        <flux:table.row><flux:table.cell colspan="6" class="py-10 text-center">কোনো কলেজ পাওয়া যায়নি।</flux:table.cell></flux:table.row>
+                        <flux:table.row><flux:table.cell colspan="7" class="py-10 text-center">কোনো কলেজ পাওয়া যায়নি।</flux:table.cell></flux:table.row>
                     @endforelse
                 </flux:table.rows>
             </flux:table>
