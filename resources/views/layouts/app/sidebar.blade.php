@@ -38,7 +38,7 @@
                 </flux:sidebar.item>
                 @php($principalTeacherId = auth()->user()->teacherProfile?->id)
                 @if(auth()->user()->role === \App\Enums\UserRole::Principal && $principalTeacherId)
-                    <flux:sidebar.item icon="identification" :href="route('teachers.edit', $principalTeacherId)" :current="request()->routeIs('teachers.edit') && (int) request()->route('teacher')?->id === $principalTeacherId" wire:navigate>
+                    <flux:sidebar.item icon="identification" :href="route('teachers.show', $principalTeacherId)" :current="request()->routeIs('teachers.show') && (int) request()->route('teacher')?->id === $principalTeacherId" wire:navigate>
                         আমার প্রোফাইল
                     </flux:sidebar.item>
                 @endif
