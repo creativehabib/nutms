@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ApprovalStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ class College extends Model
     protected $fillable = [
         'code', 'name', 'division_id', 'district_id', 'thana_id', 'address',
         'principal_name', 'college_type', 'has_computer_lab', 'lab_equipment_type',
-        'desktop_count', 'laptop_count', 'is_active',
+        'desktop_count', 'laptop_count', 'is_active', 'submitted_by', 'approval_status', 'approved_by', 'approved_at',
     ];
 
     protected function casts(): array
@@ -21,6 +22,8 @@ class College extends Model
             'desktop_count' => 'integer',
             'laptop_count' => 'integer',
             'is_active' => 'boolean',
+            'approval_status' => ApprovalStatus::class,
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -47,5 +50,10 @@ class College extends Model
     public function programs(): HasMany
     {
         return $this->hasMany(CollegeProgram::class);
+    }
+
+    public function submitter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'submitted_by');
     }
 }

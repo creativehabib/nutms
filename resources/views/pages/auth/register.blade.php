@@ -30,6 +30,12 @@
                 placeholder="email@example.com"
             />
 
+            <flux:select name="role" :label="__('Account type')" required>
+                <option value="">{{ __('Select account type') }}</option>
+                <option value="principal" @selected(old('role') === 'principal')>কলেজ প্রিন্সিপাল</option>
+                <option value="teacher" @selected(old('role') === 'teacher')>শিক্ষক</option>
+            </flux:select>
+
             <!-- Password -->
             <flux:input
                 name="password"

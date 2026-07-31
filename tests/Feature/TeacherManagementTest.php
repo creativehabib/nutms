@@ -2,7 +2,12 @@
 
 use App\Livewire\TeacherManagement;
 use App\Models\Teacher;
+use App\Models\User;
 use Livewire\Livewire;
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
 
 it('renders a responsive edit form with a blurred backdrop', function () {
     Livewire::test(TeacherManagement::class)
@@ -11,7 +16,7 @@ it('renders a responsive edit form with a blurred backdrop', function () {
         ->assertSeeHtml('px-3 py-2.5')
         ->assertSee('শিক্ষক খুঁজুন')
         ->assertSee('এই পৃষ্ঠার সব শিক্ষক নির্বাচন করুন')
-        ->assertSeeHtml('lg:grid-cols-[minmax(16rem,1.25fr)_repeat(3,minmax(10rem,0.75fr))_auto]');
+        ->assertSeeHtml('lg:grid-cols-[minmax(16rem,1.25fr)_repeat(2,minmax(10rem,0.75fr))_auto]');
 });
 
 it('shows the distinct college count beside the teacher count', function () {

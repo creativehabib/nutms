@@ -18,10 +18,12 @@ test('new users can register', function () {
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'role' => 'teacher',
     ]);
 
     $response->assertSessionHasNoErrors()
         ->assertRedirect(route('dashboard', absolute: false));
 
     $this->assertAuthenticated();
+    expect(auth()->user()->role->value)->toBe('teacher');
 });

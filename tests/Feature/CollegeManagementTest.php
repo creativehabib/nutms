@@ -9,6 +9,7 @@ use App\Models\User;
 use Livewire\Livewire;
 
 beforeEach(function () {
+    $this->actingAs(User::factory()->create());
     $firstDivision = Division::query()->firstOrCreate(['name' => 'Test Division One'], ['country_id' => 1, 'bn_name' => 'টেস্ট বিভাগ এক']);
     $secondDivision = Division::query()->firstOrCreate(['name' => 'Test Division Two'], ['country_id' => 1, 'bn_name' => 'টেস্ট বিভাগ দুই']);
     District::query()->firstOrCreate(['name' => 'Test District One', 'division_id' => $firstDivision->id], ['bn_name' => 'টেস্ট জেলা এক']);
@@ -17,6 +18,7 @@ beforeEach(function () {
 });
 
 it('requires authentication to manage colleges', function () {
+    auth()->logout();
     $this->get(route('colleges.manage'))->assertRedirect(route('login'));
 });
 

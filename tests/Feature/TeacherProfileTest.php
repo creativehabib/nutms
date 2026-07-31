@@ -10,6 +10,7 @@ use App\Models\Thana;
 use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\User;
+use App\Enums\UserRole;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -26,7 +27,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
     $institute = TrainingInstitute::query()->create(['name' => 'Profile Training Institute']);
     $training = TrainingType::query()->create(['training_institute_id' => $institute->id, 'name' => 'Profile ICT Training', 'duration_value' => 7, 'duration_unit' => 'days']);
 
-    Livewire::test(TeacherProfileForm::class)
+    Livewire::actingAs(User::factory()->create(['role' => UserRole::Admin]))->test(TeacherProfileForm::class)
         ->set('collegeId', (string) $college->id)->set('name', 'New Teacher')->set('tmisId', 'TMIS-PROFILE')
         ->set('divisionId', (string) $division->id)->set('districtId', (string) $district->id)->set('thanaId', (string) $thana->id)
         ->set('presentAddress', 'Present Address')->set('permanentAddress', 'Permanent Address')
@@ -70,7 +71,7 @@ it('updates profile fields without changing existing institutional training hist
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
 
-    Livewire::test(TeacherProfileForm::class, ['teacher' => $teacher])
+    Livewire::actingAs(User::factory()->create(['role' => UserRole::Admin]))->test(TeacherProfileForm::class, ['teacher' => $teacher])
         ->assertSet('trainingEntries.0.training_type_id', (string) $training->id)
         ->assertSee('প্রতিষ্ঠানভিত্তিক ট্রেনিং ইতিহাস')
         ->set('divisionId', (string) $division->id)->set('districtId', (string) $district->id)->set('thanaId', (string) $thana->id)
@@ -84,7 +85,7 @@ it('updates profile fields without changing existing institutional training hist
 it('shows all teacher profile sections on a dedicated details page', function () {
     $teacher = Teacher::query()->create(['name' => 'Details Teacher', 'present_address' => 'Teacher Present', 'permanent_address' => 'Teacher Permanent', 'mobile_number' => '01900000000', 'bank_name' => 'Agrani Bank', 'bank_branch_name' => 'Town Branch', 'bank_routing_number' => '987654321']);
 
-    Livewire::test(TeacherDetails::class, ['teacher' => $teacher])
+    Livewire::actingAs(User::factory()->create(['role' => UserRole::Admin]))->test(TeacherDetails::class, ['teacher' => $teacher])
         ->assertSee('Details Teacher')->assertSee('Teacher Present')->assertSee('Teacher Permanent')
         ->assertSee('01900000000')->assertSee('Agrani Bank')->assertSee('Town Branch')->assertSee('987654321')
         ->assertSee('প্রতিষ্ঠানভিত্তিক ট্রেনিং ইতিহাস')

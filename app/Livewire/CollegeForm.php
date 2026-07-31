@@ -15,6 +15,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use App\Enums\ApprovalStatus;
+use App\Enums\UserRole;
 
 class CollegeForm extends Component
 {
@@ -106,6 +108,13 @@ class CollegeForm extends Component
 
     public function mount(?College $college = null): void
     {
+        abort_unless(auth()->user()->role === UserRole::Admin || auth()->user()->role === UserRole::Principal, 403);
+        if ((! $college?->exists) && auth()->user()->role === UserRole::Principal && auth()->user()->college_id !== null) {
+            $college = auth()->user()->college;
+        }
+        if ($college?->exists && auth()->user()->role === UserRole::Principal) {
+            abort_unless($college->submitted_by === auth()->id(), 403);
+        }
         if ($college !== null && $college->exists) {
             $this->loadCollege($college);
         }
@@ -183,6 +192,7 @@ class CollegeForm extends Component
         }
 
         DB::transaction(function () use ($validated): void {
+            $user = auth()->user();
             $college = College::query()->updateOrCreate(['id' => $this->editingId], [
                 'code' => blank($validated['code']) ? null : $validated['code'],
                 'name' => $validated['name'],
@@ -197,7 +207,14 @@ class CollegeForm extends Component
                 'desktop_count' => $validated['hasComputerLab'] === '1' && in_array($validated['labEquipmentType'], ['desktop', 'both'], true) ? ($validated['desktopCount'] ?? null) : null,
                 'laptop_count' => $validated['hasComputerLab'] === '1' && in_array($validated['labEquipmentType'], ['laptop', 'both'], true) ? ($validated['laptopCount'] ?? null) : null,
                 'is_active' => $validated['isActive'],
+                'submitted_by' => $this->editingId ? College::query()->whereKey($this->editingId)->value('submitted_by') : $user->id,
+                'approval_status' => $user->isAdmin() ? ApprovalStatus::Approved : ApprovalStatus::Pending,
+                'approved_by' => $user->isAdmin() ? $user->id : null,
+                'approved_at' => $user->isAdmin() ? now() : null,
             ]);
+            if ($user->role === UserRole::Principal) {
+                $user->update(['college_id' => $college->id]);
+            }
             $college->programs()->delete();
             $programs = collect($validated['programs'])->map(function (array $group): array {
                 $items = collect($group['names'])->map(fn (string $name): string => trim($name))
@@ -209,7 +226,7 @@ class CollegeForm extends Component
             DB::table('teachers')->where('college_id', $college->id)->update(['college_code' => $college->code, 'college_name' => $college->name]);
         });
 
-        Flux::toast(variant: 'success', text: 'কলেজের বিস্তারিত তথ্য সংরক্ষণ করা হয়েছে।');
+        Flux::toast(variant: 'success', text: auth()->user()->isAdmin() ? 'কলেজের বিস্তারিত তথ্য সংরক্ষণ করা হয়েছে।' : 'কলেজ প্রোফাইল অনুমোদনের জন্য জমা হয়েছে।');
         $this->redirectRoute('colleges.manage', navigate: true);
     }
 

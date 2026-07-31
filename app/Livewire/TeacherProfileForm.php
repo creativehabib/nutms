@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use App\Enums\ApprovalStatus;
+use App\Enums\UserRole;
 
 class TeacherProfileForm extends Component
 {
@@ -48,6 +50,14 @@ class TeacherProfileForm extends Component
 
     public function mount(?Teacher $teacher = null): void
     {
+        $user = auth()->user();
+        if ((! $teacher?->exists) && $user->role === UserRole::Teacher && $user->teacher_id !== null) {
+            $teacher = $user->teacher;
+            abort_if($teacher?->approval_status === ApprovalStatus::Pending, 403, 'প্রোফাইলটি অনুমোদনের অপেক্ষায় আছে।');
+        }
+        if ($teacher?->exists) {
+            abort_unless($user->isAdmin() || ($user->role === UserRole::Principal && $teacher->college_id === $user->college_id) || ($user->role === UserRole::Teacher && $teacher->user_id === $user->id && $teacher->approval_status !== ApprovalStatus::Pending), 403);
+        }
         if ($teacher !== null && $teacher->exists) {
             $this->editingId = $teacher->id;
             $this->collegeId = (string) ($teacher->college_id ?? '');
@@ -171,7 +181,13 @@ class TeacherProfileForm extends Component
         }
 
         DB::transaction(function () use ($validated): void {
+            $user = auth()->user();
             $college = College::query()->findOrFail($validated['collegeId']);
+            if ($user->role === UserRole::Teacher) {
+                abort_unless($college->approval_status === ApprovalStatus::Approved, 403);
+            } elseif ($user->role === UserRole::Principal) {
+                abort_unless($college->id === $user->college_id && $college->approval_status === ApprovalStatus::Approved, 403);
+            }
             $teacher = Teacher::query()->updateOrCreate(['id' => $this->editingId], [
                 'college_id' => $college->id, 'college_code' => $college->code, 'college_name' => $college->name,
                 'tmis_id' => $validated['tmisId'] ?: null,
@@ -183,7 +199,14 @@ class TeacherProfileForm extends Component
                 'mobile_number' => $validated['mobileNumber'], 'email' => $validated['email'] ?: null,
                 'bank_name' => $validated['bankName'] ?: null, 'bank_branch_name' => $validated['bankBranchName'] ?: null,
                 'bank_routing_number' => $validated['bankRoutingNumber'] ?: null,
+                'user_id' => $this->editingId ? Teacher::query()->whereKey($this->editingId)->value('user_id') : ($user->role === UserRole::Teacher ? $user->id : null),
+                'approval_status' => $user->role === UserRole::Teacher ? ApprovalStatus::Pending : ApprovalStatus::Approved,
+                'approved_by' => $user->role === UserRole::Teacher ? null : $user->id,
+                'approved_at' => $user->role === UserRole::Teacher ? null : now(),
             ]);
+            if ($user->role === UserRole::Teacher) {
+                $user->update(['teacher_id' => $teacher->id, 'college_id' => $college->id]);
+            }
             $teacher->trainingTypes()->detach();
             $teacher->otherTrainings()->delete();
             foreach ($validated['trainingEntries'] as $entry) {
@@ -201,14 +224,17 @@ class TeacherProfileForm extends Component
             }
         });
 
-        Flux::toast(variant: 'success', text: 'শিক্ষকের প্রোফাইল সংরক্ষণ করা হয়েছে।');
-        $this->redirectRoute('teachers.manage', navigate: true);
+        $isTeacherSubmission = auth()->user()->role === UserRole::Teacher;
+        Flux::toast(variant: 'success', text: $isTeacherSubmission ? 'প্রোফাইলটি প্রিন্সিপালের অনুমোদনের জন্য জমা হয়েছে।' : 'শিক্ষকের প্রোফাইল সংরক্ষণ করা হয়েছে।');
+        $this->redirectRoute($isTeacherSubmission ? 'dashboard' : 'teachers.manage', navigate: true);
     }
 
     public function render(): View
     {
         return view('livewire.teacher-profile-form', [
-            'colleges' => College::query()->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']),
+            'colleges' => College::query()->where('is_active', true)->where('approval_status', ApprovalStatus::Approved)
+                ->when(auth()->user()->role === UserRole::Principal, fn ($query) => $query->whereKey(auth()->user()->college_id))
+                ->orderBy('name')->get(['id', 'code', 'name']),
             'designations' => Designation::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'subjects' => Subject::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'teacherLevels' => TeacherLevel::query()->where('is_active', true)->orderBy('name')->pluck('name'),

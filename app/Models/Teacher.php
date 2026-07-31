@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ApprovalStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,11 @@ class Teacher extends Model
 
     // কোনো কলামই প্রোটেক্টেড নয়, সব কলামে ডেটা ইনসার্ট করা যাবে
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return ['approval_status' => ApprovalStatus::class, 'approved_at' => 'datetime'];
+    }
 
     protected static function booted(): void
     {
@@ -116,5 +122,10 @@ class Teacher extends Model
     public function thana(): BelongsTo
     {
         return $this->belongsTo(Thana::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

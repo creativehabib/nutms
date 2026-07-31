@@ -9,7 +9,12 @@ use App\Models\TrainingType;
 use App\Models\User;
 use Livewire\Livewire;
 
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
+
 it('requires authentication to manage the training catalog', function () {
+    auth()->logout();
     $this->get(route('training-catalog.manage'))->assertRedirect(route('login'));
 });
 

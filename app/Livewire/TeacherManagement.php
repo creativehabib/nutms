@@ -20,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Enums\UserRole;
 
 class TeacherManagement extends Component
 {
@@ -139,7 +140,7 @@ class TeacherManagement extends Component
 
     public function confirmTeacherDeletion(int $teacherId): void
     {
-        $teacher = Teacher::findOrFail($teacherId);
+        $teacher = $this->accessibleTeachersQuery()->findOrFail($teacherId);
 
         $this->deletingTeacherIds = [$teacher->id];
         $this->deletingTeacherName = $teacher->name ?? 'এই শিক্ষক';
@@ -150,7 +151,7 @@ class TeacherManagement extends Component
 
     public function confirmPermanentTeacherDeletion(int $teacherId): void
     {
-        $teacher = Teacher::onlyTrashed()->findOrFail($teacherId);
+        $teacher = $this->accessibleTeachersQuery(true)->findOrFail($teacherId);
 
         $this->deletingTeacherIds = [$teacher->id];
         $this->deletingTeacherName = $teacher->name ?? 'এই শিক্ষক';
@@ -166,7 +167,7 @@ class TeacherManagement extends Component
             ->unique()
             ->values();
 
-        $teachers = Teacher::query()->whereKey($teacherIds)->get(['id', 'name']);
+        $teachers = $this->accessibleTeachersQuery()->whereKey($teacherIds)->get(['id', 'name']);
 
         if ($teachers->isEmpty()) {
             Flux::toast(variant: 'warning', text: 'মুছে ফেলার জন্য অন্তত একজন শিক্ষক নির্বাচন করুন।');
@@ -190,7 +191,7 @@ class TeacherManagement extends Component
             ->unique()
             ->values();
 
-        $teachers = Teacher::onlyTrashed()->whereKey($teacherIds)->get(['id', 'name']);
+        $teachers = $this->accessibleTeachersQuery(true)->whereKey($teacherIds)->get(['id', 'name']);
 
         if ($teachers->isEmpty()) {
             Flux::toast(variant: 'warning', text: 'স্থায়ীভাবে মুছে ফেলার জন্য অন্তত একজন শিক্ষক নির্বাচন করুন।');
@@ -217,8 +218,8 @@ class TeacherManagement extends Component
 
         $isPermanentDeletion = $this->permanentDeletion;
         $deletedTeacherCount = $isPermanentDeletion
-            ? Teacher::onlyTrashed()->whereKey($this->deletingTeacherIds)->forceDelete()
-            : Teacher::query()->whereKey($this->deletingTeacherIds)->delete();
+            ? $this->accessibleTeachersQuery(true)->whereKey($this->deletingTeacherIds)->forceDelete()
+            : $this->accessibleTeachersQuery()->whereKey($this->deletingTeacherIds)->delete();
 
         $this->reset('deletingTeacherIds', 'deletingTeacherName', 'permanentDeletion');
         $this->resetSelection();
@@ -238,7 +239,7 @@ class TeacherManagement extends Component
 
     public function restoreTeacher(int $teacherId): void
     {
-        $restoredTeacherCount = Teacher::onlyTrashed()
+        $restoredTeacherCount = $this->accessibleTeachersQuery(true)
             ->whereKey($teacherId)
             ->restore();
 
@@ -259,7 +260,7 @@ class TeacherManagement extends Component
             ->unique()
             ->values();
 
-        $restoredTeacherCount = Teacher::onlyTrashed()
+        $restoredTeacherCount = $this->accessibleTeachersQuery(true)
             ->whereKey($teacherIds)
             ->restore();
 
@@ -276,7 +277,7 @@ class TeacherManagement extends Component
     // এডিট মডাল ওপেন করা এবং ডেটা লোড করার ফাংশন
     public function editTeacher($id)
     {
-        $teacher = Teacher::query()->with(['trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])->findOrFail($id);
+        $teacher = $this->accessibleTeachersQuery()->with(['trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])->findOrFail($id);
         $this->editingId = $id;
 
         // ফর্মের ইনপুটে বর্তমান ডেটা সেট করা
@@ -408,7 +409,7 @@ class TeacherManagement extends Component
         // ডেটাবেসে আপডেট করা
         if ($this->editingId) {
             DB::transaction(function () use ($validated): void {
-                $teacher = Teacher::findOrFail($this->editingId);
+                $teacher = $this->accessibleTeachersQuery()->findOrFail($this->editingId);
                 $teacherData = $validated['editForm'];
                 $teacherData['subject_id'] = Subject::query()->where('name', $teacherData['subject'])->value('id');
                 $teacherData['designation_id'] = Designation::query()->where('name', $teacherData['designation'])->value('id');
@@ -502,9 +503,7 @@ class TeacherManagement extends Component
 
     private function filteredTeachersQuery(): Builder
     {
-        $query = $this->showTrashed
-            ? Teacher::onlyTrashed()
-            : Teacher::query();
+        $query = $this->accessibleTeachersQuery($this->showTrashed);
 
         // সার্চ (নাম, TMIS ID অথবা মোবাইল নাম্বার)
         if (!empty($this->search)) {
@@ -523,6 +522,19 @@ class TeacherManagement extends Component
         // কলেজ কোড অনুযায়ী ফিল্টার
         if (!empty($this->collegeCodeFilter)) {
             $query->where('college_code', $this->collegeCodeFilter);
+        }
+
+        return $query;
+    }
+
+    private function accessibleTeachersQuery(bool $onlyTrashed = false): Builder
+    {
+        $query = $onlyTrashed ? Teacher::onlyTrashed() : Teacher::query();
+
+        if (auth()->user()->role === UserRole::Principal) {
+            $query->where('college_id', auth()->user()->college_id);
+        } elseif (auth()->user()->role === UserRole::Teacher) {
+            $query->where('user_id', auth()->id());
         }
 
         return $query;
