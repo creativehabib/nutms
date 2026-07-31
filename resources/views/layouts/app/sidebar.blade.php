@@ -36,16 +36,16 @@
                 <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.*')" wire:navigate>
                     {{ __('Teacher Management') }}
                 </flux:sidebar.item>
-                @php($principalTeacherId = auth()->user()->teacher_id ?: auth()->user()->teacherProfile?->id)
+                @php($principalTeacherId = auth()->user()->teacherProfile?->id)
                 @if(auth()->user()->role === \App\Enums\UserRole::Principal && $principalTeacherId)
                     <flux:sidebar.item icon="identification" :href="route('teachers.edit', $principalTeacherId)" :current="request()->routeIs('teachers.edit') && (int) request()->route('teacher')?->id === $principalTeacherId" wire:navigate>
                         আমার প্রোফাইল
                     </flux:sidebar.item>
                 @endif
                 @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
-                    @if(auth()->user()->teacher?->approval_status === \App\Enums\ApprovalStatus::Approved)
-                        <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacher_id)" :current="request()->routeIs('teachers.show')" wire:navigate>আমার প্রোফাইল</flux:sidebar.item>
-                    @elseif(auth()->user()->teacher_id)
+                    @if(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Approved)
+                        <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacherProfile)" :current="request()->routeIs('teachers.show')" wire:navigate>আমার প্রোফাইল</flux:sidebar.item>
+                    @elseif(auth()->user()->teacherProfile)
                         <div class="px-3 py-2 text-sm text-amber-600">প্রোফাইল অনুমোদনের অপেক্ষায়</div>
                     @else
                         <flux:sidebar.item icon="user-plus" :href="route('teachers.create')" :current="request()->routeIs('teachers.create')" wire:navigate>প্রোফাইল তৈরি</flux:sidebar.item>
