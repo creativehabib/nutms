@@ -30,6 +30,8 @@
                 placeholder="email@example.com"
             />
 
+            <flux:callout variant="info" heading="শিক্ষক account">নতুন account শিক্ষক হিসেবে তৈরি হবে। প্রয়োজন হলে এডমিন অনুমোদিত শিক্ষককে তার কলেজের প্রিন্সিপাল রোল প্রদান করবেন।</flux:callout>
+
             <!-- Password -->
             <flux:input
                 name="password"

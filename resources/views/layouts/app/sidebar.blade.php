@@ -16,9 +16,44 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
-                <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.manage')" wire:navigate>
+
+                @if(auth()->user()->isAdmin())
+                <flux:sidebar.item icon="presentation-chart-bar" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>
+                    ট্রেনিং ক্যাটালগ
+                </flux:sidebar.item>
+                <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>
+                    কলেজ ব্যবস্থাপনা
+                </flux:sidebar.item>
+                <flux:sidebar.item icon="shield-check" :href="route('roles-permissions.manage')" :current="request()->routeIs('roles-permissions.manage')" wire:navigate>
+                    রোলস ও পারমিশন
+                </flux:sidebar.item>
+                @endif
+                @if(auth()->user()->isAdmin() || (auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved()))
+                <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.*')" wire:navigate>
                     {{ __('Teacher Management') }}
                 </flux:sidebar.item>
+                @if(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->teacher_id)
+                    <flux:sidebar.item icon="identification" :href="route('teachers.edit', auth()->user()->teacher_id)" :current="request()->routeIs('teachers.edit') && (int) request()->route('teacher')?->id === auth()->user()->teacher_id" wire:navigate>
+                        আমার শিক্ষক প্রোফাইল
+                    </flux:sidebar.item>
+                @endif
+                @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
+                    @if(auth()->user()->teacher?->approval_status === \App\Enums\ApprovalStatus::Approved)
+                        <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacher_id)" :current="request()->routeIs('teachers.show')" wire:navigate>আমার প্রোফাইল</flux:sidebar.item>
+                    @elseif(auth()->user()->teacher_id)
+                        <div class="px-3 py-2 text-sm text-amber-600">প্রোফাইল অনুমোদনের অপেক্ষায়</div>
+                    @else
+                        <flux:sidebar.item icon="user-plus" :href="route('teachers.create')" :current="request()->routeIs('teachers.create')" wire:navigate>প্রোফাইল তৈরি</flux:sidebar.item>
+                    @endif
+                @endif
+
+                @if(auth()->user()->isAdmin())
+                <flux:sidebar.group heading="শিক্ষক সেটিংস" expandable :expanded="request()->routeIs('reference-data.manage')" class="grid">
+                    <flux:sidebar.item icon="book-open" :href="route('reference-data.manage', 'subjects')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'subjects'" wire:navigate>সাবজেক্ট</flux:sidebar.item>
+                    <flux:sidebar.item icon="briefcase" :href="route('reference-data.manage', 'designations')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'designations'" wire:navigate>পদবি</flux:sidebar.item>
+                    <flux:sidebar.item icon="academic-cap" :href="route('reference-data.manage', 'teacher-levels')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'teacher-levels'" wire:navigate>শিক্ষক স্তর</flux:sidebar.item>
+                    <flux:sidebar.item icon="identification" :href="route('reference-data.manage', 'employments')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'employments'" wire:navigate>চাকরির ধরন</flux:sidebar.item>
+                </flux:sidebar.group>
 
                 <flux:sidebar.item icon="computer-desktop" :href="route('lab.summary')" :current="request()->routeIs('lab.summary')" wire:navigate>
                     {{ __('Lab Summary') }}
@@ -27,6 +62,11 @@
                 <flux:sidebar.item icon="academic-cap" :href="route('ict.summary')" :current="request()->routeIs('ict.summary')" wire:navigate>
                     {{ __('ICT Training Summary') }}
                 </flux:sidebar.item>
+                @elseif(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())
+                    <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>আমার কলেজ</flux:sidebar.item>
+                @elseif(auth()->user()->role === \App\Enums\UserRole::Principal)
+                    <div class="px-3 py-2 text-sm text-amber-600">Principal account অনুমোদনের অপেক্ষায়</div>
+                @endif
 
             </flux:sidebar.nav>
 

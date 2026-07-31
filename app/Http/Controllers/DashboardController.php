@@ -6,6 +6,7 @@ use App\Models\Teacher;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Enums\UserRole as Role;
 
 class DashboardController extends Controller
 {
@@ -15,6 +16,8 @@ class DashboardController extends Controller
             ->selectRaw("college_code, MAX(CASE WHEN LOWER(has_computer_lab) = 'yes' THEN 1 ELSE 0 END) as has_lab")
             ->selectRaw('MAX(COALESCE(computer_count, 0)) as computer_count')
             ->whereNotNull('college_code')
+            ->when(auth()->user()->role === Role::Principal, fn ($query) => $query->where('college_id', auth()->user()->college_id))
+            ->when(auth()->user()->role === Role::Teacher, fn ($query) => $query->where('user_id', auth()->id()))
             ->groupBy('college_code');
 
         $collegeReport = DB::query()
@@ -30,6 +33,8 @@ class DashboardController extends Controller
             ->selectRaw("SUM(CASE WHEN ict_training_name IS NOT NULL AND ict_training_name != '' THEN 1 ELSE 0 END) as with_ict_training")
             ->selectRaw("SUM(CASE WHEN ict_training_name IS NULL OR ict_training_name = '' THEN 1 ELSE 0 END) as without_ict_training")
             ->selectRaw('MAX(updated_at) as last_updated_at')
+            ->when(auth()->user()->role === Role::Principal, fn ($query) => $query->where('college_id', auth()->user()->college_id))
+            ->when(auth()->user()->role === Role::Teacher, fn ($query) => $query->where('user_id', auth()->id()))
             ->first();
 
         $totalColleges = (int) ($collegeReport?->total ?? 0);
