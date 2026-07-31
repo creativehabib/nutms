@@ -222,7 +222,7 @@ class CollegeForm extends Component
                 return ['level' => $group['level'], 'name' => $items[0], 'items' => $items];
             })->values()->all();
             $college->programs()->createMany($programs);
-            DB::table('teachers')->where('college_id', $college->id)->update(['college_code' => $college->code, 'college_name' => $college->name]);
+            DB::table('teacher_profiles')->where('college_id', $college->id)->update(['college_code' => $college->code, 'college_name' => $college->name]);
         });
 
         Flux::toast(variant: 'success', text: 'কলেজের বিস্তারিত তথ্য সংরক্ষণ করা হয়েছে।');

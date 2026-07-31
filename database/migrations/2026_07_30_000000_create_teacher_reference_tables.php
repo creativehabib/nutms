@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -22,69 +21,157 @@ return new class extends Migration
             $table->id();
             $table->string('code')->nullable()->unique();
             $table->string('name');
+            $table->foreignId('division_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('district_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('thana_id')->nullable()->constrained()->nullOnDelete();
+            $table->text('address')->nullable();
+            $table->string('principal_name')->nullable();
+            $table->string('college_type', 30)->nullable()->index();
+            $table->boolean('has_computer_lab')->nullable()->index();
+            $table->string('lab_equipment_type', 20)->nullable()->index();
+            $table->unsignedInteger('desktop_count')->nullable();
+            $table->unsignedInteger('laptop_count')->nullable();
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
         });
 
-        Schema::table('teachers', function (Blueprint $table): void {
-            $table->foreignId('subject_id')->nullable()->after('subject')->constrained()->nullOnDelete();
-            $table->foreignId('designation_id')->nullable()->after('designation')->constrained()->nullOnDelete();
-            $table->foreignId('college_id')->nullable()->after('college_name')->constrained()->nullOnDelete();
-            $table->foreignId('teacher_level_id')->nullable()->after('teacher_level')->constrained()->nullOnDelete();
-            $table->foreignId('employment_id')->nullable()->after('employment_type')->constrained()->nullOnDelete();
+        Schema::table('users', function (Blueprint $table): void {
+            $table->string('role')->default('teacher')->index();
+            $table->foreignId('college_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('approval_status')->default('approved')->index();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('approved_at')->nullable();
         });
 
-        $this->preserveAndLinkExistingTeacherData();
-    }
+        Schema::table('colleges', function (Blueprint $table): void {
+            $table->foreignId('submitted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('approval_status')->default('approved')->index();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('approved_at')->nullable();
+        });
 
-    private function preserveAndLinkExistingTeacherData(): void
-    {
-        $references = [
-            'subject' => ['subjects', 'subject_id'],
-            'designation' => ['designations', 'designation_id'],
-            'teacher_level' => ['teacher_levels', 'teacher_level_id'],
-            'employment_type' => ['employments', 'employment_id'],
-        ];
+        Schema::create('college_programs', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('college_id')->constrained()->cascadeOnDelete();
+            $table->string('level', 30)->index();
+            $table->string('name');
+            $table->json('items')->nullable();
+            $table->timestamps();
+            $table->unique(['college_id', 'level', 'name']);
+        });
 
-        foreach ($references as $legacyColumn => [$tableName, $foreignKey]) {
-            DB::table('teachers')->whereNotNull($legacyColumn)->where($legacyColumn, '!=', '')
-                ->select($legacyColumn)->distinct()->orderBy($legacyColumn)->each(function (object $teacher) use ($legacyColumn, $tableName): void {
-                    DB::table($tableName)->insertOrIgnore(['name' => $teacher->{$legacyColumn}, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
-                });
+        Schema::create('teacher_profiles', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id')->nullable()->unique()->constrained()->nullOnDelete();
+            $table->foreignId('college_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('college_code')->nullable()->index();
+            $table->string('college_name')->nullable();
+            $table->string('tmis_id')->nullable()->unique();
+            $table->string('ttis_id')->nullable()->unique();
+            $table->string('name')->nullable();
+            $table->date('birth_date')->nullable()->index();
+            $table->string('designation')->nullable();
+            $table->foreignId('designation_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('subject')->nullable()->index();
+            $table->foreignId('subject_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('teacher_level')->nullable();
+            $table->foreignId('teacher_level_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('employment_type')->nullable();
+            $table->foreignId('employment_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('division_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('district_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('thana_id')->nullable()->constrained()->nullOnDelete();
+            $table->text('present_address')->nullable();
+            $table->text('permanent_address')->nullable();
+            $table->string('mobile_number')->nullable();
+            $table->string('email')->nullable();
+            $table->string('bank_name')->nullable();
+            $table->string('bank_branch_name')->nullable();
+            $table->string('bank_routing_number', 30)->nullable();
+            $table->string('ict_training_name')->nullable();
+            $table->string('other_training_name')->nullable();
+            $table->string('training_institute')->nullable();
+            $table->string('has_computer_lab')->nullable();
+            $table->unsignedInteger('computer_count')->nullable();
+            $table->string('approval_status')->default('approved')->index();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('approved_at')->nullable();
+            $table->softDeletes();
+            $table->timestamps();
+        });
 
-            DB::table('teachers')->whereNotNull($legacyColumn)->orderBy('id')->each(function (object $teacher) use ($legacyColumn, $tableName, $foreignKey): void {
-                $referenceId = DB::table($tableName)->where('name', $teacher->{$legacyColumn})->value('id');
-                DB::table('teachers')->where('id', $teacher->id)->update([$foreignKey => $referenceId]);
-            });
-        }
+        Schema::create('training_institutes', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name')->unique();
+            $table->boolean('is_active')->default(true)->index();
+            $table->timestamps();
+        });
 
-        DB::table('teachers')->where(function ($query): void {
-            $query->whereNotNull('college_name')->orWhereNotNull('college_code');
-        })->orderBy('id')->each(function (object $teacher): void {
-            $collegeId = filled($teacher->college_code)
-                ? DB::table('colleges')->where('code', $teacher->college_code)->value('id')
-                : DB::table('colleges')->whereNull('code')->where('name', $teacher->college_name)->value('id');
-            if ($collegeId === null) {
-                $collegeId = DB::table('colleges')->insertGetId([
-                    'code' => filled($teacher->college_code) ? $teacher->college_code : null,
-                    'name' => filled($teacher->college_name) ? $teacher->college_name : $teacher->college_code,
-                    'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
-                ]);
-            }
-            DB::table('teachers')->where('id', $teacher->id)->update(['college_id' => $collegeId]);
+        Schema::create('system_settings', function (Blueprint $table): void {
+            $table->string('key')->primary();
+            $table->string('value');
+            $table->timestamps();
+        });
+
+        Schema::create('training_types', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('training_institute_id')->constrained()->restrictOnDelete();
+            $table->string('name');
+            $table->unsignedSmallInteger('duration_value')->nullable();
+            $table->string('duration_unit', 20)->nullable();
+            $table->boolean('is_active')->default(true)->index();
+            $table->timestamps();
+            $table->unique(['training_institute_id', 'name']);
+        });
+
+        Schema::create('teacher_training', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('teacher_id')->constrained('teacher_profiles')->cascadeOnDelete();
+            $table->foreignId('training_type_id')->constrained()->restrictOnDelete();
+            $table->year('training_year');
+            $table->timestamps();
+            $table->unique(['teacher_id', 'training_type_id', 'training_year'], 'teacher_training_unique');
+        });
+
+        Schema::create('teacher_other_trainings', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('teacher_id')->constrained('teacher_profiles')->cascadeOnDelete();
+            $table->foreignId('training_institute_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('institute_name')->nullable();
+            $table->string('name');
+            $table->unsignedSmallInteger('duration_value')->nullable();
+            $table->string('duration_unit', 20)->nullable();
+            $table->year('training_year');
+            $table->timestamps();
+            $table->index(['teacher_id', 'training_year']);
         });
     }
 
     public function down(): void
     {
-        Schema::table('teachers', function (Blueprint $table): void {
-            $table->dropConstrainedForeignId('subject_id');
-            $table->dropConstrainedForeignId('designation_id');
-            $table->dropConstrainedForeignId('college_id');
-            $table->dropConstrainedForeignId('teacher_level_id');
-            $table->dropConstrainedForeignId('employment_id');
+        Schema::dropIfExists('teacher_other_trainings');
+        Schema::dropIfExists('teacher_training');
+        Schema::dropIfExists('training_types');
+        Schema::dropIfExists('training_institutes');
+        Schema::dropIfExists('system_settings');
+        Schema::dropIfExists('teacher_profiles');
+        Schema::dropIfExists('college_programs');
+
+        Schema::table('colleges', function (Blueprint $table): void {
+            $table->dropConstrainedForeignId('approved_by');
+            $table->dropConstrainedForeignId('submitted_by');
         });
+
+        Schema::table('users', function (Blueprint $table): void {
+            $table->dropConstrainedForeignId('approved_by');
+            $table->dropConstrainedForeignId('college_id');
+            $table->dropColumn(['role', 'approval_status', 'approved_at']);
+        });
+
         Schema::dropIfExists('colleges');
-        foreach (['employments', 'teacher_levels', 'designations', 'subjects'] as $tableName) { Schema::dropIfExists($tableName); }
+
+        foreach (['employments', 'teacher_levels', 'designations', 'subjects'] as $tableName) {
+            Schema::dropIfExists($tableName);
+        }
     }
 };

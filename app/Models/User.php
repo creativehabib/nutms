@@ -55,7 +55,6 @@ class User extends Authenticatable implements PasskeyUser
             'password',
             'role',
             'college_id',
-            'teacher_id',
             'approval_status',
             'approved_by',
             'approved_at',
@@ -72,8 +71,7 @@ class User extends Authenticatable implements PasskeyUser
 
         static::saved(function (User $user): void {
             if ($user->wasChanged('name')) {
-                Teacher::query()->where(fn ($query) => $query->whereKey($user->teacher_id)->orWhere('user_id', $user->id))
-                    ->update(['name' => $user->name]);
+                $user->teacherProfile()->update(['name' => $user->name]);
             }
         });
     }
@@ -97,11 +95,6 @@ class User extends Authenticatable implements PasskeyUser
     public function college(): BelongsTo
     {
         return $this->belongsTo(College::class);
-    }
-
-    public function teacher(): BelongsTo
-    {
-        return $this->belongsTo(Teacher::class);
     }
 
     public function teacherProfile(): HasOne
