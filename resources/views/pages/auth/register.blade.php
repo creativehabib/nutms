@@ -5,7 +5,7 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
+        <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6" x-data="{ accountRole: @js(old('role', '')) }">
             @csrf
             <!-- Name -->
             <flux:input
@@ -29,6 +29,22 @@
                 autocomplete="email"
                 placeholder="email@example.com"
             />
+
+            <flux:select name="role" :label="__('Account type')" x-model="accountRole" required>
+                <option value="">{{ __('Select account type') }}</option>
+                <option value="principal" @selected(old('role') === 'principal')>কলেজ প্রিন্সিপাল</option>
+                <option value="teacher" @selected(old('role') === 'teacher')>শিক্ষক</option>
+            </flux:select>
+
+            <div x-show="accountRole === 'principal'" x-cloak>
+                <flux:select name="college_id" label="কলেজ নির্বাচন করুন" :required="old('role') === 'principal'">
+                    <option value="">কলেজ নির্বাচন করুন</option>
+                    @foreach($colleges as $college)
+                        <option value="{{ $college->id }}" @selected((string) old('college_id') === (string) $college->id)>{{ $college->code ? $college->code.' — ' : '' }}{{ $college->name }}</option>
+                    @endforeach
+                </flux:select>
+                <flux:text class="mt-2">একটি কলেজ শুধু একজন প্রিন্সিপাল account-এর সাথে যুক্ত করা যাবে।</flux:text>
+            </div>
 
             <!-- Password -->
             <flux:input
