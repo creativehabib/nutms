@@ -26,6 +26,12 @@ it('creates the final teacher profile schema without a cleanup migration', funct
         ->not->toContain('has_training', 'ict_training_duration', 'other_training_duration', 'training_year');
 });
 
+it('does not require the legacy user teacher foreign key', function () {
+    expect(Schema::hasColumn('users', 'teacher_id'))->toBeFalse()
+        ->and(Schema::hasTable('teachers'))->toBeFalse()
+        ->and(Schema::hasTable('teacher_profiles'))->toBeTrue();
+});
+
 it('renders a responsive edit form with a blurred backdrop', function () {
     Livewire::test(TeacherManagement::class)
         ->assertSeeHtml('backdrop-blur-sm')

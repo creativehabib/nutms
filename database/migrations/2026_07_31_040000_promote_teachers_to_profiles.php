@@ -8,19 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table): void {
-            $table->dropConstrainedForeignId('teacher_id');
-        });
+        if (Schema::hasColumn('users', 'teacher_id')) {
+            Schema::table('users', function (Blueprint $table): void {
+                $table->dropConstrainedForeignId('teacher_id');
+            });
+        }
 
-        Schema::rename('teachers', 'teacher_profiles');
+        if (Schema::hasTable('teachers') && ! Schema::hasTable('teacher_profiles')) {
+            Schema::rename('teachers', 'teacher_profiles');
+        }
     }
 
     public function down(): void
     {
-        Schema::rename('teacher_profiles', 'teachers');
-
-        Schema::table('users', function (Blueprint $table): void {
-            $table->foreignId('teacher_id')->nullable()->constrained()->nullOnDelete();
-        });
     }
 };
