@@ -15,12 +15,14 @@ class Teacher extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'teacher_profiles';
+
     // কোনো কলামই প্রোটেক্টেড নয়, সব কলামে ডেটা ইনসার্ট করা যাবে
     protected $guarded = [];
 
     protected function casts(): array
     {
-        return ['approval_status' => ApprovalStatus::class, 'approved_at' => 'datetime'];
+        return ['approval_status' => ApprovalStatus::class, 'approved_at' => 'datetime', 'birth_date' => 'date'];
     }
 
     /**
@@ -75,7 +77,6 @@ class Teacher extends Model
             if ($teacher->user_id !== null && ($teacher->wasRecentlyCreated || $teacher->wasChanged(['name', 'college_id']))) {
                 User::query()->find($teacher->user_id)?->updateQuietly([
                     'name' => $teacher->name,
-                    'teacher_id' => $teacher->id,
                     'college_id' => $teacher->college_id,
                 ]);
             }

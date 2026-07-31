@@ -1,12 +1,40 @@
 <?php
 
+use App\Enums\ApprovalStatus;
+use App\Enums\UserRole;
 use App\Livewire\TeacherManagement;
+use App\Models\College;
 use App\Models\Teacher;
 use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
+});
+
+it('does not keep obsolete legacy training columns on teachers', function () {
+    expect(Schema::hasTable('teachers'))->toBeFalse()
+        ->and(Schema::hasTable('teacher_profiles'))->toBeTrue()
+        ->and(Schema::hasColumn('users', 'teacher_id'))->toBeFalse()
+        ->and(Schema::hasColumn('teacher_profiles', 'birth_date'))->toBeTrue()
+        ->and(Schema::hasTable('system_settings'))->toBeTrue()
+        ->and(Schema::hasColumn('teacher_profiles', 'has_training'))->toBeFalse()
+        ->and(Schema::hasColumn('teacher_profiles', 'ict_training_duration'))->toBeFalse()
+        ->and(Schema::hasColumn('teacher_profiles', 'other_training_duration'))->toBeFalse()
+        ->and(Schema::hasColumn('teacher_profiles', 'training_year'))->toBeFalse();
+});
+
+it('creates the final teacher profile schema without a cleanup migration', function () {
+    expect(Schema::hasTable('teacher_profiles'))->toBeTrue()
+        ->and(Schema::getColumnListing('teacher_profiles'))->toContain('user_id', 'college_id', 'approval_status')
+        ->not->toContain('has_training', 'ict_training_duration', 'other_training_duration', 'training_year');
+});
+
+it('does not require the legacy user teacher foreign key', function () {
+    expect(Schema::hasColumn('users', 'teacher_id'))->toBeFalse()
+        ->and(Schema::hasTable('teachers'))->toBeFalse()
+        ->and(Schema::hasTable('teacher_profiles'))->toBeTrue();
 });
 
 it('renders a responsive edit form with a blurred backdrop', function () {
@@ -27,6 +55,30 @@ it('shows the distinct college count beside the teacher count', function () {
     Livewire::test(TeacherManagement::class)
         ->assertSee('মোট 3 জন শিক্ষক')
         ->assertSee('মোট 2টি কলেজ');
+});
+
+it('gives principals a college-scoped teacher management interface', function () {
+    $principalCollege = College::query()->create(['code' => 'OWN-001', 'name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
+    $otherCollege = College::query()->create(['code' => 'OTHER-002', 'name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
+    $principal = User::factory()->create(['role' => UserRole::Principal, 'college_id' => $principalCollege->id]);
+    Teacher::query()->create(['college_id' => $principalCollege->id, 'college_code' => $principalCollege->code, 'name' => 'Own College Teacher', 'subject' => 'Physics']);
+    Teacher::query()->create(['college_id' => $otherCollege->id, 'college_code' => $otherCollege->code, 'name' => 'Other College Teacher', 'subject' => 'Chemistry']);
+
+    Livewire::actingAs($principal)->test(TeacherManagement::class)
+        ->assertSee('আমার কলেজের শিক্ষক')
+        ->assertSee('Own College Teacher')
+        ->assertSee('Physics')
+        ->assertDontSee('Other College Teacher')
+        ->assertDontSee('Chemistry')
+        ->assertDontSee('OTHER-002')
+        ->assertDontSee('সব কলেজ কোড')
+        ->assertDontSee('মোট 2টি কলেজ')
+        ->assertDontSee('ডেটা ইম্পোর্ট')
+        ->assertDontSee('ট্র্যাশ')
+        ->set('collegeCodeFilter', 'OTHER-002')
+        ->assertSet('collegeCodeFilter', '')
+        ->set('search', 'Other College Teacher')
+        ->assertDontSee('Other College Teacher');
 });
 
 it('keeps every row checkbox checked when selecting the current page', function () {
@@ -81,13 +133,9 @@ it('allows every teacher data field to be updated', function () {
         'subject' => 'Physics',
         'teacher_level' => 'College',
         'employment_type' => 'Permanent',
-        'has_training' => 'Yes',
         'ict_training_name' => 'Digital Content',
-        'ict_training_duration' => '10 days',
         'other_training_name' => 'Management',
-        'other_training_duration' => '5 days',
         'training_institute' => 'NAEM',
-        'training_year' => '2026',
         'mobile_number' => '01700000000',
         'email' => 'teacher@example.com',
     ];
