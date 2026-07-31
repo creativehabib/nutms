@@ -79,7 +79,7 @@ class ReferenceDataManagement extends Component
 
             if ($oldName !== null) {
                 $teacherUpdates = [$this->configuration()['legacy'] => $record->getAttribute('name')];
-                DB::table('teachers')->where($this->configuration()['foreign_key'], $record->getKey())->update($teacherUpdates);
+                DB::table('teacher_profiles')->where($this->configuration()['foreign_key'], $record->getKey())->update($teacherUpdates);
             }
         });
 

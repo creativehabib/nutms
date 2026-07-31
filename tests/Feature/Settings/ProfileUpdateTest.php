@@ -47,7 +47,6 @@ test('email verification status is unchanged when email address is unchanged', f
 test('updating an account name keeps the linked teacher profile name identical', function () {
     $user = User::factory()->create(['name' => 'Original Account Name']);
     $teacher = Teacher::query()->create(['name' => 'Original Teacher Name', 'user_id' => $user->id]);
-    $user->updateQuietly(['teacher_id' => $teacher->id]);
 
     $this->actingAs($user);
 
