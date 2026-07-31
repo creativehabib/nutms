@@ -8,9 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class College extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'code', 'name', 'division_id', 'district_id', 'thana_id', 'address',
         'principal_name', 'college_type', 'has_computer_lab', 'lab_equipment_type',
