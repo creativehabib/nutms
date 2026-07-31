@@ -1,7 +1,7 @@
 <div class="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div><flux:heading size="xl">{{ $college->name }}</flux:heading><flux:text>কলেজ কোড: {{ $college->code ?: 'উল্লেখ নেই' }}</flux:text></div>
-        <div class="flex gap-2"><flux:button :href="route('colleges.manage')" icon="arrow-left" wire:navigate>তালিকায় ফিরুন</flux:button><flux:button variant="primary" icon="pencil-square" :href="route('colleges.edit', $college)" wire:navigate>সম্পাদনা</flux:button></div>
+        <div class="flex gap-2"><flux:button :href="auth()->user()->isAdmin() ? route('colleges.manage') : route('dashboard')" icon="arrow-left" wire:navigate>{{ auth()->user()->isAdmin() ? 'তালিকায় ফিরুন' : 'ড্যাশবোর্ডে ফিরুন' }}</flux:button><flux:button variant="primary" icon="pencil-square" :href="route('colleges.edit', $college)" wire:navigate>সম্পাদনা</flux:button></div>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">

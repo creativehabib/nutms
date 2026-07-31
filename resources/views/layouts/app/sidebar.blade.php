@@ -22,11 +22,11 @@
                     ট্রেনিং ক্যাটালগ
                 </flux:sidebar.item>
                 @endcan
-                @can('colleges.view')
+                @if(auth()->user()->isAdmin() && auth()->user()->can('colleges.view'))
                 <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>
                     কলেজ ব্যবস্থাপনা
                 </flux:sidebar.item>
-                @endcan
+                @endif
                 @can('roles.manage')
                 <flux:sidebar.item icon="shield-check" :href="route('roles-permissions.manage')" :current="request()->routeIs('roles-permissions.manage')" wire:navigate>
                     রোলস ও পারমিশন
@@ -71,7 +71,7 @@
                 </flux:sidebar.item>
                 @endcan
                 @if(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())
-                    <flux:sidebar.item icon="building-library" :href="route('colleges.edit', auth()->user()->college_id)" :current="request()->routeIs('colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>কলেজ প্রোফাইল</flux:sidebar.item>
+                    <flux:sidebar.item icon="building-library" :href="route('colleges.show', auth()->user()->college_id)" :current="request()->routeIs('colleges.show', 'colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>কলেজ প্রোফাইল</flux:sidebar.item>
                 @elseif(auth()->user()->role === \App\Enums\UserRole::Principal)
                     <div class="px-3 py-2 text-sm text-amber-600">Principal account অনুমোদনের অপেক্ষায়</div>
                 @endif
