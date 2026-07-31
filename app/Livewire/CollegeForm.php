@@ -28,6 +28,8 @@ class CollegeForm extends Component
     public string $thanaId = '';
     public string $address = '';
     public string $principalName = '';
+    public string $collegeEmail = '';
+    public string $collegeWebsite = '';
     public string $collegeType = '';
     public string $hasComputerLab = '';
     public string $labEquipmentType = '';
@@ -128,6 +130,8 @@ class CollegeForm extends Component
         $this->thanaId = (string) ($college->thana_id ?? '');
         $this->address = (string) ($college->address ?? '');
         $this->principalName = (string) ($college->principal_name ?? '');
+        $this->collegeEmail = (string) ($college->college_email ?? '');
+        $this->collegeWebsite = (string) ($college->college_website ?? '');
         $this->collegeType = (string) ($college->college_type ?? '');
         $this->hasComputerLab = $college->has_computer_lab === null ? '' : ($college->has_computer_lab ? '1' : '0');
         $this->labEquipmentType = (string) ($college->lab_equipment_type ?? $this->inferLabEquipmentType($college->desktop_count, $college->laptop_count));
@@ -153,6 +157,8 @@ class CollegeForm extends Component
             'thanaId' => ['required', Rule::exists('thanas', 'id')],
             'address' => ['required', 'string', 'max:2000'],
             'principalName' => ['required', 'string', 'max:255'],
+            'collegeEmail' => ['nullable', 'email:rfc', 'max:255'],
+            'collegeWebsite' => ['nullable', 'url', 'max:255'],
             'collegeType' => ['required', Rule::in(['government', 'non_government', 'other'])],
             'hasComputerLab' => ['required', Rule::in(['0', '1'])],
             'labEquipmentType' => [Rule::requiredIf($this->hasComputerLab === '1'), 'nullable', Rule::in(['desktop', 'laptop', 'both'])],
@@ -198,6 +204,8 @@ class CollegeForm extends Component
                 'thana_id' => $validated['thanaId'],
                 'address' => $validated['address'],
                 'principal_name' => $validated['principalName'],
+                'college_email' => blank($validated['collegeEmail']) ? null : $validated['collegeEmail'],
+                'college_website' => blank($validated['collegeWebsite']) ? null : $validated['collegeWebsite'],
                 'college_type' => $validated['collegeType'],
                 'has_computer_lab' => $validated['hasComputerLab'] === '1',
                 'lab_equipment_type' => $validated['hasComputerLab'] === '1' ? $validated['labEquipmentType'] : null,

@@ -139,6 +139,8 @@ it('stores a complete college profile with multiple academic programs', function
         ->set('thanaId', (string) $thana->id)
         ->set('address', 'College Road')
         ->set('principalName', 'Professor Rahman')
+        ->set('collegeEmail', 'info@professional.edu.bd')
+        ->set('collegeWebsite', 'https://professional.edu.bd')
         ->set('collegeType', 'government')
         ->set('hasComputerLab', '1')
         ->set('labEquipmentType', 'both')
@@ -155,6 +157,8 @@ it('stores a complete college profile with multiple academic programs', function
 
     $college = College::query()->where('code', '1201')->firstOrFail();
     expect($college->principal_name)->toBe('Professor Rahman')
+        ->and($college->college_email)->toBe('info@professional.edu.bd')
+        ->and($college->college_website)->toBe('https://professional.edu.bd')
         ->and($college->college_type)->toBe('government')
         ->and($college->has_computer_lab)->toBeTrue()
         ->and($college->lab_equipment_type)->toBe('both')
@@ -296,6 +300,8 @@ it('shows a concise college table and a separate full details page', function ()
         'code' => 'DETAIL-1',
         'address' => 'Complete College Address',
         'principal_name' => 'Principal Details',
+        'college_email' => 'details@example.edu.bd',
+        'college_website' => 'https://details.example.edu.bd',
         'has_computer_lab' => true,
         'lab_equipment_type' => 'both',
         'desktop_count' => 20,
@@ -315,6 +321,8 @@ it('shows a concise college table and a separate full details page', function ()
         ->assertSuccessful()
         ->assertSee('Complete College Address')
         ->assertSee('Principal Details')
+        ->assertSee('details@example.edu.bd')
+        ->assertSee('https://details.example.edu.bd')
         ->assertSee('ডেস্কটপ')
         ->assertSee('20')
         ->assertSee('ল্যাপটপ')
