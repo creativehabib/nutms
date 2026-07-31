@@ -46,6 +46,14 @@
                     <flux:sidebar.item icon="identification" :href="route('reference-data.manage', 'employments')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'employments'" wire:navigate>চাকরির ধরন</flux:sidebar.item>
                 </flux:sidebar.group>
 
+                <flux:sidebar.group heading="শিক্ষক সেটিংস" expandable :expanded="request()->routeIs('reference-data.manage')" class="grid">
+                    <flux:sidebar.item icon="book-open" :href="route('reference-data.manage', 'subjects')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'subjects'" wire:navigate>সাবজেক্ট</flux:sidebar.item>
+                    <flux:sidebar.item icon="briefcase" :href="route('reference-data.manage', 'designations')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'designations'" wire:navigate>পদবি</flux:sidebar.item>
+                    <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>কলেজ</flux:sidebar.item>
+                    <flux:sidebar.item icon="academic-cap" :href="route('reference-data.manage', 'teacher-levels')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'teacher-levels'" wire:navigate>শিক্ষক স্তর</flux:sidebar.item>
+                    <flux:sidebar.item icon="identification" :href="route('reference-data.manage', 'employments')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'employments'" wire:navigate>চাকরির ধরন</flux:sidebar.item>
+                </flux:sidebar.group>
+
                 <flux:sidebar.item icon="computer-desktop" :href="route('lab.summary')" :current="request()->routeIs('lab.summary')" wire:navigate>
                     {{ __('Lab Summary') }}
                 </flux:sidebar.item>
