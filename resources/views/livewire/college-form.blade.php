@@ -34,6 +34,8 @@
                     <flux:input wire:model="code" label="কলেজ কোড (EIIN/NU)" placeholder="যেমন: 1234" />
                     <flux:input wire:model="name" label="কলেজের নাম" placeholder="কলেজের সম্পূর্ণ নাম লিখুন" required />
                     <flux:input wire:model="principalName" label="অধ্যক্ষের নাম" placeholder="অধ্যক্ষের নাম লিখুন" required />
+                    <flux:input wire:model="collegeEmail" type="email" label="কলেজ ইমেইল" placeholder="যেমন: info@example.edu.bd" />
+                    <flux:input wire:model="collegeWebsite" type="url" label="কলেজ ওয়েবসাইট" placeholder="যেমন: https://example.edu.bd" />
                     <flux:select wire:model="collegeType" label="কলেজের ধরন" required>
                         <option value="">নির্বাচন করুন...</option>
                         <option value="government">সরকারি</option>
