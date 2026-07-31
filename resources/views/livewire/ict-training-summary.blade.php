@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+<div class="py-8 sm:px-6 lg:px-8">
 
     <!-- প্রিন্ট করার জন্য বিশেষ CSS -->
     <style>
@@ -18,10 +18,6 @@
 
     <flux:card class="overflow-hidden !p-0">
         <div class="no-print flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50 px-4 py-4 dark:border-zinc-700 dark:bg-zinc-800/60 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
-            <div class="min-w-0">
-                <flux:heading size="lg">আইসিটি ট্রেনিং সারসংক্ষেপ</flux:heading>
-                <flux:text>কলেজভিত্তিক প্রশিক্ষণপ্রাপ্ত ও প্রশিক্ষণবিহীন শিক্ষকদের তালিকা</flux:text>
-            </div>
             <div class="flex flex-wrap gap-2">
                 <flux:button wire:click="showTab('with_ict')" :variant="$activeTab === 'with_ict' ? 'primary' : 'ghost'" icon="academic-cap">আইসিটি ট্রেনিং প্রাপ্ত শিক্ষক</flux:button>
                 <flux:button wire:click="showTab('without_ict')" :variant="$activeTab === 'without_ict' ? 'primary' : 'ghost'" icon="user-minus">আইসিটি ট্রেনিং বিহীন শিক্ষক</flux:button>

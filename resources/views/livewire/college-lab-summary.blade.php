@@ -1,4 +1,4 @@
-<div class="max-w-6xl mx-auto py-8 sm:px-6 lg:px-8">
+<div class="py-8 sm:px-6 lg:px-8">
 
     <!-- প্রিন্ট করার জন্য বিশেষ CSS -->
     <style>
@@ -17,10 +17,6 @@
 
     <flux:card class="overflow-hidden !p-0">
         <div class="no-print flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50 px-4 py-4 dark:border-zinc-700 dark:bg-zinc-800/60 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-            <div class="min-w-0">
-                <flux:heading size="lg">কম্পিউটার ল্যাব সারসংক্ষেপ</flux:heading>
-                <flux:text>সক্রিয় কলেজগুলোর ল্যাব সুবিধার হালনাগাদ তালিকা</flux:text>
-            </div>
             <div class="flex flex-wrap gap-2">
                 <flux:button wire:click="showTab('with_lab')" :variant="$activeTab === 'with_lab' ? 'primary' : 'ghost'" icon="computer-desktop">কম্পিউটার ল্যাব আছে</flux:button>
                 <flux:button wire:click="showTab('without_lab')" :variant="$activeTab === 'without_lab' ? 'primary' : 'ghost'" icon="x-circle">কম্পিউটার ল্যাব নেই</flux:button>

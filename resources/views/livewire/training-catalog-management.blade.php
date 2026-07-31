@@ -1,53 +1,218 @@
-<div class="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
-    <div>
-        <flux:heading size="xl">ট্রেনিং ক্যাটালগ</flux:heading>
-        <flux:text>প্রতিষ্ঠানভিত্তিক ট্রেনিং টাইপ ও নির্ধারিত সময়কাল পরিচালনা করুন।</flux:text>
+<div class="space-y-6 p-4 sm:p-6">
+    <!-- Page Header -->
+    <div class="flex flex-col gap-2">
+        <flux:heading size="xl" class="font-bold tracking-tight">ট্রেনিং ক্যাটালগ</flux:heading>
+        <flux:subheading>প্রতিষ্ঠানভিত্তিক ট্রেনিং টাইপ ও নির্ধারিত সময়কাল পরিচালনা করুন।</flux:subheading>
     </div>
 
-    <div class="grid gap-6 xl:grid-cols-2">
-        <flux:card>
-            <flux:heading size="lg">{{ $editingInstituteId ? 'প্রতিষ্ঠান সম্পাদনা' : 'নতুন ট্রেনিং প্রতিষ্ঠান' }}</flux:heading>
-            <form wire:submit="saveInstitute" class="mt-4 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-                <flux:input wire:model="instituteName" label="প্রতিষ্ঠানের নাম" required />
-                <flux:button type="submit" variant="primary">{{ $editingInstituteId ? 'আপডেট' : 'সংরক্ষণ' }}</flux:button>
-                <flux:switch wire:model="instituteIsActive" label="সক্রিয়" />
-                @if ($editingInstituteId)<flux:button type="button" wire:click="cancelInstituteEdit">বাতিল</flux:button>@endif
-            </form>
-            @error('instituteName')<flux:text class="mt-2 text-red-600">{{ $message }}</flux:text>@enderror
-            <div class="mt-5 divide-y divide-zinc-200 dark:divide-zinc-700">
-                @forelse ($institutes as $institute)
-                    <div wire:key="institute-{{ $institute->id }}" class="flex items-center justify-between gap-3 py-3">
-                        <div><p class="font-medium">{{ $institute->name }}</p><flux:text>{{ $institute->training_types_count }}টি ট্রেনিং · {{ $institute->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</flux:text></div>
-                        <div class="flex gap-2"><flux:button size="sm" wire:click="editInstitute({{ $institute->id }})">সম্পাদনা</flux:button><flux:button size="sm" variant="danger" wire:click="deleteInstitute({{ $institute->id }})" wire:confirm="প্রতিষ্ঠানটি মুছবেন?">মুছুন</flux:button></div>
+    <!-- Forms Section (Grid) -->
+    <div class="grid gap-6 lg:grid-cols-2">
+
+        <!-- Institute Form Card -->
+        <flux:card class="flex flex-col gap-6">
+            <div class="flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">
+                    <flux:icon.building-office-2 class="size-5" />
+                </div>
+                <flux:heading size="lg">{{ $editingInstituteId ? 'প্রতিষ্ঠান সম্পাদনা' : 'নতুন ট্রেনিং প্রতিষ্ঠান' }}</flux:heading>
+            </div>
+
+            <form wire:submit="saveInstitute" class="space-y-5">
+                <flux:input
+                    wire:model="instituteName"
+                    label="প্রতিষ্ঠানের নাম"
+                    placeholder="যেমন: NAEM, HSTTI..."
+                    required
+                />
+
+                <div class="flex items-center justify-between">
+                    <flux:switch wire:model="instituteIsActive" label="সক্রিয় রাখুন" />
+
+                    <div class="flex items-center gap-2">
+                        @if ($editingInstituteId)
+                            <flux:button type="button" variant="ghost" wire:click="cancelInstituteEdit">বাতিল</flux:button>
+                        @endif
+                        <flux:button type="submit" variant="primary">
+                            {{ $editingInstituteId ? 'আপডেট করুন' : 'সংরক্ষণ করুন' }}
+                        </flux:button>
                     </div>
-                @empty<flux:text class="py-6 text-center">কোনো প্রতিষ্ঠান নেই।</flux:text>@endforelse
+                </div>
+            </form>
+            @error('instituteName')<flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>@enderror
+
+            <!-- Institutes List -->
+            <div class="mt-2 divide-y divide-zinc-100 rounded-lg border border-zinc-200 bg-zinc-50/50 px-4 dark:divide-zinc-800 dark:border-zinc-700/50 dark:bg-zinc-900/50">
+                <flux:heading size="sm" class="py-3 text-zinc-500">বিদ্যমান প্রতিষ্ঠানসমূহ</flux:heading>
+                @forelse ($institutes as $institute)
+                    <div wire:key="institute-{{ $institute->id }}" class="flex items-center justify-between gap-4 py-3">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <p class="truncate font-medium text-zinc-900 dark:text-zinc-100">{{ $institute->name }}</p>
+                                @if(!$institute->is_active)
+                                    <flux:badge size="sm" color="amber">নিষ্ক্রিয়</flux:badge>
+                                @endif
+                            </div>
+                            <flux:text class="mt-0.5 text-xs">{{ $institute->training_types_count }}টি ট্রেনিং টাইপ যুক্ত আছে</flux:text>
+                        </div>
+                        <div class="flex shrink-0 gap-1">
+                            <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="editInstitute({{ $institute->id }})" title="সম্পাদনা" />
+                            <flux:button variant="ghost" size="sm" icon="trash" class="text-red-500 hover:text-red-600" wire:click="deleteInstitute({{ $institute->id }})" wire:confirm="আপনি কি নিশ্চিত যে এই প্রতিষ্ঠানটি মুছে ফেলতে চান?" title="মুছুন" />
+                        </div>
+                    </div>
+                @empty
+                    <div class="py-6 text-center text-sm text-zinc-500">কোনো প্রতিষ্ঠান যুক্ত করা হয়নি।</div>
+                @endforelse
             </div>
         </flux:card>
 
-        <flux:card>
-            <flux:heading size="lg">{{ $editingTrainingTypeId ? 'ট্রেনিং টাইপ সম্পাদনা' : 'নতুন ট্রেনিং টাইপ' }}</flux:heading>
-            <form wire:submit="saveTrainingType" class="mt-4 grid gap-4 sm:grid-cols-2">
-                <flux:select wire:model="trainingInstituteId" label="প্রতিষ্ঠান" required>
-                    <option value="">নির্বাচন করুন</option>
-                    @foreach ($institutes as $institute)<option value="{{ $institute->id }}">{{ $institute->name }}{{ $institute->is_active ? '' : ' (নিষ্ক্রিয়)' }}</option>@endforeach
+        <!-- Training Type Form Card -->
+        <flux:card class="flex flex-col gap-6">
+            <div class="flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400">
+                    <flux:icon.academic-cap class="size-5" />
+                </div>
+                <flux:heading size="lg">{{ $editingTrainingTypeId ? 'ট্রেনিং টাইপ সম্পাদনা' : 'নতুন ট্রেনিং টাইপ' }}</flux:heading>
+            </div>
+
+            <form wire:submit="saveTrainingType" class="grid gap-5 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                    <flux:select wire:model="trainingInstituteId" label="প্রতিষ্ঠান নির্বাচন করুন" placeholder="প্রতিষ্ঠান বাছাই করুন..." required>
+                        @foreach ($institutes as $institute)
+                            <option value="{{ $institute->id }}">{{ $institute->name }}{{ $institute->is_active ? '' : ' (নিষ্ক্রিয়)' }}</option>
+                        @endforeach
+                    </flux:select>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <flux:input wire:model="trainingTypeName" label="ট্রেনিংয়ের নাম" placeholder="যেমন: Basic ICT Training" required />
+                </div>
+
+                <flux:input wire:model="durationValue" type="number" min="1" max="999" label="সময়কাল (সংখ্যা)" placeholder="যেমন: 14" required />
+                <flux:select wire:model="durationUnit" label="সময়কালের একক">
+                    <option value="hours">ঘণ্টা</option>
+                    <option value="days">দিন</option>
+                    <option value="weeks">সপ্তাহ</option>
+                    <option value="months">মাস</option>
                 </flux:select>
-                <flux:input wire:model="trainingTypeName" label="ট্রেনিংয়ের নাম" required />
-                <flux:input wire:model="durationValue" type="number" min="1" max="999" label="সময়কাল" required />
-                <flux:select wire:model="durationUnit" label="সময়কালের একক"><option value="hours">ঘণ্টা</option><option value="days">দিন</option><option value="weeks">সপ্তাহ</option><option value="months">মাস</option></flux:select>
-                <flux:switch wire:model="trainingTypeIsActive" label="সক্রিয়" />
-                <div class="flex justify-end gap-2"><flux:button type="submit" variant="primary">{{ $editingTrainingTypeId ? 'আপডেট' : 'সংরক্ষণ' }}</flux:button>@if ($editingTrainingTypeId)<flux:button type="button" wire:click="cancelTrainingTypeEdit">বাতিল</flux:button>@endif</div>
+
+                <div class="sm:col-span-2 mt-2 flex items-center justify-between border-t border-zinc-100 pt-5 dark:border-zinc-800">
+                    <flux:switch wire:model="trainingTypeIsActive" label="সক্রিয় রাখুন" />
+                    <div class="flex gap-2">
+                        @if ($editingTrainingTypeId)
+                            <flux:button type="button" variant="ghost" wire:click="cancelTrainingTypeEdit">বাতিল</flux:button>
+                        @endif
+                        <flux:button type="submit" variant="primary">
+                            {{ $editingTrainingTypeId ? 'আপডেট করুন' : 'সংরক্ষণ করুন' }}
+                        </flux:button>
+                    </div>
+                </div>
             </form>
-            @error('trainingInstituteId')<flux:text class="mt-2 text-red-600">{{ $message }}</flux:text>@enderror
-            @error('trainingTypeName')<flux:text class="mt-2 text-red-600">{{ $message }}</flux:text>@enderror
-            @error('durationValue')<flux:text class="mt-2 text-red-600">{{ $message }}</flux:text>@enderror
+
+            <div class="flex flex-col gap-1">
+                @error('trainingInstituteId')<flux:text class="text-sm text-red-600">{{ $message }}</flux:text>@enderror
+                @error('trainingTypeName')<flux:text class="text-sm text-red-600">{{ $message }}</flux:text>@enderror
+                @error('durationValue')<flux:text class="text-sm text-red-600">{{ $message }}</flux:text>@enderror
+            </div>
         </flux:card>
+
     </div>
 
-    <flux:card>
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><flux:heading size="lg">ট্রেনিং টাইপসমূহ</flux:heading><flux:input wire:model.live.debounce.300ms="search" type="search" icon="magnifying-glass" placeholder="ট্রেনিং খুঁজুন..." /></div>
-        <div class="mt-4 overflow-x-auto"><flux:table><flux:table.columns><flux:table.column>প্রতিষ্ঠান</flux:table.column><flux:table.column>ট্রেনিং</flux:table.column><flux:table.column>সময়কাল</flux:table.column><flux:table.column>শিক্ষক</flux:table.column><flux:table.column>অবস্থা</flux:table.column><flux:table.column></flux:table.column></flux:table.columns><flux:table.rows>
-            @forelse ($trainingTypes as $trainingType)<flux:table.row wire:key="training-type-{{ $trainingType->id }}"><flux:table.cell>{{ $trainingType->trainingInstitute->name }}</flux:table.cell><flux:table.cell class="font-medium">{{ $trainingType->name }}</flux:table.cell><flux:table.cell>{{ $trainingType->duration_value }} {{ ['hours' => 'ঘণ্টা', 'days' => 'দিন', 'weeks' => 'সপ্তাহ', 'months' => 'মাস'][$trainingType->duration_unit] ?? '' }}</flux:table.cell><flux:table.cell>{{ $trainingType->teachers_count }} জন</flux:table.cell><flux:table.cell>{{ $trainingType->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</flux:table.cell><flux:table.cell><div class="flex justify-end gap-2"><flux:button size="sm" wire:click="editTrainingType({{ $trainingType->id }})">সম্পাদনা</flux:button><flux:button size="sm" variant="danger" wire:click="deleteTrainingType({{ $trainingType->id }})" wire:confirm="ট্রেনিংটি মুছবেন?">মুছুন</flux:button></div></flux:table.cell></flux:table.row>
-            @empty<flux:table.row><flux:table.cell colspan="6" class="py-8 text-center">কোনো ট্রেনিং টাইপ নেই।</flux:table.cell></flux:table.row>@endforelse
-        </flux:table.rows></flux:table></div><div class="mt-4">{{ $trainingTypes->links() }}</div>
+    <!-- Table Section -->
+    <flux:card class="p-0 sm:p-0 overflow-hidden">
+
+        <div class="border-b border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700/50 dark:bg-zinc-900/50 sm:p-6">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <flux:heading size="lg">ট্রেনিং টাইপ তালিকা</flux:heading>
+                    <flux:subheading class="mt-1">সকল প্রতিষ্ঠানের ট্রেনিংয়ের বিস্তারিত তালিকা</flux:subheading>
+                </div>
+                <flux:input
+                    wire:model.live.debounce.300ms="search"
+                    icon="magnifying-glass"
+                    placeholder="ট্রেনিং বা প্রতিষ্ঠান খুঁজুন..."
+                    class="w-full sm:max-w-xs"
+                />
+            </div>
+        </div>
+
+        <div class="overflow-x-auto px-4 pb-4 sm:px-6 pt-2">
+            <flux:table>
+                <flux:table.columns>
+                    <flux:table.column>ট্রেনিংয়ের নাম</flux:table.column>
+                    <flux:table.column>প্রতিষ্ঠান</flux:table.column>
+                    <flux:table.column>সময়কাল</flux:table.column>
+                    <flux:table.column class="text-center">শিক্ষক যুক্ত আছেন</flux:table.column>
+                    <flux:table.column>অবস্থা</flux:table.column>
+                    <flux:table.column class="text-right">অ্যাকশন</flux:table.column>
+                </flux:table.columns>
+
+                <flux:table.rows>
+                    @forelse ($trainingTypes as $trainingType)
+                        <flux:table.row wire:key="training-type-{{ $trainingType->id }}" class="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors">
+
+                            <!-- Training Name -->
+                            <flux:table.cell class="font-medium text-zinc-900 dark:text-zinc-100">
+                                {{ $trainingType->name }}
+                            </flux:table.cell>
+
+                            <!-- Institute -->
+                            <flux:table.cell class="text-zinc-600 dark:text-zinc-300">
+                                <div class="flex items-center gap-1.5">
+                                    <flux:icon.building-office-2 variant="micro" class="text-zinc-400" />
+                                    <span>{{ $trainingType->trainingInstitute->name }}</span>
+                                </div>
+                            </flux:table.cell>
+
+                            <!-- Duration -->
+                            <flux:table.cell>
+                                <div class="flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300">
+                                    <flux:icon.clock variant="micro" class="text-zinc-400" />
+                                    <span>{{ $trainingType->duration_value }} {{ ['hours' => 'ঘণ্টা', 'days' => 'দিন', 'weeks' => 'সপ্তাহ', 'months' => 'মাস'][$trainingType->duration_unit] ?? '' }}</span>
+                                </div>
+                            </flux:table.cell>
+
+                            <!-- Teachers Count -->
+                            <flux:table.cell class="text-center font-medium">
+                                {{ $trainingType->teachers_count }} জন
+                            </flux:table.cell>
+
+                            <!-- Status -->
+                            <flux:table.cell>
+                                <flux:badge size="sm" :color="$trainingType->is_active ? 'emerald' : 'amber'">
+                                    {{ $trainingType->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}
+                                </flux:badge>
+                            </flux:table.cell>
+
+                            <!-- Actions -->
+                            <flux:table.cell>
+                                <div class="flex items-center justify-end gap-1">
+                                    <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="editTrainingType({{ $trainingType->id }})" title="সম্পাদনা" class="text-zinc-500 hover:text-indigo-600" />
+                                    <flux:button variant="ghost" size="sm" icon="trash" wire:click="deleteTrainingType({{ $trainingType->id }})" wire:confirm="আপনি কি নিশ্চিত যে এই ট্রেনিং টাইপটি মুছে ফেলতে চান?" title="মুছুন" class="text-zinc-500 hover:text-red-600" />
+                                </div>
+                            </flux:table.cell>
+
+                        </flux:table.row>
+                    @empty
+                        <flux:table.row>
+                            <flux:table.cell colspan="6">
+                                <div class="flex flex-col items-center justify-center py-12 text-zinc-500 dark:text-zinc-400">
+                                    <flux:icon.document-magnifying-glass class="h-10 w-10 mb-3 text-zinc-400" />
+                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">কোনো ট্রেনিং টাইপ পাওয়া যায়নি</p>
+                                    <p class="text-sm mt-1">নতুন ট্রেনিং টাইপ যোগ করুন অথবা অন্য নাম দিয়ে খুঁজুন।</p>
+                                </div>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforelse
+                </flux:table.rows>
+            </flux:table>
+        </div>
+
+        <!-- Pagination -->
+        @if($trainingTypes->hasPages())
+            <div class="border-t border-zinc-200 p-4 px-4 sm:px-6 dark:border-zinc-700/50 bg-zinc-50/30 dark:bg-zinc-900/30">
+                {{ $trainingTypes->links() }}
+            </div>
+        @endif
+
     </flux:card>
 </div>
