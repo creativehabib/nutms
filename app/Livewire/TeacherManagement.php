@@ -130,20 +130,29 @@ class TeacherManagement extends Component
                     throw ValidationException::withMessages(['role' => 'শুধু অনুমোদিত শিক্ষককে তার কলেজের Principal করা যাবে।']);
                 }
 
-                $principalExists = User::query()->whereKeyNot($user->id)
+                $existingPrincipals = User::query()->whereKeyNot($user->id)
                     ->where('role', Role::Principal->value)
                     ->where('college_id', $teacher->college_id)
-                    ->exists();
-                if ($principalExists) {
-                    throw ValidationException::withMessages(['role' => 'এই কলেজে ইতোমধ্যে একজন Principal রয়েছে।']);
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($existingPrincipals as $existingPrincipal) {
+                    $existingPrincipal->update(['role' => Role::Teacher]);
+                    $existingPrincipal->syncRoles([Role::Teacher->value]);
                 }
+
+                $user->approval_status = ApprovalStatus::Approved;
+                $user->approved_by = auth()->id();
+                $user->approved_at = now();
+                College::query()->whereKey($teacher->college_id)->update(['submitted_by' => $user->id]);
+            } elseif ($user->role === Role::Principal) {
+                College::query()->where('submitted_by', $user->id)->update(['submitted_by' => null]);
             }
 
-            $user->update([
-                'role' => $newRole,
-                'college_id' => $teacher->college_id,
-                'teacher_id' => $teacher->id,
-            ]);
+            $user->role = $newRole;
+            $user->college_id = $teacher->college_id;
+            $user->teacher_id = $teacher->id;
+            $user->save();
             $user->syncRoles([$newRole->value]);
         });
 
