@@ -19,12 +19,14 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use App\Enums\ApprovalStatus;
 use App\Enums\UserRole as Role;
 
 class TeacherProfileForm extends Component
 {
+    #[Locked]
     public ?int $editingId = null;
     public string $collegeId = '';
     public string $tmisId = '';
@@ -62,7 +64,7 @@ class TeacherProfileForm extends Component
             abort_if($teacher?->approval_status === ApprovalStatus::Pending, 403, 'প্রোফাইলটি অনুমোদনের অপেক্ষায় আছে।');
         }
         if ($teacher?->exists) {
-            abort_unless($user->isAdmin() || ($user->role === Role::Principal && $teacher->college_id === $user->college_id) || ($user->role === Role::Teacher && $teacher->user_id === $user->id && $teacher->approval_status !== ApprovalStatus::Pending), 403);
+            abort_unless($user->isAdmin() || ($user->role === Role::Principal && $teacher->college_id === $user->college_id) || ($user->role === Role::Teacher && $teacher->user_id === $user->id && $teacher->approval_status === ApprovalStatus::Approved), 403);
         }
         if ($teacher !== null && $teacher->exists) {
             $this->editingId = $teacher->id;
@@ -194,6 +196,14 @@ class TeacherProfileForm extends Component
             } elseif ($user->role === Role::Principal) {
                 abort_unless($college->id === $user->college_id && $college->approval_status === ApprovalStatus::Approved, 403);
             }
+            $isApprovedTeacherEditingOwnProfile = $user->role === Role::Teacher
+                && $this->editingId !== null
+                && Teacher::query()
+                    ->whereKey($this->editingId)
+                    ->where('user_id', $user->id)
+                    ->where('approval_status', ApprovalStatus::Approved)
+                    ->exists();
+
             $teacher = Teacher::query()->updateOrCreate(['id' => $this->editingId], [
                 'college_id' => $college->id, 'college_code' => $college->code, 'college_name' => $college->name,
                 'tmis_id' => $validated['tmisId'] ?: null,
@@ -206,9 +216,9 @@ class TeacherProfileForm extends Component
                 'bank_name' => $validated['bankName'] ?: null, 'bank_branch_name' => $validated['bankBranchName'] ?: null,
                 'bank_routing_number' => $validated['bankRoutingNumber'] ?: null,
                 'user_id' => $this->editingId ? Teacher::query()->whereKey($this->editingId)->value('user_id') : ($user->role === Role::Teacher ? $user->id : null),
-                'approval_status' => $user->role === Role::Teacher ? ApprovalStatus::Pending : ApprovalStatus::Approved,
-                'approved_by' => $user->role === Role::Teacher ? null : $user->id,
-                'approved_at' => $user->role === Role::Teacher ? null : now(),
+                'approval_status' => $user->role === Role::Teacher && ! $isApprovedTeacherEditingOwnProfile ? ApprovalStatus::Pending : ApprovalStatus::Approved,
+                'approved_by' => $user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_by') : $user->id,
+                'approved_at' => $user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_at') : now(),
             ]);
             if ($user->role === Role::Teacher) {
                 $user->update(['teacher_id' => $teacher->id, 'college_id' => $college->id]);
@@ -230,9 +240,9 @@ class TeacherProfileForm extends Component
             }
         });
 
-        $isTeacherSubmission = auth()->user()->role === Role::Teacher;
-        Flux::toast(variant: 'success', text: $isTeacherSubmission ? 'প্রোফাইলটি প্রিন্সিপালের অনুমোদনের জন্য জমা হয়েছে।' : 'শিক্ষকের প্রোফাইল সংরক্ষণ করা হয়েছে।');
-        $this->redirectRoute($isTeacherSubmission ? 'dashboard' : 'teachers.manage', navigate: true);
+        $isNewTeacherSubmission = auth()->user()->role === Role::Teacher && $this->editingId === null;
+        Flux::toast(variant: 'success', text: $isNewTeacherSubmission ? 'প্রোফাইলটি প্রিন্সিপালের অনুমোদনের জন্য জমা হয়েছে।' : 'শিক্ষকের প্রোফাইল সংরক্ষণ করা হয়েছে।');
+        $this->redirectRoute(auth()->user()->role === Role::Teacher ? 'dashboard' : 'teachers.manage', navigate: true);
     }
 
     public function render(): View
