@@ -87,6 +87,7 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('bank_name')->nullable();
             $table->string('bank_branch_name')->nullable();
+            $table->string('bank_account_number', 100)->nullable();
             $table->string('bank_routing_number', 30)->nullable();
             $table->string('ict_training_name')->nullable();
             $table->string('other_training_name')->nullable();

@@ -33,7 +33,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
         ->set('divisionId', (string) $division->id)->set('districtId', (string) $district->id)->set('thanaId', (string) $thana->id)
         ->set('presentAddress', 'Present Address')->set('permanentAddress', 'Permanent Address')
         ->set('mobileNumber', '01700000000')->set('email', 'profile@example.com')
-        ->set('bankName', 'Sonali Bank')->set('bankBranchName', 'Main Branch')->set('bankRoutingNumber', '123456789')
+        ->set('bankName', 'Sonali Bank')->set('bankBranchName', 'Main Branch')->set('bankAccountNumber', '1234567890123')->set('bankRoutingNumber', '123456789')
         ->set('trainingEntries', [[
             'kind' => 'catalog', 'training_institute_id' => (string) $institute->id, 'institute_name' => '',
             'training_type_id' => (string) $training->id, 'name' => '', 'duration_value' => '',
@@ -47,6 +47,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
         ->and($teacher->ttis_id)->toBe('TTIS-'.str_pad((string) $teacher->id, 8, '0', STR_PAD_LEFT))
         ->and($teacher->present_address)->toBe('Present Address')
         ->and($teacher->bank_name)->toBe('Sonali Bank')
+        ->and($teacher->bank_account_number)->toBe('1234567890123')
         ->and($teacher->bank_routing_number)->toBe('123456789')
         ->and($teacher->trainingTypes)->toHaveCount(1)
         ->and($teacher->trainingTypes->first()->pivot->training_year)->toBe(2026);
@@ -127,11 +128,11 @@ it('updates profile fields without changing existing institutional training hist
 });
 
 it('shows all teacher profile sections on a dedicated details page', function () {
-    $teacher = Teacher::query()->create(['name' => 'Details Teacher', 'present_address' => 'Teacher Present', 'permanent_address' => 'Teacher Permanent', 'mobile_number' => '01900000000', 'bank_name' => 'Agrani Bank', 'bank_branch_name' => 'Town Branch', 'bank_routing_number' => '987654321']);
+    $teacher = Teacher::query()->create(['name' => 'Details Teacher', 'present_address' => 'Teacher Present', 'permanent_address' => 'Teacher Permanent', 'mobile_number' => '01900000000', 'bank_name' => 'Agrani Bank', 'bank_branch_name' => 'Town Branch', 'bank_account_number' => '9876543210123', 'bank_routing_number' => '987654321']);
 
     Livewire::actingAs(User::factory()->create(['role' => Role::Admin]))->test(TeacherDetails::class, ['teacher' => $teacher])
         ->assertSee('Details Teacher')->assertSee('Teacher Present')->assertSee('Teacher Permanent')
-        ->assertSee('01900000000')->assertSee('Agrani Bank')->assertSee('Town Branch')->assertSee('987654321')
+        ->assertSee('01900000000')->assertSee('Agrani Bank')->assertSee('Town Branch')->assertSee('9876543210123')->assertSee('987654321')
         ->assertSee('প্রতিষ্ঠানভিত্তিক ট্রেনিং ইতিহাস')
         ->assertDontSee('কম্পিউটার ল্যাব')
         ->assertDontSee('কম্পিউটার সংখ্যা');

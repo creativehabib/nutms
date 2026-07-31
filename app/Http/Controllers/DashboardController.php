@@ -149,6 +149,7 @@ class DashboardController extends Controller
             'ইমেইল' => $teacher->email,
             'ব্যাংকের নাম' => $teacher->bank_name,
             'ব্যাংক শাখা' => $teacher->bank_branch_name,
+            'ব্যাংক অ্যাকাউন্ট নম্বর' => $teacher->bank_account_number,
             'ব্যাংক রাউটিং নম্বর' => $teacher->bank_routing_number,
             'ট্রেনিং তথ্য' => $hasTraining,
         ]);

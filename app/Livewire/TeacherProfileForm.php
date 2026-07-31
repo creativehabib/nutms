@@ -46,6 +46,7 @@ class TeacherProfileForm extends Component
     public string $email = '';
     public string $bankName = '';
     public string $bankBranchName = '';
+    public string $bankAccountNumber = '';
     public string $bankRoutingNumber = '';
 
     /** @var array<int, array<string, string>> */
@@ -87,6 +88,7 @@ class TeacherProfileForm extends Component
             $this->email = (string) ($teacher->email ?? '');
             $this->bankName = (string) ($teacher->bank_name ?? '');
             $this->bankBranchName = (string) ($teacher->bank_branch_name ?? '');
+            $this->bankAccountNumber = (string) ($teacher->bank_account_number ?? '');
             $this->bankRoutingNumber = (string) ($teacher->bank_routing_number ?? '');
             $teacher->load(['trainingTypes', 'otherTrainings']);
             $this->trainingEntries = $teacher->trainingTypes->map(fn (TrainingType $training): array => [
@@ -163,6 +165,7 @@ class TeacherProfileForm extends Component
             'email' => ['nullable', 'email', 'max:255'],
             'bankName' => ['nullable', 'string', 'max:255'],
             'bankBranchName' => ['nullable', 'string', 'max:255'],
+            'bankAccountNumber' => ['nullable', 'string', 'max:100'],
             'bankRoutingNumber' => ['nullable', 'string', 'max:30'],
             'trainingEntries' => ['array'],
             'trainingEntries.*.kind' => ['required', Rule::in(['catalog', 'other'])],
@@ -225,6 +228,7 @@ class TeacherProfileForm extends Component
                 'present_address' => $validated['presentAddress'], 'permanent_address' => $validated['permanentAddress'],
                 'mobile_number' => $validated['mobileNumber'], 'email' => $validated['email'] ?: null,
                 'bank_name' => $validated['bankName'] ?: null, 'bank_branch_name' => $validated['bankBranchName'] ?: null,
+                'bank_account_number' => $validated['bankAccountNumber'] ?: null,
                 'bank_routing_number' => $validated['bankRoutingNumber'] ?: null,
                 'user_id' => $this->editingId ? Teacher::query()->whereKey($this->editingId)->value('user_id') : ($user->role === Role::Teacher ? $user->id : null),
                 'approval_status' => $user->role === Role::Teacher && ! $isApprovedTeacherEditingOwnProfile ? ApprovalStatus::Pending : ApprovalStatus::Approved,
