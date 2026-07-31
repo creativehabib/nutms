@@ -45,6 +45,9 @@ it('allows admin to promote an approved teacher to principal of their college', 
     expect($principal->role)->toBe(Role::Principal)
         ->and($principal->approved_by)->toBe($admin->id);
     $this->actingAs($principal)->get(route('colleges.edit', $college))->assertSuccessful();
+    $this->actingAs($principal)->get(route('teachers.edit', $teacher))->assertSuccessful()
+        ->assertSee('শিক্ষক প্রোফাইল সম্পাদনা')
+        ->assertSee('আমার শিক্ষক প্রোফাইল');
     $this->actingAs($principal)->get(route('colleges.edit', $otherCollege))->assertForbidden();
     $this->actingAs($principal)->get(route('colleges.create'))->assertForbidden();
 });
