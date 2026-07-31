@@ -3,10 +3,18 @@
 use App\Livewire\TeacherManagement;
 use App\Models\Teacher;
 use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
+});
+
+it('does not keep obsolete legacy training columns on teachers', function () {
+    expect(Schema::hasColumn('teachers', 'has_training'))->toBeFalse()
+        ->and(Schema::hasColumn('teachers', 'ict_training_duration'))->toBeFalse()
+        ->and(Schema::hasColumn('teachers', 'other_training_duration'))->toBeFalse()
+        ->and(Schema::hasColumn('teachers', 'training_year'))->toBeFalse();
 });
 
 it('renders a responsive edit form with a blurred backdrop', function () {
@@ -81,13 +89,9 @@ it('allows every teacher data field to be updated', function () {
         'subject' => 'Physics',
         'teacher_level' => 'College',
         'employment_type' => 'Permanent',
-        'has_training' => 'Yes',
         'ict_training_name' => 'Digital Content',
-        'ict_training_duration' => '10 days',
         'other_training_name' => 'Management',
-        'other_training_duration' => '5 days',
         'training_institute' => 'NAEM',
-        'training_year' => '2026',
         'mobile_number' => '01700000000',
         'email' => 'teacher@example.com',
     ];

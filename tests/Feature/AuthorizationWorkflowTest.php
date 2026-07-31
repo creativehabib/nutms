@@ -64,6 +64,8 @@ it('allows admin to promote an approved teacher to principal of their college', 
 it('allows admin to change a linked teachers role from teacher management', function () {
     $admin = User::factory()->create(['role' => Role::Admin]);
     $college = College::query()->create(['name' => 'Role College', 'approval_status' => ApprovalStatus::Approved]);
+    $existingPrincipal = User::factory()->create(['role' => Role::Principal, 'college_id' => $college->id]);
+    $college->update(['submitted_by' => $existingPrincipal->id]);
     $teacherUser = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
     $teacher = Teacher::query()->create([
         'name' => 'Role Teacher',
@@ -77,7 +79,12 @@ it('allows admin to change a linked teachers role from teacher management', func
         ->assertHasNoErrors();
 
     expect($teacherUser->refresh()->role)->toBe(Role::Principal)
-        ->and($teacherUser->hasRole(Role::Principal->value))->toBeTrue();
+        ->and($teacherUser->hasRole(Role::Principal->value))->toBeTrue()
+        ->and($teacherUser->approval_status)->toBe(ApprovalStatus::Approved)
+        ->and($teacherUser->approved_by)->toBe($admin->id)
+        ->and($existingPrincipal->refresh()->role)->toBe(Role::Teacher)
+        ->and($existingPrincipal->hasRole(Role::Teacher->value))->toBeTrue()
+        ->and($college->refresh()->submitted_by)->toBe($teacherUser->id);
 });
 
 it('allows admin to configure permissions for each role', function () {
