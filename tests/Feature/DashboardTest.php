@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\ApprovalStatus;
+use App\Enums\UserRole;
+use App\Models\College;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -59,6 +62,48 @@ test('dashboard shows college lab and ICT training report totals', function () {
         ->assertSee('আইসিটি ট্রেনিং রিপোর্ট')
         ->assertSee('মোট কম্পিউটার')
         ->assertSee('আইসিটি ট্রেনিং কভারেজ');
+});
+
+test('principal dashboard links to their full profiles and college teachers', function () {
+    $college = College::query()->create(['name' => 'Dashboard Principal College', 'approval_status' => ApprovalStatus::Approved]);
+    $principal = User::factory()->create([
+        'role' => UserRole::Principal,
+        'college_id' => $college->id,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    $profile = Teacher::query()->create([
+        'user_id' => $principal->id,
+        'college_id' => $college->id,
+        'name' => 'Dashboard Principal',
+        'present_address' => 'Principal Full Address',
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    $this->actingAs($principal)->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee('প্রিন্সিপাল ড্যাশবোর্ড')
+        ->assertSee('আমার প্রোফাইল')
+        ->assertSee(route('teachers.show', $profile), false)
+        ->assertSee(route('colleges.show', $college), false)
+        ->assertSee(route('teachers.manage'), false)
+        ->assertDontSee('কম্পিউটার ল্যাব রিপোর্ট')
+        ->assertDontSee('আইসিটি ট্রেনিং রিপোর্ট');
+
+    $this->actingAs($principal)->get(route('teachers.show', $profile))
+        ->assertSuccessful()
+        ->assertSee('Principal Full Address')
+        ->assertSee('সম্পাদনা');
+});
+
+test('teacher dashboard shows only their profile workflow', function () {
+    $teacher = User::factory()->create(['role' => UserRole::Teacher]);
+
+    $this->actingAs($teacher)->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee('শিক্ষক ড্যাশবোর্ড')
+        ->assertSee('শিক্ষক প্রোফাইল')
+        ->assertDontSee('কম্পিউটার ল্যাব রিপোর্ট')
+        ->assertDontSee('আইসিটি ট্রেনিং রিপোর্ট');
 });
 
 test('sidebar menu items use icons that match their destinations', function () {

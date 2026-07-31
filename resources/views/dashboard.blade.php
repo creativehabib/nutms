@@ -7,13 +7,13 @@
                 <div>
                     <div class="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold ring-1 ring-white/20">
                         <flux:icon.chart-bar-square class="size-4" />
-                        প্রতিষ্ঠান ও শিক্ষক তথ্যচিত্র
+                        {{ auth()->user()->isAdmin() ? 'প্রতিষ্ঠান ও শিক্ষক তথ্যচিত্র' : (auth()->user()->role === \App\Enums\UserRole::Principal ? 'কলেজ পরিচালনা' : 'শিক্ষক সেবা') }}
                     </div>
-                    <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">ড্যাশবোর্ড রিপোর্ট</h1>
-                    <p class="mt-2 max-w-2xl text-sm text-indigo-100 sm:text-base">কম্পিউটার ল্যাব এবং আইসিটি ট্রেনিংয়ের বর্তমান অবস্থা এক নজরে দেখুন।</p>
+                    <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ auth()->user()->isAdmin() ? 'এডমিন ড্যাশবোর্ড' : (auth()->user()->role === \App\Enums\UserRole::Principal ? 'প্রিন্সিপাল ড্যাশবোর্ড' : 'শিক্ষক ড্যাশবোর্ড') }}</h1>
+                    <p class="mt-2 max-w-2xl text-sm text-indigo-100 sm:text-base">{{ auth()->user()->isAdmin() ? 'সকল কলেজ, শিক্ষক, কম্পিউটার ল্যাব ও ট্রেনিংয়ের সার্বিক অবস্থা দেখুন।' : (auth()->user()->role === \App\Enums\UserRole::Principal ? 'নিজ কলেজের প্রোফাইল, শিক্ষক এবং নিজের শিক্ষক প্রোফাইল পরিচালনা করুন।' : 'নিজের শিক্ষক প্রোফাইল ও অনুমোদনের বর্তমান অবস্থা দেখুন।') }}</p>
                 </div>
 
-                @if ($report['lastUpdatedAt'])
+                @if (auth()->user()->isAdmin() && $report['lastUpdatedAt'])
                     <div class="flex items-center gap-2 text-xs text-indigo-100">
                         <flux:icon.clock class="size-4" />
                         সর্বশেষ তথ্য: {{ $report['lastUpdatedAt'] }}
@@ -24,9 +24,15 @@
 
         @if(auth()->user()->role === \App\Enums\UserRole::Principal && ! auth()->user()->isApproved())
             <flux:card><flux:heading size="lg">Principal account অনুমোদনের অপেক্ষায়</flux:heading><flux:callout class="mt-4" variant="warning" heading="Admin approval প্রয়োজন">আপনার account এবং নির্বাচিত কলেজ Admin যাচাই করছেন। অনুমোদনের পর কলেজ প্রোফাইল সম্পাদনা ও কলেজের শিক্ষক ব্যবস্থাপনা করতে পারবেন।</flux:callout></flux:card>
+        @elseif(auth()->user()->role === \App\Enums\UserRole::Principal)
+            <div class="grid gap-5 md:grid-cols-3">
+                <flux:card class="flex flex-col"><div class="flex items-center gap-3"><div class="rounded-lg bg-indigo-50 p-2.5 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300"><flux:icon.identification class="size-6" /></div><flux:heading size="lg">আমার প্রোফাইল</flux:heading></div><flux:text class="mt-3">আপনার শিক্ষক প্রোফাইলের পেশাগত, যোগাযোগ, ব্যাংক ও ট্রেনিংয়ের সকল তথ্য দেখুন।</flux:text>@if(auth()->user()->teacherProfile)<flux:button class="mt-5" variant="primary" :href="route('teachers.show', auth()->user()->teacherProfile)" wire:navigate>সম্পূর্ণ প্রোফাইল দেখুন</flux:button>@else<flux:callout class="mt-5" variant="warning">আপনার শিক্ষক প্রোফাইল সংযুক্ত নেই।</flux:callout>@endif</flux:card>
+                <flux:card class="flex flex-col"><div class="flex items-center gap-3"><div class="rounded-lg bg-sky-50 p-2.5 text-sky-600 dark:bg-sky-950 dark:text-sky-300"><flux:icon.building-library class="size-6" /></div><flux:heading size="lg">কলেজ প্রোফাইল</flux:heading></div><flux:text class="mt-3">নিজ কলেজের পরিচিতি, ঠিকানা, প্রোগ্রাম এবং কম্পিউটার ল্যাবের তথ্য দেখুন ও সম্পাদনা করুন।</flux:text><flux:button class="mt-5" :href="route('colleges.show', auth()->user()->college_id)" wire:navigate>কলেজ প্রোফাইল দেখুন</flux:button></flux:card>
+                <flux:card class="flex flex-col"><div class="flex items-center gap-3"><div class="rounded-lg bg-emerald-50 p-2.5 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300"><flux:icon.user-group class="size-6" /></div><flux:heading size="lg">কলেজের শিক্ষক</flux:heading></div><flux:text class="mt-3">নিজ কলেজের {{ number_format($report['totalTeachers']) }} জন শিক্ষক সার্চ, যাচাই ও অনুমোদন করুন।</flux:text><flux:button class="mt-5" :href="route('teachers.manage')" wire:navigate>শিক্ষক ব্যবস্থাপনা</flux:button></flux:card>
+            </div>
         @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
-            <flux:card><flux:heading size="lg">শিক্ষক প্রোফাইল</flux:heading>@if(auth()->user()->teacher?->approval_status === \App\Enums\ApprovalStatus::Approved)<flux:text class="mt-2">আপনার প্রোফাইল অনুমোদিত হয়েছে।</flux:text><flux:button class="mt-4" variant="primary" :href="route('teachers.show', auth()->user()->teacher_id)" wire:navigate>প্রোফাইল দেখুন</flux:button>@elseif(auth()->user()->teacher_id)<flux:callout class="mt-4" variant="warning" heading="অনুমোদনের অপেক্ষায়">আপনার প্রোফাইলটি কলেজ প্রিন্সিপালের কাছে পাঠানো হয়েছে। অনুমোদনের পর প্রোফাইল ব্যবহার করতে পারবেন।</flux:callout>@else<flux:text class="mt-2">প্রোফাইল তৈরি করে আপনার কলেজ প্রিন্সিপালের অনুমোদনের জন্য জমা দিন।</flux:text><flux:button class="mt-4" variant="primary" :href="route('teachers.create')" wire:navigate>প্রোফাইল তৈরি করুন</flux:button>@endif</flux:card>
-        @else
+            <flux:card><flux:heading size="lg">শিক্ষক প্রোফাইল</flux:heading>@if(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Approved)<flux:text class="mt-2">আপনার প্রোফাইল অনুমোদিত হয়েছে।</flux:text><flux:button class="mt-4" variant="primary" :href="route('teachers.show', auth()->user()->teacherProfile)" wire:navigate>প্রোফাইল দেখুন</flux:button>@elseif(auth()->user()->teacherProfile)<flux:callout class="mt-4" variant="warning" heading="অনুমোদনের অপেক্ষায়">আপনার প্রোফাইলটি কলেজ প্রিন্সিপালের কাছে পাঠানো হয়েছে। অনুমোদনের পর প্রোফাইল ব্যবহার করতে পারবেন।</flux:callout>@else<flux:text class="mt-2">প্রোফাইল তৈরি করে আপনার কলেজ প্রিন্সিপালের অনুমোদনের জন্য জমা দিন।</flux:text><flux:button class="mt-4" variant="primary" :href="route('teachers.create')" wire:navigate>প্রোফাইল তৈরি করুন</flux:button>@endif</flux:card>
+        @elseif(auth()->user()->isAdmin())
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <div class="flex items-center justify-between gap-4">
