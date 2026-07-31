@@ -22,6 +22,11 @@
             </div>
         </header>
 
+        @if(auth()->user()->role === \App\Enums\UserRole::Principal && ! auth()->user()->isApproved())
+            <flux:card><flux:heading size="lg">Principal account অনুমোদনের অপেক্ষায়</flux:heading><flux:callout class="mt-4" variant="warning" heading="Admin approval প্রয়োজন">আপনার account এবং নির্বাচিত কলেজ Admin যাচাই করছেন। অনুমোদনের পর কলেজ প্রোফাইল সম্পাদনা ও কলেজের শিক্ষক ব্যবস্থাপনা করতে পারবেন।</flux:callout></flux:card>
+        @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
+            <flux:card><flux:heading size="lg">শিক্ষক প্রোফাইল</flux:heading>@if(auth()->user()->teacher?->approval_status === \App\Enums\ApprovalStatus::Approved)<flux:text class="mt-2">আপনার প্রোফাইল অনুমোদিত হয়েছে।</flux:text><flux:button class="mt-4" variant="primary" :href="route('teachers.show', auth()->user()->teacher_id)" wire:navigate>প্রোফাইল দেখুন</flux:button>@elseif(auth()->user()->teacher_id)<flux:callout class="mt-4" variant="warning" heading="অনুমোদনের অপেক্ষায়">আপনার প্রোফাইলটি কলেজ প্রিন্সিপালের কাছে পাঠানো হয়েছে। অনুমোদনের পর প্রোফাইল ব্যবহার করতে পারবেন।</flux:callout>@else<flux:text class="mt-2">প্রোফাইল তৈরি করে আপনার কলেজ প্রিন্সিপালের অনুমোদনের জন্য জমা দিন।</flux:text><flux:button class="mt-4" variant="primary" :href="route('teachers.create')" wire:navigate>প্রোফাইল তৈরি করুন</flux:button>@endif</flux:card>
+        @else
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <div class="flex items-center justify-between gap-4">
@@ -67,7 +72,7 @@
                         <flux:heading id="college-report-heading" size="lg">কম্পিউটার ল্যাব রিপোর্ট</flux:heading>
                         <flux:text class="mt-1">কলেজগুলোর ল্যাব সুবিধার তুলনামূলক চিত্র</flux:text>
                     </div>
-                    <flux:button :href="route('lab.summary')" variant="ghost" size="sm" icon-trailing="arrow-up-right" wire:navigate>বিস্তারিত</flux:button>
+                    @if(auth()->user()->isAdmin())<flux:button :href="route('lab.summary')" variant="ghost" size="sm" icon-trailing="arrow-up-right" wire:navigate>বিস্তারিত</flux:button>@endif
                 </div>
 
                 <div class="mt-7 flex items-end justify-between gap-4">
@@ -100,7 +105,7 @@
                         <flux:heading id="training-report-heading" size="lg">আইসিটি ট্রেনিং রিপোর্ট</flux:heading>
                         <flux:text class="mt-1">শিক্ষকদের প্রশিক্ষণ অগ্রগতির তুলনামূলক চিত্র</flux:text>
                     </div>
-                    <flux:button :href="route('ict.summary')" variant="ghost" size="sm" icon-trailing="arrow-up-right" wire:navigate>বিস্তারিত</flux:button>
+                    @if(auth()->user()->isAdmin())<flux:button :href="route('ict.summary')" variant="ghost" size="sm" icon-trailing="arrow-up-right" wire:navigate>বিস্তারিত</flux:button>@endif
                 </div>
 
                 <div class="mt-7 flex items-end justify-between gap-4">
@@ -127,5 +132,6 @@
                 </div>
             </section>
         </div>
+        @endif
     </div>
 </x-layouts::app>
