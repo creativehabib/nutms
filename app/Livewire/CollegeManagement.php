@@ -5,10 +5,8 @@ namespace App\Livewire;
 use App\Enums\ApprovalStatus;
 use App\Enums\UserRole as Role;
 use App\Models\College;
-use App\Models\User;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -35,32 +33,6 @@ class CollegeManagement extends Component
 
         $college->delete();
         Flux::toast(variant: 'success', text: 'কলেজটি মুছে ফেলা হয়েছে।');
-    }
-
-    public function approvePrincipal(int $collegeId): void
-    {
-        abort_unless(auth()->user()->isAdmin(), 403);
-
-        DB::transaction(function () use ($collegeId): void {
-            $principal = User::query()
-                ->where('role', Role::Principal->value)
-                ->where('college_id', $collegeId)
-                ->where('approval_status', ApprovalStatus::Pending)
-                ->lockForUpdate()
-                ->firstOrFail();
-            $principal->update(['approval_status' => ApprovalStatus::Approved, 'approved_by' => auth()->id(), 'approved_at' => now()]);
-            College::query()->whereKey($collegeId)->update(['submitted_by' => $principal->id]);
-        });
-
-        Flux::toast(variant: 'success', text: 'Principal account অনুমোদিত হয়েছে।');
-    }
-
-    public function rejectPrincipal(int $collegeId): void
-    {
-        abort_unless(auth()->user()->isAdmin(), 403);
-        User::query()->where('role', Role::Principal->value)->where('college_id', $collegeId)
-            ->where('approval_status', ApprovalStatus::Pending)->firstOrFail()
-            ->update(['approval_status' => ApprovalStatus::Rejected, 'approved_by' => auth()->id(), 'approved_at' => now()]);
     }
 
     public function approveCollege(int $collegeId): void

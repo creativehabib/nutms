@@ -1,49 +1,33 @@
 <?php
 
 use Laravel\Fortify\Features;
-use App\Enums\ApprovalStatus;
-use App\Models\College;
 use App\Models\User;
 
 beforeEach(function () {
     $this->skipUnlessFortifyHas(Features::registration());
 });
 
-test('a principal must select an available approved college', function () {
-    $college = College::query()->create(['name' => 'Registration College', 'approval_status' => ApprovalStatus::Approved, 'is_active' => true]);
-
+test('public registration always creates a teacher account', function () {
     $this->post(route('register.store'), [
-        'name' => 'College Principal',
-        'email' => 'principal@example.com',
+        'name' => 'New Teacher',
+        'email' => 'new-teacher@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
         'role' => 'principal',
-        'college_id' => $college->id,
+        'college_id' => 999,
     ])->assertSessionHasNoErrors();
 
-    $principal = User::query()->where('email', 'principal@example.com')->firstOrFail();
-    expect($principal->college_id)->toBe($college->id)
-        ->and($principal->approval_status)->toBe(ApprovalStatus::Pending);
-});
-
-test('the same college cannot be claimed by another principal account', function () {
-    $college = College::query()->create(['name' => 'Claimed College', 'approval_status' => ApprovalStatus::Approved, 'is_active' => true]);
-    User::factory()->create(['role' => 'principal', 'college_id' => $college->id]);
-
-    $this->post(route('register.store'), [
-        'name' => 'Another Principal',
-        'email' => 'another-principal@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
-        'role' => 'principal',
-        'college_id' => $college->id,
-    ])->assertSessionHasErrors('college_id');
+    $user = User::query()->where('email', 'new-teacher@example.com')->firstOrFail();
+    expect($user->role->value)->toBe('teacher')
+        ->and($user->college_id)->toBeNull();
 });
 
 test('registration screen can be rendered', function () {
     $response = $this->get(route('register'));
 
-    $response->assertOk();
+    $response->assertOk()
+        ->assertSee('নতুন account শিক্ষক হিসেবে তৈরি হবে')
+        ->assertDontSee('কলেজ প্রিন্সিপাল');
 });
 
 test('new users can register', function () {

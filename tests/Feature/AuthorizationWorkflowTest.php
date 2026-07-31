@@ -3,6 +3,7 @@
 use App\Enums\ApprovalStatus;
 use App\Enums\UserRole as Role;
 use App\Livewire\CollegeManagement;
+use App\Livewire\RolePermissionManagement;
 use App\Livewire\TeacherManagement;
 use App\Models\College;
 use App\Models\Teacher;
@@ -28,29 +29,35 @@ it('allows an admin to approve a principal submitted college', function () {
         ->and($principal->refresh()->college_id)->toBe($college->id);
 });
 
-it('requires admin approval before a principal can manage only the selected college', function () {
+it('allows admin to promote an approved teacher to principal of their college', function () {
     $admin = User::factory()->create(['role' => Role::Admin]);
     $college = College::query()->create(['name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
     $otherCollege = College::query()->create(['name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
-    $principal = User::factory()->create([
-        'role' => Role::Principal,
-        'college_id' => $college->id,
-        'approval_status' => ApprovalStatus::Pending,
-    ]);
+    $principal = User::factory()->create(['role' => Role::Teacher]);
+    $teacher = Teacher::query()->create(['name' => 'Principal Teacher', 'user_id' => $principal->id, 'college_id' => $college->id, 'approval_status' => ApprovalStatus::Approved]);
+    $principal->update(['teacher_id' => $teacher->id, 'college_id' => $college->id]);
 
-    $this->actingAs($principal)->get(route('colleges.edit', $college))->assertForbidden();
-
-    Livewire::actingAs($admin)->test(CollegeManagement::class)
-        ->assertSee('পেন্ডিং')
-        ->call('approvePrincipal', $college->id)
+    Livewire::actingAs($admin)->test(RolePermissionManagement::class)
+        ->call('changeRole', $principal->id, Role::Principal->value)
         ->assertHasNoErrors();
 
     $principal->refresh();
-    expect($principal->approval_status)->toBe(ApprovalStatus::Approved)
+    expect($principal->role)->toBe(Role::Principal)
         ->and($principal->approved_by)->toBe($admin->id);
     $this->actingAs($principal)->get(route('colleges.edit', $college))->assertSuccessful();
     $this->actingAs($principal)->get(route('colleges.edit', $otherCollege))->assertForbidden();
     $this->actingAs($principal)->get(route('colleges.create'))->assertForbidden();
+});
+
+it('does not promote a user without an approved teacher profile to principal', function () {
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    $user = User::factory()->create(['role' => Role::Teacher]);
+
+    Livewire::actingAs($admin)->test(RolePermissionManagement::class)
+        ->call('changeRole', $user->id, Role::Principal->value)
+        ->assertHasErrors('role');
+
+    expect($user->refresh()->role)->toBe(Role::Teacher);
 });
 
 it('allows only the college principal or admin to approve a teacher', function () {
@@ -85,6 +92,8 @@ it('restricts administrative pages by role', function () {
 
     $this->actingAs($teacher)->get(route('training-catalog.manage'))->assertForbidden();
     $this->actingAs($teacher)->get(route('teachers.manage'))->assertForbidden();
+    $this->actingAs($teacher)->get(route('roles-permissions.manage'))->assertForbidden();
+    $this->actingAs(User::factory()->create(['role' => Role::Admin]))->get(route('roles-permissions.manage'))->assertSuccessful();
     $this->actingAs($principal)->get('/approvals')->assertNotFound();
 });
 
@@ -94,7 +103,7 @@ it('shows college management as a standalone admin navigation item', function ()
     $response = $this->actingAs($admin)->get(route('dashboard'));
 
     $response->assertSuccessful()
-        ->assertSeeInOrder(['কলেজ ব্যবস্থাপনা', 'শিক্ষক সেটিংস']);
+        ->assertSeeInOrder(['কলেজ ব্যবস্থাপনা', 'রোলস ও পারমিশন', 'শিক্ষক সেটিংস']);
     expect(substr_count($response->getContent(), 'কলেজ ব্যবস্থাপনা'))->toBe(1);
 });
 
