@@ -36,7 +36,7 @@
                             id="teacher-search"
                             type="search"
                             wire:model.live.debounce.300ms="search"
-                            placeholder="নাম, TMIS ID বা মোবাইল নম্বর"
+                            placeholder="নাম, TTIS/TMIS ID, মোবাইল, ইমেইল বা কলেজ"
                             class="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 py-2.5 pl-10 pr-3 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         >
                     </div>
@@ -85,6 +85,15 @@
                     </button>
                 </div>@endif
             </div>
+
+            @if(trim($search) !== '' || $subjectFilter !== '' || $collegeCodeFilter !== '')
+                <div class="mt-3 flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-indigo-50/70 px-3 py-2 dark:border-indigo-900 dark:bg-indigo-950/30">
+                    <p class="text-xs font-medium text-indigo-700 dark:text-indigo-300">সক্রিয় সার্চ বা ফিল্টার অনুযায়ী ফলাফল দেখানো হচ্ছে।</p>
+                    <button type="button" wire:click="clearFilters" class="shrink-0 text-xs font-semibold text-indigo-700 underline decoration-indigo-300 underline-offset-4 transition hover:text-indigo-900 dark:text-indigo-300 dark:hover:text-indigo-100">
+                        সব মুছুন
+                    </button>
+                </div>
+            @endif
         </div>
 
         <!-- ডেটা টেবিল -->

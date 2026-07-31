@@ -57,6 +57,54 @@ it('shows the distinct college count beside the teacher count', function () {
         ->assertSee('মোট 2টি কলেজ');
 });
 
+it('searches teachers by profile, account, and college identifiers', function (string $searchTerm) {
+    $college = College::query()->create([
+        'code' => 'COL-SEARCH-01',
+        'name' => 'Searchable College',
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    $account = User::factory()->create(['name' => 'Account Search Name']);
+
+    Teacher::query()->create([
+        'user_id' => $account->id,
+        'college_id' => $college->id,
+        'name' => 'Profile Search Name',
+        'tmis_id' => 'TMIS-SEARCH-01',
+        'ttis_id' => 'TTIS-SEARCH-01',
+        'mobile_number' => '01711111111',
+        'email' => 'searchable@example.com',
+    ]);
+    $account->update(['name' => 'Account Search Name']);
+    Teacher::query()->create(['name' => 'Teacher Hidden From Search']);
+
+    Livewire::test(TeacherManagement::class)
+        ->set('search', "  {$searchTerm}  ")
+        ->assertSee('Account Search Name')
+        ->assertDontSee('Teacher Hidden From Search');
+})->with([
+    'profile name' => 'Profile Search',
+    'linked account name' => 'Account Search',
+    'TMIS ID' => 'TMIS-SEARCH',
+    'TTIS ID' => 'TTIS-SEARCH',
+    'mobile number' => '01711111111',
+    'email address' => 'searchable@example.com',
+    'college code' => 'COL-SEARCH',
+    'college name' => 'Searchable College',
+]);
+
+it('clears teacher search and filters together', function () {
+    Livewire::test(TeacherManagement::class)
+        ->set('search', 'Teacher')
+        ->set('subjectFilter', 'Physics')
+        ->set('collegeCodeFilter', 'COL-001')
+        ->assertSee('সক্রিয় সার্চ বা ফিল্টার অনুযায়ী ফলাফল দেখানো হচ্ছে।')
+        ->call('clearFilters')
+        ->assertSet('search', '')
+        ->assertSet('subjectFilter', '')
+        ->assertSet('collegeCodeFilter', '')
+        ->assertDontSee('সক্রিয় সার্চ বা ফিল্টার অনুযায়ী ফলাফল দেখানো হচ্ছে।');
+});
+
 it('gives principals a college-scoped teacher management interface', function () {
     $principalCollege = College::query()->create(['code' => 'OWN-001', 'name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
     $otherCollege = College::query()->create(['code' => 'OTHER-002', 'name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
