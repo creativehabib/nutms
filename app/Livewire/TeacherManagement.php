@@ -13,6 +13,7 @@ use App\Models\TeacherLevel;
 use App\Models\TeacherOtherTraining;
 use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
+use App\Models\User;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -93,6 +94,7 @@ class TeacherManagement extends Component
 
     public function approveTeacher(int $teacherId): void
     {
+        abort_unless(auth()->user()->can('teachers.approve'), 403);
         $teacher = $this->accessibleTeachersQuery()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
         $teacher->update(['approval_status' => ApprovalStatus::Approved, 'approved_by' => auth()->id(), 'approved_at' => now()]);
         $teacher->user?->update(['teacher_id' => $teacher->id, 'college_id' => $teacher->college_id]);
@@ -101,8 +103,51 @@ class TeacherManagement extends Component
 
     public function rejectTeacher(int $teacherId): void
     {
+        abort_unless(auth()->user()->can('teachers.approve'), 403);
         $teacher = $this->accessibleTeachersQuery()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
         $teacher->update(['approval_status' => ApprovalStatus::Rejected, 'approved_by' => auth()->id(), 'approved_at' => now()]);
+    }
+
+    public function changeTeacherRole(int $teacherId, string $role): void
+    {
+        abort_unless(auth()->user()->can('teachers.assign-role'), 403);
+
+        $validated = validator(['role' => $role], [
+            'role' => ['required', Rule::in([Role::Teacher->value, Role::Principal->value])],
+        ])->validate();
+
+        DB::transaction(function () use ($teacherId, $validated): void {
+            $teacher = Teacher::query()->with('user')->lockForUpdate()->findOrFail($teacherId);
+            $user = $teacher->user;
+
+            if ($user === null) {
+                throw ValidationException::withMessages(['role' => 'এই শিক্ষকের সঙ্গে কোনো user account সংযুক্ত নেই।']);
+            }
+
+            $newRole = Role::from($validated['role']);
+            if ($newRole === Role::Principal) {
+                if ($teacher->college_id === null || $teacher->approval_status !== ApprovalStatus::Approved) {
+                    throw ValidationException::withMessages(['role' => 'শুধু অনুমোদিত শিক্ষককে তার কলেজের Principal করা যাবে।']);
+                }
+
+                $principalExists = User::query()->whereKeyNot($user->id)
+                    ->where('role', Role::Principal->value)
+                    ->where('college_id', $teacher->college_id)
+                    ->exists();
+                if ($principalExists) {
+                    throw ValidationException::withMessages(['role' => 'এই কলেজে ইতোমধ্যে একজন Principal রয়েছে।']);
+                }
+            }
+
+            $user->update([
+                'role' => $newRole,
+                'college_id' => $teacher->college_id,
+                'teacher_id' => $teacher->id,
+            ]);
+            $user->syncRoles([$newRole->value]);
+        });
+
+        Flux::toast(variant: 'success', text: 'শিক্ষকের রোল সফলভাবে পরিবর্তন করা হয়েছে।');
     }
 
     public function updatedSelectAllOnPage(bool $selected): void
@@ -156,6 +201,7 @@ class TeacherManagement extends Component
 
     public function confirmTeacherDeletion(int $teacherId): void
     {
+        abort_unless(auth()->user()->can('teachers.delete'), 403);
         $teacher = $this->accessibleTeachersQuery()->findOrFail($teacherId);
 
         $this->deletingTeacherIds = [$teacher->id];
@@ -167,6 +213,7 @@ class TeacherManagement extends Component
 
     public function confirmPermanentTeacherDeletion(int $teacherId): void
     {
+        abort_unless(auth()->user()->can('teachers.delete'), 403);
         $teacher = $this->accessibleTeachersQuery(true)->findOrFail($teacherId);
 
         $this->deletingTeacherIds = [$teacher->id];
@@ -178,6 +225,7 @@ class TeacherManagement extends Component
 
     public function confirmBulkTeacherDeletion(): void
     {
+        abort_unless(auth()->user()->can('teachers.delete'), 403);
         $teacherIds = collect($this->selectedTeacherIds)
             ->map(fn ($teacherId): int => (int) $teacherId)
             ->unique()
@@ -202,6 +250,7 @@ class TeacherManagement extends Component
 
     public function confirmBulkPermanentDeletion(): void
     {
+        abort_unless(auth()->user()->can('teachers.delete'), 403);
         $teacherIds = collect($this->selectedTeacherIds)
             ->map(fn ($teacherId): int => (int) $teacherId)
             ->unique()
@@ -226,6 +275,7 @@ class TeacherManagement extends Component
 
     public function deleteTeacher(): void
     {
+        abort_unless(auth()->user()->can('teachers.delete'), 403);
         if ($this->deletingTeacherIds === []) {
             Flux::toast(variant: 'danger', text: 'মুছে ফেলার জন্য কোনো শিক্ষক নির্বাচন করা হয়নি।');
 
@@ -255,6 +305,7 @@ class TeacherManagement extends Component
 
     public function restoreTeacher(int $teacherId): void
     {
+        abort_unless(auth()->user()->can('teachers.delete'), 403);
         $restoredTeacherCount = $this->accessibleTeachersQuery(true)
             ->whereKey($teacherId)
             ->restore();
@@ -271,6 +322,7 @@ class TeacherManagement extends Component
 
     public function restoreSelectedTeachers(): void
     {
+        abort_unless(auth()->user()->can('teachers.delete'), 403);
         $teacherIds = collect($this->selectedTeacherIds)
             ->map(fn ($teacherId): int => (int) $teacherId)
             ->unique()
@@ -293,6 +345,7 @@ class TeacherManagement extends Component
     // এডিট মডাল ওপেন করা এবং ডেটা লোড করার ফাংশন
     public function editTeacher($id)
     {
+        abort_unless(auth()->user()->can('teachers.update'), 403);
         $teacher = $this->accessibleTeachersQuery()->with(['trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])->findOrFail($id);
         $this->editingId = $id;
 
@@ -348,6 +401,7 @@ class TeacherManagement extends Component
     // আপডেট সেভ করার ফাংশন
     public function updateTeacher()
     {
+        abort_unless(auth()->user()->can('teachers.update'), 403);
         // ভ্যালিডেশন
         try {
             $validated = $this->validate([
@@ -474,7 +528,7 @@ class TeacherManagement extends Component
         $collegeCodes = College::query()->where('is_active', true)->whereNotNull('code')->orderBy('code')->pluck('code');
 
         return view('livewire.teacher-management', [
-            'teachers' => $query->with('user:id,name')->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
+            'teachers' => $query->with('user:id,name,role')->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
             'collegeCount' => $collegeCount,
             'subjects' => $subjects,
             'collegeCodes' => $collegeCodes,

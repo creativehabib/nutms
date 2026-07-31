@@ -9,6 +9,7 @@ use App\Models\College;
 use App\Models\Teacher;
 use App\Models\User;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role as PermissionRole;
 
 it('allows an admin to approve a principal submitted college', function () {
     $admin = User::factory()->create(['role' => Role::Admin]);
@@ -51,6 +52,38 @@ it('allows admin to promote an approved teacher to principal of their college', 
         ->assertSee('কলেজ প্রোফাইল');
     $this->actingAs($principal)->get(route('colleges.edit', $otherCollege))->assertForbidden();
     $this->actingAs($principal)->get(route('colleges.create'))->assertForbidden();
+});
+
+it('allows admin to change a linked teachers role from teacher management', function () {
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    $college = College::query()->create(['name' => 'Role College', 'approval_status' => ApprovalStatus::Approved]);
+    $teacherUser = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
+    $teacher = Teacher::query()->create([
+        'name' => 'Role Teacher',
+        'user_id' => $teacherUser->id,
+        'college_id' => $college->id,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    Livewire::actingAs($admin)->test(TeacherManagement::class)
+        ->call('changeTeacherRole', $teacher->id, Role::Principal->value)
+        ->assertHasNoErrors();
+
+    expect($teacherUser->refresh()->role)->toBe(Role::Principal)
+        ->and($teacherUser->hasRole(Role::Principal->value))->toBeTrue();
+});
+
+it('allows admin to configure permissions for each role', function () {
+    $admin = User::factory()->create(['role' => Role::Admin]);
+
+    Livewire::actingAs($admin)->test(RolePermissionManagement::class)
+        ->set('selectedRole', Role::Teacher->value)
+        ->set('selectedPermissions', ['teachers.view', 'teachers.update'])
+        ->call('saveRolePermissions')
+        ->assertHasNoErrors();
+
+    expect(PermissionRole::findByName(Role::Teacher->value)->permissions->pluck('name')->all())
+        ->toEqualCanonicalizing(['teachers.view', 'teachers.update']);
 });
 
 it('does not promote a user without an approved teacher profile to principal', function () {

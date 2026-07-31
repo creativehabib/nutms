@@ -128,6 +128,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">পদবী ও বিষয়</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">যোগাযোগ</th>
                     <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">অনুমোদন</th>
+                    @can('teachers.assign-role')<th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">রোল</th>@endcan
                     <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">অ্যাকশন</th>
                 </tr>
                 </thead>
@@ -166,24 +167,38 @@
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             <flux:badge :color="match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'green', \App\Enums\ApprovalStatus::Rejected => 'red', default => 'amber' }">{{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'অনুমোদিত', \App\Enums\ApprovalStatus::Rejected => 'প্রত্যাখ্যাত', default => 'পেন্ডিং' } }}</flux:badge>
                         </td>
+                        @can('teachers.assign-role')
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                @if($teacher->user)
+                                    <flux:select size="sm" wire:change="changeTeacherRole({{ $teacher->id }}, $event.target.value)" aria-label="{{ $teacher->display_name }}-এর রোল পরিবর্তন করুন">
+                                        <option value="teacher" @selected($teacher->user->role === \App\Enums\UserRole::Teacher)>শিক্ষক</option>
+                                        <option value="principal" @selected($teacher->user->role === \App\Enums\UserRole::Principal)>কলেজ প্রিন্সিপাল</option>
+                                    </flux:select>
+                                @else
+                                    <flux:badge color="zinc">Account নেই</flux:badge>
+                                @endif
+                            </td>
+                        @endcan
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                             @if ($showTrashed)
                                 <button wire:click="restoreTeacher({{ $teacher->id }})" class="mr-2 rounded bg-emerald-100 px-3 py-1 text-emerald-700 transition hover:bg-emerald-200 hover:text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900">Restore</button>
                                 <button wire:click="confirmPermanentTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-700 transition hover:bg-red-200 hover:text-red-900 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900">Permanent Delete</button>
                             @else
                                 <flux:button size="sm" icon="eye" :href="route('teachers.show', $teacher)" wire:navigate>দেখুন</flux:button>
-                                <flux:button size="sm" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate>সম্পাদনা</flux:button>
+                                @can('teachers.update')<flux:button size="sm" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate>সম্পাদনা</flux:button>@endcan
+                                @can('teachers.approve')
                                 @if($teacher->approval_status === \App\Enums\ApprovalStatus::Pending)
                                     <flux:button size="sm" variant="primary" wire:click="approveTeacher({{ $teacher->id }})">এপ্রুভ</flux:button>
                                     <flux:button size="sm" variant="danger" wire:click="rejectTeacher({{ $teacher->id }})">রিজেক্ট</flux:button>
                                 @endif
-                                <button wire:click="confirmTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200 hover:text-red-900 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900">Delete</button>
+                                @endcan
+                                @can('teachers.delete')<button wire:click="confirmTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200 hover:text-red-900 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900">Delete</button>@endcan
                             @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
+                        <td colspan="{{ auth()->user()->can('teachers.assign-role') ? 9 : 8 }}" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
                             কোনো ডেটা পাওয়া যায়নি!
                         </td>
                     </tr>

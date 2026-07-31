@@ -19,21 +19,21 @@ Route::view('/', 'welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
-    Route::get('/teacher-management', TeacherManagement::class)->middleware('role:admin,principal')->name('teachers.manage');
+    Route::get('/teacher-management', TeacherManagement::class)->middleware(['role:admin,principal', 'permission:teachers.view'])->name('teachers.manage');
     Route::get('/teachers/create', TeacherProfileForm::class)->name('teachers.create');
     Route::get('/teachers/{teacher}/edit', TeacherProfileForm::class)->name('teachers.edit');
     Route::get('/teachers/{teacher}', TeacherDetails::class)->name('teachers.show');
-    Route::get('/reference-data/{type}', ReferenceDataManagement::class)->middleware('role:admin')
+    Route::get('/reference-data/{type}', ReferenceDataManagement::class)->middleware(['role:admin', 'permission:reference-data.manage'])
         ->whereIn('type', ['subjects', 'designations', 'teacher-levels', 'employments'])
         ->name('reference-data.manage');
-    Route::get('/roles-permissions', RolePermissionManagement::class)->middleware('role:admin')->name('roles-permissions.manage');
-    Route::get('/colleges', CollegeManagement::class)->middleware('role:admin,principal')->name('colleges.manage');
-    Route::get('/colleges/create', CollegeForm::class)->middleware('role:admin')->name('colleges.create');
-    Route::get('/colleges/{college}/edit', CollegeForm::class)->middleware('role:admin,principal')->name('colleges.edit');
-    Route::get('/colleges/{college}', CollegeDetails::class)->middleware('role:admin,principal')->name('colleges.show');
-    Route::get('/training-catalog', TrainingCatalogManagement::class)->middleware('role:admin')->name('training-catalog.manage');
-    Route::get('/lab-summary', CollegeLabSummary::class)->middleware('role:admin')->name('lab.summary');
-    Route::get('/ict-training-summary', IctTrainingSummary::class)->middleware('role:admin')->name('ict.summary');
+    Route::get('/roles-permissions', RolePermissionManagement::class)->middleware(['role:admin', 'permission:roles.manage'])->name('roles-permissions.manage');
+    Route::get('/colleges', CollegeManagement::class)->middleware(['role:admin,principal', 'permission:colleges.view'])->name('colleges.manage');
+    Route::get('/colleges/create', CollegeForm::class)->middleware(['role:admin', 'permission:colleges.create'])->name('colleges.create');
+    Route::get('/colleges/{college}/edit', CollegeForm::class)->middleware(['role:admin,principal', 'permission:colleges.update'])->name('colleges.edit');
+    Route::get('/colleges/{college}', CollegeDetails::class)->middleware(['role:admin,principal', 'permission:colleges.view'])->name('colleges.show');
+    Route::get('/training-catalog', TrainingCatalogManagement::class)->middleware(['role:admin', 'permission:training-catalog.manage'])->name('training-catalog.manage');
+    Route::get('/lab-summary', CollegeLabSummary::class)->middleware(['role:admin', 'permission:reports.view'])->name('lab.summary');
+    Route::get('/ict-training-summary', IctTrainingSummary::class)->middleware(['role:admin', 'permission:reports.view'])->name('ict.summary');
 });
 
 require __DIR__.'/settings.php';
