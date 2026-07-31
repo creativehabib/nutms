@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Teacher;
+use App\Models\SystemSetting;
+use App\Models\TeacherOtherTraining;
+use App\Models\TrainingType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -57,11 +60,45 @@ class DashboardController extends Controller
                     ? Carbon::parse($teacherReport->last_updated_at)->format('d M Y, h:i A')
                     : null,
             ],
+            'principalStats' => auth()->user()->role === Role::Principal ? $this->principalStats() : null,
         ]);
     }
 
     private function percentage(int $value, int $total): float
     {
         return $total > 0 ? round(($value / $total) * 100, 1) : 0;
+    }
+
+    /** @return array<string, mixed> */
+    private function principalStats(): array
+    {
+        $collegeId = auth()->user()->college_id;
+        $retirementAge = SystemSetting::retirementAge();
+        $today = now()->startOfDay();
+        $teachers = Teacher::query()->where('college_id', $collegeId)->whereNotNull('birth_date')->get(['id', 'user_id', 'name', 'birth_date']);
+        $retirementRows = $teachers->map(function (Teacher $teacher) use ($retirementAge): array {
+            return [
+                'name' => $teacher->display_name,
+                'retirement_date' => $teacher->birth_date->copy()->addYears($retirementAge),
+            ];
+        });
+
+        $catalogTrainings = TrainingType::query()
+            ->whereHas('teachers', fn ($query) => $query->where('college_id', $collegeId))
+            ->withCount(['teachers' => fn ($query) => $query->where('college_id', $collegeId)])
+            ->orderBy('name')->get(['id', 'name'])->map(fn (TrainingType $training): array => ['name' => $training->name, 'count' => $training->teachers_count]);
+        $otherTrainings = TeacherOtherTraining::query()->whereHas('teacher', fn ($query) => $query->where('college_id', $collegeId))
+            ->selectRaw('name, COUNT(*) as teachers_count')->groupBy('name')->orderBy('name')->get()
+            ->map(fn (TeacherOtherTraining $training): array => ['name' => $training->name, 'count' => (int) $training->teachers_count]);
+
+        return [
+            'retirementAge' => $retirementAge,
+            'retired' => $retirementRows->filter(fn (array $row): bool => $row['retirement_date']->lte($today))->sortBy('retirement_date')->values(),
+            'upcomingRetirements' => $retirementRows->filter(fn (array $row): bool => $row['retirement_date']->gt($today) && $row['retirement_date']->lte($today->copy()->addYear()))->sortBy('retirement_date')->values(),
+            'missingBirthDates' => Teacher::query()->where('college_id', $collegeId)->whereNull('birth_date')->count(),
+            'subjects' => Teacher::query()->where('college_id', $collegeId)->whereNotNull('subject')->where('subject', '!=', '')
+                ->selectRaw('subject, COUNT(*) as teachers_count')->groupBy('subject')->orderBy('subject')->get(),
+            'trainings' => $catalogTrainings->concat($otherTrainings)->groupBy('name')->map(fn ($rows, string $name): array => ['name' => $name, 'count' => $rows->sum('count')])->values(),
+        ];
     }
 }

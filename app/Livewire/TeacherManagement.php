@@ -62,13 +62,9 @@ class TeacherManagement extends Component
         'subject' => '',
         'teacher_level' => '',
         'employment_type' => '',
-        'has_training' => '',
         'ict_training_name' => '',
-        'ict_training_duration' => '',
         'other_training_name' => '',
-        'other_training_duration' => '',
         'training_institute' => '',
-        'training_year' => '',
         'mobile_number' => '',
         'email' => '',
     ];
@@ -89,6 +85,10 @@ class TeacherManagement extends Component
 
     public function updatedCollegeCodeFilter(): void
     {
+        if (auth()->user()->role === Role::Principal) {
+            $this->collegeCodeFilter = '';
+        }
+
         $this->resetFiltersAndSelection();
     }
 
@@ -97,7 +97,7 @@ class TeacherManagement extends Component
         abort_unless(auth()->user()->can('teachers.approve'), 403);
         $teacher = $this->accessibleTeachersQuery()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
         $teacher->update(['approval_status' => ApprovalStatus::Approved, 'approved_by' => auth()->id(), 'approved_at' => now()]);
-        $teacher->user?->update(['teacher_id' => $teacher->id, 'college_id' => $teacher->college_id]);
+        $teacher->user?->update(['college_id' => $teacher->college_id]);
         Flux::toast(variant: 'success', text: 'শিক্ষক প্রোফাইল অনুমোদিত হয়েছে।');
     }
 
@@ -130,20 +130,28 @@ class TeacherManagement extends Component
                     throw ValidationException::withMessages(['role' => 'শুধু অনুমোদিত শিক্ষককে তার কলেজের Principal করা যাবে।']);
                 }
 
-                $principalExists = User::query()->whereKeyNot($user->id)
+                $existingPrincipals = User::query()->whereKeyNot($user->id)
                     ->where('role', Role::Principal->value)
                     ->where('college_id', $teacher->college_id)
-                    ->exists();
-                if ($principalExists) {
-                    throw ValidationException::withMessages(['role' => 'এই কলেজে ইতোমধ্যে একজন Principal রয়েছে।']);
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($existingPrincipals as $existingPrincipal) {
+                    $existingPrincipal->update(['role' => Role::Teacher]);
+                    $existingPrincipal->syncRoles([Role::Teacher->value]);
                 }
+
+                $user->approval_status = ApprovalStatus::Approved;
+                $user->approved_by = auth()->id();
+                $user->approved_at = now();
+                College::query()->whereKey($teacher->college_id)->update(['submitted_by' => $user->id]);
+            } elseif ($user->role === Role::Principal) {
+                College::query()->where('submitted_by', $user->id)->update(['submitted_by' => null]);
             }
 
-            $user->update([
-                'role' => $newRole,
-                'college_id' => $teacher->college_id,
-                'teacher_id' => $teacher->id,
-            ]);
+            $user->role = $newRole;
+            $user->college_id = $teacher->college_id;
+            $user->save();
             $user->syncRoles([$newRole->value]);
         });
 
@@ -359,13 +367,9 @@ class TeacherManagement extends Component
             'subject' => $teacher->subject,
             'teacher_level' => $teacher->teacher_level,
             'employment_type' => $teacher->employment_type,
-            'has_training' => $teacher->has_training,
             'ict_training_name' => $teacher->ict_training_name,
-            'ict_training_duration' => $teacher->ict_training_duration,
             'other_training_name' => $teacher->other_training_name,
-            'other_training_duration' => $teacher->other_training_duration,
             'training_institute' => $teacher->training_institute,
-            'training_year' => $teacher->training_year,
             'mobile_number' => $teacher->mobile_number,
             'email' => $teacher->email,
         ];
@@ -407,19 +411,15 @@ class TeacherManagement extends Component
             $validated = $this->validate([
                 'editForm.college_code' => ['nullable', 'string', 'max:255'],
                 'editForm.college_name' => ['nullable', 'string', 'max:255'],
-                'editForm.tmis_id' => ['nullable', 'string', 'max:255', Rule::unique('teachers', 'tmis_id')->ignore($this->editingId)],
+                'editForm.tmis_id' => ['nullable', 'string', 'max:255', Rule::unique('teacher_profiles', 'tmis_id')->ignore($this->editingId)],
                 'editForm.name' => 'required|string|max:255',
                 'editForm.designation' => 'nullable|string|max:255',
                 'editForm.subject' => 'nullable|string|max:255',
                 'editForm.teacher_level' => ['nullable', 'string', 'max:255'],
                 'editForm.employment_type' => ['nullable', 'string', 'max:255'],
-                'editForm.has_training' => ['nullable', 'string', 'max:255'],
                 'editForm.ict_training_name' => ['nullable', 'string'],
-                'editForm.ict_training_duration' => ['nullable', 'string'],
                 'editForm.other_training_name' => ['nullable', 'string'],
-                'editForm.other_training_duration' => ['nullable', 'string'],
                 'editForm.training_institute' => ['nullable', 'string'],
-                'editForm.training_year' => ['nullable', 'string', 'max:255'],
                 'editForm.mobile_number' => 'nullable|string|max:50',
                 'editForm.email' => 'nullable|email|max:255',
                 'trainingEntries' => ['array'],
@@ -516,23 +516,22 @@ class TeacherManagement extends Component
 
     public function render(): View
     {
+        $user = auth()->user();
+        $isAdmin = $user->isAdmin();
         $query = $this->filteredTeachersQuery();
-        $collegeCount = (clone $query)
-            ->whereNotNull('college_code')
-            ->where('college_code', '!=', '')
-            ->distinct()
-            ->count('college_code');
-
-        // ড্রপডাউনের জন্য ডেটাবেস থেকে ইউনিক সাবজেক্ট এবং কলেজ কোড বের করা
-        $subjects = Subject::query()->where('is_active', true)->orderBy('name')->pluck('name');
-        $collegeCodes = College::query()->where('is_active', true)->whereNotNull('code')->orderBy('code')->pluck('code');
+        $subjects = $isAdmin
+            ? Subject::query()->where('is_active', true)->orderBy('name')->pluck('name')
+            : $this->accessibleTeachersQuery()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->orderBy('subject')->pluck('subject');
 
         return view('livewire.teacher-management', [
             'teachers' => $query->with('user:id,name,role')->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
-            'collegeCount' => $collegeCount,
+            'isAdmin' => $isAdmin,
+            'collegeCount' => $isAdmin ? (clone $query)->whereNotNull('college_id')->distinct()->count('college_id') : null,
             'subjects' => $subjects,
-            'collegeCodes' => $collegeCodes,
-            'colleges' => College::query()->where('is_active', true)->orderBy('name')->get(['code', 'name']),
+            'collegeCodes' => $isAdmin ? College::query()->where('is_active', true)->whereNotNull('code')->orderBy('code')->pluck('code') : collect(),
+            'colleges' => College::query()->where('is_active', true)
+                ->when(! $isAdmin, fn (Builder $query): Builder => $query->whereKey($user->college_id))
+                ->orderBy('name')->get(['code', 'name']),
             'designations' => Designation::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'teacherLevels' => TeacherLevel::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'employments' => Employment::query()->where('is_active', true)->orderBy('name')->pluck('name'),
@@ -591,7 +590,7 @@ class TeacherManagement extends Component
         }
 
         // কলেজ কোড অনুযায়ী ফিল্টার
-        if (!empty($this->collegeCodeFilter)) {
+        if (auth()->user()->isAdmin() && !empty($this->collegeCodeFilter)) {
             $query->where('college_code', $this->collegeCodeFilter);
         }
 
