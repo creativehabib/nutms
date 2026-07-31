@@ -220,3 +220,13 @@ test('custom application screens include dark mode surfaces and text', function 
             ->toContain('dark:border-');
     }
 });
+
+test('application screens consistently use Flux UI primitives', function () {
+    $screens = glob(resource_path('views/livewire/*.blade.php'));
+    $screens[] = resource_path('views/dashboard.blade.php');
+    $screens[] = resource_path('views/welcome.blade.php');
+
+    foreach ($screens as $screen) {
+        expect(file_get_contents($screen))->toContain('<flux:');
+    }
+});

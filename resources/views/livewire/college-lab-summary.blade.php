@@ -15,34 +15,19 @@
         }
     </style>
 
-    <div class="bg-white dark:bg-slate-900 shadow-lg rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700">
-
-        <!-- হেডার ও ট্যাব বাটন (প্রিন্টের সময় লুকানো থাকবে) -->
-        <div class="px-6 py-4 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 no-print flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex space-x-2">
-                <!-- Tab 1: ল্যাব আছে -->
-                <button wire:click="showTab('with_lab')"
-                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600 {{ $activeTab === 'with_lab' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700' }}">
-                    কম্পিউটার ল্যাব আছে
-                </button>
-
-                <!-- Tab 2: ল্যাব নেই -->
-                <button wire:click="showTab('without_lab')"
-                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600 {{ $activeTab === 'without_lab' ? 'bg-red-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700' }}">
-                    কম্পিউটার ল্যাব নেই
-                </button>
+    <flux:card class="overflow-hidden !p-0">
+        <div class="no-print flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50 px-4 py-4 dark:border-zinc-700 dark:bg-zinc-800/60 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+            <div class="min-w-0">
+                <flux:heading size="lg">কম্পিউটার ল্যাব সারসংক্ষেপ</flux:heading>
+                <flux:text>সক্রিয় কলেজগুলোর ল্যাব সুবিধার হালনাগাদ তালিকা</flux:text>
             </div>
-
-            <div class="flex flex-wrap items-center justify-center gap-2">
-                <button type="button" wire:click="export('{{ $activeTab }}')" wire:loading.attr="disabled" wire:target="export" class="flex items-center px-4 py-2 bg-green-700 text-white rounded-md text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition shadow-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"></path></svg>
-                    <span wire:loading.remove wire:target="export">Excel Export</span>
-                    <span wire:loading wire:target="export">Export হচ্ছে...</span>
-                </button>
-                <button type="button" onclick="window.print()" class="flex items-center px-4 py-2 bg-gray-800 dark:bg-slate-950 text-white rounded-md text-sm font-semibold hover:bg-gray-700 transition shadow-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    তালিকা প্রিন্ট করুন
-                </button>
+            <div class="flex flex-wrap gap-2">
+                <flux:button wire:click="showTab('with_lab')" :variant="$activeTab === 'with_lab' ? 'primary' : 'ghost'" icon="computer-desktop">কম্পিউটার ল্যাব আছে</flux:button>
+                <flux:button wire:click="showTab('without_lab')" :variant="$activeTab === 'without_lab' ? 'primary' : 'ghost'" icon="x-circle">কম্পিউটার ল্যাব নেই</flux:button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <flux:button type="button" wire:click="export('{{ $activeTab }}')" wire:loading.attr="disabled" wire:target="export" variant="primary" icon="arrow-down-tray"><span wire:loading.remove wire:target="export">Excel Export</span><span wire:loading wire:target="export">Export হচ্ছে...</span></flux:button>
+                <flux:button type="button" onclick="window.print()" icon="printer">তালিকা প্রিন্ট করুন</flux:button>
             </div>
         </div>
 
@@ -52,7 +37,7 @@
             <!-- ল্যাব থাকা কলেজগুলোর তালিকা (Tab 1 Content) -->
             @if ($activeTab === 'with_lab')
             <div>
-                <h2 class="text-xl font-bold text-gray-800 dark:text-slate-200 mb-4 text-center">যেসব কলেজে কম্পিউটার ল্যাব আছে</h2>
+                <flux:heading size="xl" class="mb-4 text-center">যেসব কলেজে কম্পিউটার ল্যাব আছে</flux:heading>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
                         <thead class="bg-gray-800 dark:bg-slate-950 text-white print:bg-gray-200 print:text-black">
@@ -86,7 +71,7 @@
 
             <!-- ল্যাব না থাকা কলেজগুলোর তালিকা (Tab 2 Content) -->
             <div>
-                <h2 class="text-xl font-bold text-gray-800 dark:text-slate-200 mb-4 text-center">যেসব কলেজে কোনো কম্পিউটার ল্যাব নেই</h2>
+                <flux:heading size="xl" class="mb-4 text-center">যেসব কলেজে কোনো কম্পিউটার ল্যাব নেই</flux:heading>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
                         <thead class="bg-gray-800 dark:bg-slate-950 text-white print:bg-gray-200 print:text-black">
@@ -122,5 +107,5 @@
         <div class="no-print border-t border-gray-200 px-6 py-4 dark:border-slate-700">
             {{ $colleges->links() }}
         </div>
-    </div>
+    </flux:card>
 </div>

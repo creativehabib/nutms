@@ -16,32 +16,19 @@
         }
     </style>
 
-    <div class="bg-white dark:bg-slate-900 shadow-lg rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700">
-
-        <!-- হেডার ও ট্যাব বাটন -->
-        <div class="px-6 py-4 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 no-print flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex flex-wrap gap-2">
-                <button wire:click="showTab('with_ict')"
-                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600 shadow-sm {{ $activeTab === 'with_ict' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700' }}">
-                    আইসিটি ট্রেনিং প্রাপ্ত শিক্ষক
-                </button>
-
-                <button wire:click="showTab('without_ict')"
-                        class="px-4 py-2 rounded-md font-semibold text-sm transition border border-gray-300 dark:border-slate-600 shadow-sm {{ $activeTab === 'without_ict' ? 'bg-red-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700' }}">
-                    আইসিটি ট্রেনিং বিহীন শিক্ষক
-                </button>
+    <flux:card class="overflow-hidden !p-0">
+        <div class="no-print flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50 px-4 py-4 dark:border-zinc-700 dark:bg-zinc-800/60 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
+            <div class="min-w-0">
+                <flux:heading size="lg">আইসিটি ট্রেনিং সারসংক্ষেপ</flux:heading>
+                <flux:text>কলেজভিত্তিক প্রশিক্ষণপ্রাপ্ত ও প্রশিক্ষণবিহীন শিক্ষকদের তালিকা</flux:text>
             </div>
-
-            <div class="flex flex-wrap items-center justify-center gap-2">
-                <button type="button" wire:click="export('{{ $activeTab }}')" wire:loading.attr="disabled" wire:target="export" class="flex items-center px-4 py-2 bg-green-700 text-white rounded-md text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition shadow-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"></path></svg>
-                    <span wire:loading.remove wire:target="export">Excel Export</span>
-                    <span wire:loading wire:target="export">Export হচ্ছে...</span>
-                </button>
-                <button type="button" onclick="window.print()" class="flex items-center px-4 py-2 bg-gray-800 dark:bg-slate-950 text-white rounded-md text-sm font-semibold hover:bg-gray-700 transition shadow-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    তালিকা প্রিন্ট করুন
-                </button>
+            <div class="flex flex-wrap gap-2">
+                <flux:button wire:click="showTab('with_ict')" :variant="$activeTab === 'with_ict' ? 'primary' : 'ghost'" icon="academic-cap">আইসিটি ট্রেনিং প্রাপ্ত শিক্ষক</flux:button>
+                <flux:button wire:click="showTab('without_ict')" :variant="$activeTab === 'without_ict' ? 'primary' : 'ghost'" icon="user-minus">আইসিটি ট্রেনিং বিহীন শিক্ষক</flux:button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <flux:button type="button" wire:click="export('{{ $activeTab }}')" wire:loading.attr="disabled" wire:target="export" variant="primary" icon="arrow-down-tray"><span wire:loading.remove wire:target="export">Excel Export</span><span wire:loading wire:target="export">Export হচ্ছে...</span></flux:button>
+                <flux:button type="button" onclick="window.print()" icon="printer">তালিকা প্রিন্ট করুন</flux:button>
             </div>
         </div>
 
@@ -51,7 +38,7 @@
             <!-- আইসিটি ট্রেনিং থাকা শিক্ষকদের তালিকা -->
             @if ($activeTab === 'with_ict')
             <div>
-                <h2 class="text-xl font-bold text-gray-800 dark:text-slate-200 mb-4 text-center">আইসিটি (ICT) ট্রেনিং প্রাপ্ত শিক্ষকদের তালিকা</h2>
+                <flux:heading size="xl" class="mb-4 text-center">আইসিটি (ICT) ট্রেনিং প্রাপ্ত শিক্ষকদের তালিকা</flux:heading>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
                         <thead class="bg-gray-800 dark:bg-slate-950 text-white print:bg-gray-200 print:text-black">
@@ -97,7 +84,7 @@
 
             <!-- আইসিটি ট্রেনিং না থাকা শিক্ষকদের তালিকা -->
             <div>
-                <h2 class="text-xl font-bold text-gray-800 dark:text-slate-200 mb-4 text-center">আইসিটি (ICT) ট্রেনিং বিহীন শিক্ষকদের তালিকা</h2>
+                <flux:heading size="xl" class="mb-4 text-center">আইসিটি (ICT) ট্রেনিং বিহীন শিক্ষকদের তালিকা</flux:heading>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
                         <thead class="bg-gray-800 dark:bg-slate-950 text-white print:bg-gray-200 print:text-black">
@@ -151,5 +138,5 @@
         <div class="no-print border-t border-gray-200 px-6 py-4 dark:border-slate-700">
             {{ $teachers->links() }}
         </div>
-    </div>
+    </flux:card>
 </div>

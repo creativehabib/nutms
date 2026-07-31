@@ -21,13 +21,9 @@
 
                 <nav class="flex items-center gap-2" aria-label="প্রধান নেভিগেশন">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center rounded-xl bg-emerald-400 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-950/30 transition hover:bg-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-2 focus:ring-offset-slate-950">
-                            ড্যাশবোর্ড
-                        </a>
+                        <flux:button :href="route('dashboard')" variant="primary" icon="squares-2x2">ড্যাশবোর্ড</flux:button>
                     @else
-                        <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:border-emerald-300/40 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-300">
-                            লগইন
-                        </a>
+                        <flux:button :href="route('login')" icon="arrow-right-end-on-rectangle">লগইন</flux:button>
                     @endauth
                 </nav>
             </header>
@@ -51,19 +47,11 @@
 
                         <div class="mt-8 flex flex-col gap-3 sm:flex-row">
                             @auth
-                                <a href="{{ route('teachers.manage') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-400 px-5 py-3 text-sm font-bold text-slate-950 shadow-xl shadow-emerald-950/40 transition hover:-translate-y-0.5 hover:bg-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-2 focus:ring-offset-slate-950">
-                                    শিক্ষক ব্যবস্থাপনা খুলুন
-                                    <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"></path></svg>
-                                </a>
+                                <flux:button :href="route('teachers.manage')" variant="primary" icon-trailing="arrow-right">শিক্ষক ব্যবস্থাপনা খুলুন</flux:button>
                             @else
-                                <a href="{{ route('login') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-400 px-5 py-3 text-sm font-bold text-slate-950 shadow-xl shadow-emerald-950/40 transition hover:-translate-y-0.5 hover:bg-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-2 focus:ring-offset-slate-950">
-                                    ব্যবস্থাপনা সিস্টেমে প্রবেশ করুন
-                                    <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"></path></svg>
-                                </a>
+                                <flux:button :href="route('login')" variant="primary" icon-trailing="arrow-right">ব্যবস্থাপনা সিস্টেমে প্রবেশ করুন</flux:button>
                             @endauth
-                            <a href="#features" class="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:border-white/25 hover:bg-white/10">
-                                সিস্টেমের সুবিধা দেখুন
-                            </a>
+                            <flux:button href="#features" variant="ghost">সিস্টেমের সুবিধা দেখুন</flux:button>
                         </div>
 
                         <div class="mt-10 grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
@@ -170,5 +158,6 @@
                 <p>শিক্ষক উন্নয়ন, তথ্য ব্যবস্থাপনা ও প্রশিক্ষণ পরিকল্পনা</p>
             </footer>
         </div>
+        @fluxScripts
     </body>
 </html>
