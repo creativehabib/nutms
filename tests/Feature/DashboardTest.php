@@ -25,25 +25,41 @@ test('authenticated users can visit the dashboard', function () {
 
 test('dashboard shows college lab and ICT training report totals', function () {
     $user = User::factory()->create();
-
-    Teacher::query()->create([
-        'name' => 'Trained Teacher',
-        'college_code' => '1001',
-        'has_computer_lab' => 'yes',
-        'computer_count' => 25,
-        'ict_training_name' => 'Digital Content Creation',
+    $collegeWithLab = College::query()->create([
+        'code' => '1001',
+        'name' => 'College With Lab',
+        'has_computer_lab' => true,
+        'desktop_count' => 20,
+        'laptop_count' => 5,
     ]);
+    $collegeWithoutLab = College::query()->create([
+        'code' => '1002',
+        'name' => 'College Without Lab',
+        'has_computer_lab' => false,
+    ]);
+    $institute = TrainingInstitute::query()->create(['name' => 'Admin Dashboard Institute']);
+    $training = TrainingType::query()->create([
+        'training_institute_id' => $institute->id,
+        'name' => 'Digital Content Creation',
+        'duration_value' => 5,
+        'duration_unit' => 'days',
+    ]);
+
+    $trainedTeacher = Teacher::query()->create([
+        'name' => 'Trained Teacher',
+        'college_id' => $collegeWithLab->id,
+        'college_code' => $collegeWithLab->code,
+    ]);
+    $trainedTeacher->trainingTypes()->attach($training->id, ['training_year' => now()->year]);
     Teacher::query()->create([
         'name' => 'Second Teacher In Same College',
-        'college_code' => '1001',
-        'has_computer_lab' => 'no',
-        'ict_training_name' => null,
+        'college_id' => $collegeWithLab->id,
+        'college_code' => $collegeWithLab->code,
     ]);
     Teacher::query()->create([
         'name' => 'Teacher Without Training',
-        'college_code' => '1002',
-        'has_computer_lab' => 'no',
-        'ict_training_name' => '',
+        'college_id' => $collegeWithoutLab->id,
+        'college_code' => $collegeWithoutLab->code,
     ]);
 
     $response = $this->actingAs($user)->get(route('dashboard'));
