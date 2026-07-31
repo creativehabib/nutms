@@ -3,11 +3,10 @@
 namespace App\Livewire;
 
 use App\Exports\SummaryExport;
-use App\Models\Teacher;
+use App\Models\College;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
@@ -31,11 +30,11 @@ class CollegeLabSummary extends Component
     {
         [$rows, $headings, $filename] = match ($tab) {
             'with_lab' => [
-                $this->colleges()->where('has_lab', 1)->values()->map(
-                    fn (Teacher $college, int $index): array => [
+                $this->colleges(true)->map(
+                    fn (College $college, int $index): array => [
                         $index + 1,
-                        $college->college_code,
-                        $college->college_name ?? '-',
+                        $college->code,
+                        $college->name,
                         (int) $college->total_computers,
                     ],
                 )->all(),
@@ -43,11 +42,11 @@ class CollegeLabSummary extends Component
                 'colleges-with-computer-lab.xlsx',
             ],
             'without_lab' => [
-                $this->colleges()->where('has_lab', 0)->values()->map(
-                    fn (Teacher $college, int $index): array => [
+                $this->colleges(false)->map(
+                    fn (College $college, int $index): array => [
                         $index + 1,
-                        $college->college_code,
-                        $college->college_name ?? '-',
+                        $college->code,
+                        $college->name,
                         'ল্যাব নেই',
                     ],
                 )->all(),
@@ -72,28 +71,20 @@ class CollegeLabSummary extends Component
 
     private function collegesQuery(bool $hasLab): Builder
     {
-        $labCondition = "MAX(CASE WHEN LOWER(has_computer_lab) = 'yes' THEN 1 ELSE 0 END)";
-
-        return Teacher::select(
-            'college_code',
-            'college_name',
-            DB::raw("{$labCondition} as has_lab"),
-            DB::raw('MAX(computer_count) as total_computers')
-        )
-            ->whereNotNull('college_code')
-            ->groupBy('college_code', 'college_name')
-            ->havingRaw("{$labCondition} = ?", [$hasLab ? 1 : 0])
-            ->orderBy('college_code');
+        return College::query()
+            ->select(['id', 'code', 'name'])
+            ->selectRaw('(COALESCE(desktop_count, 0) + COALESCE(laptop_count, 0)) as total_computers')
+            ->where('is_active', true)
+            ->where('has_computer_lab', $hasLab)
+            ->orderBy('code')
+            ->orderBy('name');
     }
 
     /**
-     * @return Collection<int, Teacher>
+     * @return Collection<int, College>
      */
-    private function colleges(): Collection
+    private function colleges(bool $hasLab): Collection
     {
-        return $this->collegesQuery(true)->get()
-            ->merge($this->collegesQuery(false)->get())
-            ->sortBy('college_code')
-            ->values();
+        return $this->collegesQuery($hasLab)->get();
     }
 }
