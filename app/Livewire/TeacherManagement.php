@@ -4,11 +4,11 @@ namespace App\Livewire;
 
 use App\Enums\ApprovalStatus;
 use App\Enums\UserRole as Role;
-use App\Models\Teacher;
 use App\Models\College;
 use App\Models\Designation;
 use App\Models\Employment;
 use App\Models\Subject;
+use App\Models\Teacher;
 use App\Models\TeacherLevel;
 use App\Models\TeacherOtherTraining;
 use App\Models\TrainingInstitute;
@@ -23,16 +23,17 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Enums\UserRole;
 
 class TeacherManagement extends Component
 {
     use WithPagination;
 
     // ফিল্টার এবং সার্চের জন্য প্রপার্টি
-    public $search = '';
-    public $subjectFilter = '';
-    public $collegeCodeFilter = '';
+    public string $search = '';
+
+    public string $subjectFilter = '';
+
+    public string $collegeCodeFilter = '';
 
     /** @var array<int, string> */
     public array $selectedTeacherIds = [];
@@ -204,6 +205,12 @@ class TeacherManagement extends Component
     public function toggleTrashed(): void
     {
         $this->showTrashed = ! $this->showTrashed;
+        $this->resetFiltersAndSelection();
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('search', 'subjectFilter', 'collegeCodeFilter');
         $this->resetFiltersAndSelection();
     }
 
@@ -574,23 +581,33 @@ class TeacherManagement extends Component
     {
         $query = $this->accessibleTeachersQuery($this->showTrashed);
 
-        // সার্চ (নাম, TMIS ID অথবা মোবাইল নাম্বার)
-        if (!empty($this->search)) {
-            $query->where(function (Builder $query): void {
-                $query->where('name', 'like', '%'.$this->search.'%')
-                    ->orWhereHas('user', fn (Builder $userQuery): Builder => $userQuery->where('name', 'like', '%'.$this->search.'%'))
-                    ->orWhere('tmis_id', 'like', '%'.$this->search.'%')
-                    ->orWhere('mobile_number', 'like', '%'.$this->search.'%');
+        $searchTerm = trim($this->search);
+
+        if ($searchTerm !== '') {
+            $searchPattern = '%'.addcslashes($searchTerm, '%_\\').'%';
+
+            $query->where(function (Builder $query) use ($searchPattern): void {
+                $query->where('name', 'like', $searchPattern)
+                    ->orWhereHas('user', fn (Builder $userQuery): Builder => $userQuery->where('name', 'like', $searchPattern))
+                    ->orWhere('tmis_id', 'like', $searchPattern)
+                    ->orWhere('ttis_id', 'like', $searchPattern)
+                    ->orWhere('mobile_number', 'like', $searchPattern)
+                    ->orWhere('email', 'like', $searchPattern)
+                    ->orWhere('college_code', 'like', $searchPattern)
+                    ->orWhere('college_name', 'like', $searchPattern)
+                    ->orWhereHas('college', fn (Builder $collegeQuery): Builder => $collegeQuery
+                        ->where('name', 'like', $searchPattern)
+                        ->orWhere('code', 'like', $searchPattern));
             });
         }
 
         // বিষয় অনুযায়ী ফিল্টার
-        if (!empty($this->subjectFilter)) {
+        if ($this->subjectFilter !== '') {
             $query->where('subject', $this->subjectFilter);
         }
 
         // কলেজ কোড অনুযায়ী ফিল্টার
-        if (auth()->user()->isAdmin() && !empty($this->collegeCodeFilter)) {
+        if (auth()->user()->isAdmin() && $this->collegeCodeFilter !== '') {
             $query->where('college_code', $this->collegeCodeFilter);
         }
 
