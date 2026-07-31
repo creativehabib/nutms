@@ -32,6 +32,7 @@ class TeacherProfileForm extends Component
     public string $tmisId = '';
     public string $ttisId = '';
     public string $name = '';
+    public string $birthDate = '';
     public string $designation = '';
     public string $subject = '';
     public string $teacherLevel = '';
@@ -72,6 +73,7 @@ class TeacherProfileForm extends Component
             $this->tmisId = (string) ($teacher->tmis_id ?? '');
             $this->ttisId = (string) ($teacher->ttis_id ?? '');
             $this->name = $teacher->display_name;
+            $this->birthDate = $teacher->birth_date?->format('Y-m-d') ?? '';
             $this->designation = (string) ($teacher->designation ?? '');
             $this->subject = (string) ($teacher->subject ?? '');
             $this->teacherLevel = (string) ($teacher->teacher_level ?? '');
@@ -147,6 +149,7 @@ class TeacherProfileForm extends Component
             'collegeId' => ['required', Rule::exists('colleges', 'id')->where('is_active', true)],
             'tmisId' => ['nullable', 'string', 'max:255', Rule::unique('teacher_profiles', 'tmis_id')->ignore($this->editingId)],
             'name' => ['required', 'string', 'max:255'],
+            'birthDate' => ['nullable', 'date', 'before:today'],
             'designation' => ['nullable', 'string', 'max:255'],
             'subject' => ['nullable', 'string', 'max:255'],
             'teacherLevel' => ['nullable', 'string', 'max:255'],
@@ -215,7 +218,7 @@ class TeacherProfileForm extends Component
             $teacher = Teacher::query()->updateOrCreate(['id' => $this->editingId], [
                 'college_id' => $college->id, 'college_code' => $college->code, 'college_name' => $college->name,
                 'tmis_id' => $validated['tmisId'] ?: null,
-                'name' => $validated['name'], 'designation' => $validated['designation'] ?: null,
+                'name' => $validated['name'], 'birth_date' => $validated['birthDate'] ?: null, 'designation' => $validated['designation'] ?: null,
                 'subject' => $validated['subject'] ?: null, 'teacher_level' => $validated['teacherLevel'] ?: null,
                 'employment_type' => $validated['employmentType'] ?: null,
                 'division_id' => $validated['divisionId'], 'district_id' => $validated['districtId'], 'thana_id' => $validated['thanaId'],

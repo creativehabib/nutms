@@ -31,6 +31,9 @@
                 <flux:sidebar.item icon="shield-check" :href="route('roles-permissions.manage')" :current="request()->routeIs('roles-permissions.manage')" wire:navigate>
                     রোলস ও পারমিশন
                 </flux:sidebar.item>
+                <flux:sidebar.item icon="cog-6-tooth" :href="route('system-settings.manage')" :current="request()->routeIs('system-settings.manage')" wire:navigate>
+                    সিস্টেম সেটিংস
+                </flux:sidebar.item>
                 @endcan
                 @if(auth()->user()->isAdmin() || (auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved()))
                 <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.*')" wire:navigate>

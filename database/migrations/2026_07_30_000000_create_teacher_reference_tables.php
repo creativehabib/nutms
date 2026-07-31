@@ -69,6 +69,7 @@ return new class extends Migration
             $table->string('tmis_id')->nullable()->unique();
             $table->string('ttis_id')->nullable()->unique();
             $table->string('name')->nullable();
+            $table->date('birth_date')->nullable()->index();
             $table->string('designation')->nullable();
             $table->foreignId('designation_id')->nullable()->constrained()->nullOnDelete();
             $table->string('subject')->nullable()->index();
@@ -103,6 +104,12 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->boolean('is_active')->default(true)->index();
+            $table->timestamps();
+        });
+
+        Schema::create('system_settings', function (Blueprint $table): void {
+            $table->string('key')->primary();
+            $table->string('value');
             $table->timestamps();
         });
 
@@ -146,6 +153,7 @@ return new class extends Migration
         Schema::dropIfExists('teacher_training');
         Schema::dropIfExists('training_types');
         Schema::dropIfExists('training_institutes');
+        Schema::dropIfExists('system_settings');
         Schema::dropIfExists('teacher_profiles');
         Schema::dropIfExists('college_programs');
 

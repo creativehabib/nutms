@@ -10,6 +10,7 @@ use App\Models\District;
 use App\Models\Division;
 use App\Models\Employment;
 use App\Models\Subject;
+use App\Models\SystemSetting;
 use App\Models\Teacher;
 use App\Models\TeacherLevel;
 use App\Models\Thana;
@@ -23,6 +24,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        SystemSetting::query()->updateOrCreate(['key' => SystemSetting::RETIREMENT_AGE], ['value' => '59']);
         $this->call([
             DivisionSeeder::class,
             DistrictSeeder::class,

@@ -17,6 +17,8 @@ it('does not keep obsolete legacy training columns on teachers', function () {
     expect(Schema::hasTable('teachers'))->toBeFalse()
         ->and(Schema::hasTable('teacher_profiles'))->toBeTrue()
         ->and(Schema::hasColumn('users', 'teacher_id'))->toBeFalse()
+        ->and(Schema::hasColumn('teacher_profiles', 'birth_date'))->toBeTrue()
+        ->and(Schema::hasTable('system_settings'))->toBeTrue()
         ->and(Schema::hasColumn('teacher_profiles', 'has_training'))->toBeFalse()
         ->and(Schema::hasColumn('teacher_profiles', 'ict_training_duration'))->toBeFalse()
         ->and(Schema::hasColumn('teacher_profiles', 'other_training_duration'))->toBeFalse()

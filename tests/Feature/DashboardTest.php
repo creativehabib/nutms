@@ -3,7 +3,10 @@
 use App\Enums\ApprovalStatus;
 use App\Enums\UserRole;
 use App\Models\College;
+use App\Models\SystemSetting;
 use App\Models\Teacher;
+use App\Models\TrainingInstitute;
+use App\Models\TrainingType;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 
@@ -93,6 +96,30 @@ test('principal dashboard links to their full profiles and college teachers', fu
         ->assertSuccessful()
         ->assertSee('Principal Full Address')
         ->assertSee('সম্পাদনা');
+});
+
+test('principal dashboard summarizes subjects trainings and retirement dates', function () {
+    SystemSetting::query()->updateOrCreate(['key' => SystemSetting::RETIREMENT_AGE], ['value' => '59']);
+    $college = College::query()->create(['name' => 'Analytics College', 'approval_status' => ApprovalStatus::Approved]);
+    $principal = User::factory()->create(['role' => UserRole::Principal, 'college_id' => $college->id, 'approval_status' => ApprovalStatus::Approved]);
+    $retired = Teacher::query()->create(['college_id' => $college->id, 'name' => 'Retired Teacher', 'subject' => 'Physics', 'birth_date' => now()->subYears(60), 'approval_status' => ApprovalStatus::Approved]);
+    $upcoming = Teacher::query()->create(['college_id' => $college->id, 'name' => 'Upcoming Teacher', 'subject' => 'Physics', 'birth_date' => now()->subYears(58)->subMonths(6), 'approval_status' => ApprovalStatus::Approved]);
+    Teacher::query()->create(['college_id' => $college->id, 'name' => 'No Birth Date Teacher', 'subject' => 'Chemistry', 'approval_status' => ApprovalStatus::Approved]);
+    $institute = TrainingInstitute::query()->create(['name' => 'Dashboard Institute']);
+    $training = TrainingType::query()->create(['training_institute_id' => $institute->id, 'name' => 'Digital Content', 'duration_value' => 5, 'duration_unit' => 'days']);
+    $retired->trainingTypes()->attach($training->id, ['training_year' => now()->year]);
+    $upcoming->trainingTypes()->attach($training->id, ['training_year' => now()->year]);
+
+    $this->actingAs($principal)->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee('Physics')->assertSee('2 জন')
+        ->assertSee('Chemistry')
+        ->assertSee('Digital Content')
+        ->assertSee('অবসরপ্রাপ্ত 1 জন')
+        ->assertSee('আগামী ১ বছরে 1 জন')
+        ->assertSee('Retired Teacher')
+        ->assertSee('Upcoming Teacher')
+        ->assertSee('1 জন শিক্ষকের জন্ম তারিখ যোগ করা হয়নি।');
 });
 
 test('teacher dashboard shows only their profile workflow', function () {

@@ -22,7 +22,7 @@ class Teacher extends Model
 
     protected function casts(): array
     {
-        return ['approval_status' => ApprovalStatus::class, 'approved_at' => 'datetime'];
+        return ['approval_status' => ApprovalStatus::class, 'approved_at' => 'datetime', 'birth_date' => 'date'];
     }
 
     /**
