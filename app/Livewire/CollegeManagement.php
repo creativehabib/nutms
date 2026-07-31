@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole;
+use App\Enums\UserRole as Role;
 use App\Models\College;
 use App\Models\User;
 use Flux\Flux;
@@ -43,7 +43,7 @@ class CollegeManagement extends Component
 
         DB::transaction(function () use ($collegeId): void {
             $principal = User::query()
-                ->where('role', UserRole::Principal->value)
+                ->where('role', Role::Principal->value)
                 ->where('college_id', $collegeId)
                 ->where('approval_status', ApprovalStatus::Pending)
                 ->lockForUpdate()
@@ -58,7 +58,7 @@ class CollegeManagement extends Component
     public function rejectPrincipal(int $collegeId): void
     {
         abort_unless(auth()->user()->isAdmin(), 403);
-        User::query()->where('role', UserRole::Principal->value)->where('college_id', $collegeId)
+        User::query()->where('role', Role::Principal->value)->where('college_id', $collegeId)
             ->where('approval_status', ApprovalStatus::Pending)->firstOrFail()
             ->update(['approval_status' => ApprovalStatus::Rejected, 'approved_by' => auth()->id(), 'approved_at' => now()]);
     }
@@ -74,7 +74,7 @@ class CollegeManagement extends Component
     public function render(): View
     {
         return view('livewire.college-management', [
-            'colleges' => College::query()->when(auth()->user()->role === UserRole::Principal, fn ($query) => $query->whereKey(auth()->user()->college_id))->with(['district:id,name', 'thana:id,name', 'principal:id,name,college_id,approval_status'])->withCount('teachers')
+            'colleges' => College::query()->when(auth()->user()->role === Role::Principal, fn ($query) => $query->whereKey(auth()->user()->college_id))->with(['district:id,name', 'thana:id,name', 'principal:id,name,college_id,approval_status'])->withCount('teachers')
                 ->when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query->where('name', 'like', "%{$this->search}%")->orWhere('code', 'like', "%{$this->search}%")))
                 ->orderBy('name')->paginate(10),
         ]);

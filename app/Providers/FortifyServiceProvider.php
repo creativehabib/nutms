@@ -5,7 +5,7 @@ namespace App\Providers;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole;
+use App\Enums\UserRole as Role;
 use App\Models\College;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -56,7 +56,7 @@ class FortifyServiceProvider extends ServiceProvider
             'colleges' => College::query()
                 ->where('is_active', true)
                 ->where('approval_status', ApprovalStatus::Approved)
-                ->whereDoesntHave('users', fn ($query) => $query->where('role', UserRole::Principal->value))
+                ->whereDoesntHave('users', fn ($query) => $query->where('role', Role::Principal->value))
                 ->orderBy('name')
                 ->get(['id', 'code', 'name']),
         ]));

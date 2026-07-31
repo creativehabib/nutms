@@ -7,7 +7,7 @@ use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole;
+use App\Enums\UserRole as Role;
 
 class CollegeDetails extends Component
 {
@@ -17,7 +17,7 @@ class CollegeDetails extends Component
     public function mount(College $college): void
     {
         $user = auth()->user();
-        abort_unless($user->isAdmin() || ($user->role === UserRole::Principal && $college->submitted_by === $user->id && $college->approval_status === ApprovalStatus::Approved), 403);
+        abort_unless($user->isAdmin() || ($user->role === Role::Principal && $college->submitted_by === $user->id && $college->approval_status === ApprovalStatus::Approved), 403);
         $this->college = $college->load(['division:id,name,bn_name', 'district:id,name,bn_name', 'thana:id,name,bn_name', 'programs'])
             ->loadCount('teachers');
     }

@@ -1,7 +1,7 @@
 <?php
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole;
+use App\Enums\UserRole as Role;
 use App\Livewire\CollegeManagement;
 use App\Livewire\TeacherManagement;
 use App\Models\College;
@@ -10,8 +10,8 @@ use App\Models\User;
 use Livewire\Livewire;
 
 it('allows an admin to approve a principal submitted college', function () {
-    $admin = User::factory()->create(['role' => UserRole::Admin]);
-    $principal = User::factory()->create(['role' => UserRole::Principal]);
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    $principal = User::factory()->create(['role' => Role::Principal]);
     $college = College::query()->create([
         'name' => 'Pending College',
         'submitted_by' => $principal->id,
@@ -29,11 +29,11 @@ it('allows an admin to approve a principal submitted college', function () {
 });
 
 it('requires admin approval before a principal can manage only the selected college', function () {
-    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $admin = User::factory()->create(['role' => Role::Admin]);
     $college = College::query()->create(['name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
     $otherCollege = College::query()->create(['name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
     $principal = User::factory()->create([
-        'role' => UserRole::Principal,
+        'role' => Role::Principal,
         'college_id' => $college->id,
         'approval_status' => ApprovalStatus::Pending,
     ]);
@@ -55,9 +55,9 @@ it('requires admin approval before a principal can manage only the selected coll
 
 it('allows only the college principal or admin to approve a teacher', function () {
     $college = College::query()->create(['name' => 'Approved College', 'approval_status' => ApprovalStatus::Approved]);
-    $principal = User::factory()->create(['role' => UserRole::Principal, 'college_id' => $college->id]);
-    $otherPrincipal = User::factory()->create(['role' => UserRole::Principal]);
-    $teacherUser = User::factory()->create(['role' => UserRole::Teacher, 'college_id' => $college->id]);
+    $principal = User::factory()->create(['role' => Role::Principal, 'college_id' => $college->id]);
+    $otherPrincipal = User::factory()->create(['role' => Role::Principal]);
+    $teacherUser = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
     $teacher = Teacher::query()->create([
         'name' => 'Pending Teacher',
         'college_id' => $college->id,
@@ -80,8 +80,8 @@ it('allows only the college principal or admin to approve a teacher', function (
 });
 
 it('restricts administrative pages by role', function () {
-    $teacher = User::factory()->create(['role' => UserRole::Teacher]);
-    $principal = User::factory()->create(['role' => UserRole::Principal]);
+    $teacher = User::factory()->create(['role' => Role::Teacher]);
+    $principal = User::factory()->create(['role' => Role::Principal]);
 
     $this->actingAs($teacher)->get(route('training-catalog.manage'))->assertForbidden();
     $this->actingAs($teacher)->get(route('teachers.manage'))->assertForbidden();
@@ -89,7 +89,7 @@ it('restricts administrative pages by role', function () {
 });
 
 it('lets a teacher access only their approved profile', function () {
-    $teacherUser = User::factory()->create(['role' => UserRole::Teacher]);
+    $teacherUser = User::factory()->create(['role' => Role::Teacher]);
     $teacher = Teacher::query()->create(['name' => 'Self Service Teacher', 'user_id' => $teacherUser->id, 'approval_status' => ApprovalStatus::Pending]);
     $teacherUser->update(['teacher_id' => $teacher->id]);
 

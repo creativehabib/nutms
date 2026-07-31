@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole;
+use App\Enums\UserRole as Role;
 use App\Models\Teacher;
 use App\Models\College;
 use App\Models\Designation;
@@ -547,9 +547,9 @@ class TeacherManagement extends Component
     {
         $query = $onlyTrashed ? Teacher::onlyTrashed() : Teacher::query();
 
-        if (auth()->user()->role === UserRole::Principal) {
+        if (auth()->user()->role === Role::Principal) {
             $query->where('college_id', auth()->user()->college_id);
-        } elseif (auth()->user()->role === UserRole::Teacher) {
+        } elseif (auth()->user()->role === Role::Teacher) {
             $query->where('user_id', auth()->id());
         }
 
