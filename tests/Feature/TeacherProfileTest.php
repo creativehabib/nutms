@@ -82,7 +82,7 @@ it('submits a teacher profile under the selected college for principal approval'
     $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
-    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
+    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com']);
 
     Livewire::actingAs($user)->test(TeacherProfileForm::class)
         ->set('collegeId', (string) $college->id)
@@ -100,6 +100,7 @@ it('submits a teacher profile under the selected college for principal approval'
     $teacher = Teacher::query()->where('user_id', $user->id)->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
         ->and($teacher->approval_status)->toBe(ApprovalStatus::Pending)
+        ->and($teacher->email)->toBe('registered-teacher@example.com')
         ->and($user->refresh()->teacher_id)->toBe($teacher->id)
         ->and($user->name)->toBe($teacher->name);
 });
@@ -154,7 +155,7 @@ it('allows a teacher to view and update their profile after principal approval',
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
     $principal = User::factory()->create(['role' => Role::Principal, 'college_id' => $college->id]);
-    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
+    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com']);
     $teacher = Teacher::query()->create([
         'name' => 'Approved Self Service Teacher',
         'user_id' => $user->id,
@@ -179,12 +180,16 @@ it('allows a teacher to view and update their profile after principal approval',
         ->assertSee('ড্যাশবোর্ডে ফিরুন');
 
     Livewire::actingAs($user)->test(TeacherProfileForm::class, ['teacher' => $teacher])
+        ->assertSet('email', 'registered-teacher@example.com')
+        ->assertSee('শিক্ষক account তৈরির সময় ব্যবহৃত ইমেইল ঠিকানা।')
         ->set('presentAddress', 'Updated Present Address')
+        ->set('email', 'tampered@example.com')
         ->call('save')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard'));
 
     expect($teacher->refresh()->present_address)->toBe('Updated Present Address')
+        ->and($teacher->email)->toBe('registered-teacher@example.com')
         ->and($teacher->approval_status)->toBe(ApprovalStatus::Approved)
         ->and($teacher->approved_by)->toBe($principal->id)
         ->and($teacher->approved_at)->not->toBeNull();

@@ -99,6 +99,10 @@ class TeacherProfileForm extends Component
             ]))->values()->all();
         }
 
+        if ($user->role === Role::Teacher) {
+            $this->email = $user->email;
+        }
+
         if ($this->trainingEntries === []) {
             $this->addTrainingEntry();
         }
@@ -186,6 +190,10 @@ class TeacherProfileForm extends Component
             if ($entry['kind'] === 'other' && (! filled($entry['name'] ?? null) || ! filled($entry['training_year'] ?? null))) {
                 throw ValidationException::withMessages(["trainingEntries.{$index}.name" => 'অন্যান্য ট্রেনিংয়ের নাম ও বছর দিন।']);
             }
+        }
+
+        if (auth()->user()->role === Role::Teacher) {
+            $validated['email'] = auth()->user()->email;
         }
 
         DB::transaction(function () use ($validated): void {
