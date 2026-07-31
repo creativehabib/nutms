@@ -88,6 +88,16 @@ it('restricts administrative pages by role', function () {
     $this->actingAs($principal)->get('/approvals')->assertNotFound();
 });
 
+it('shows college management as a standalone admin navigation item', function () {
+    $admin = User::factory()->create(['role' => Role::Admin]);
+
+    $response = $this->actingAs($admin)->get(route('dashboard'));
+
+    $response->assertSuccessful()
+        ->assertSeeInOrder(['কলেজ ব্যবস্থাপনা', 'শিক্ষক সেটিংস']);
+    expect(substr_count($response->getContent(), 'কলেজ ব্যবস্থাপনা'))->toBe(1);
+});
+
 it('lets a teacher access only their approved profile', function () {
     $teacherUser = User::factory()->create(['role' => Role::Teacher]);
     $teacher = Teacher::query()->create(['name' => 'Self Service Teacher', 'user_id' => $teacherUser->id, 'approval_status' => ApprovalStatus::Pending]);
