@@ -9,7 +9,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
@@ -26,8 +25,7 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
-            'role' => ['required', Rule::enum(Role::class)->only([Role::Principal, Role::Teacher])],
-            'college_id' => [Rule::requiredIf(($input['role'] ?? null) === Role::Principal->value), 'nullable', 'integer'],
+            'college_id' => ['required', Rule::exists('colleges', 'id')->where(fn ($query) => $query->where('is_active', true)->where('approval_status', 'approved'))],
         ])->validate();
 
         return User::create([
@@ -35,6 +33,7 @@ class CreateNewUser implements CreatesNewUsers
             'email' => $input['email'],
             'password' => $input['password'],
             'role' => Role::Teacher,
+            'college_id' => $input['college_id'],
         ]);
     }
 }

@@ -67,7 +67,7 @@ it('submits a teacher profile under the selected college for principal approval'
     $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
-    $user = User::factory()->create(['role' => Role::Teacher]);
+    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
 
     Livewire::actingAs($user)->test(TeacherProfileForm::class)
         ->set('collegeId', (string) $college->id)

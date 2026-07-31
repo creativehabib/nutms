@@ -51,6 +51,9 @@ class TeacherProfileForm extends Component
     public function mount(?Teacher $teacher = null): void
     {
         $user = auth()->user();
+        if ($user->role === Role::Teacher && $user->college_id !== null) {
+            $this->collegeId = (string) $user->college_id;
+        }
         if ((! $teacher?->exists) && $user->role === Role::Teacher && $user->teacher_id !== null) {
             $teacher = $user->teacher;
             abort_if($teacher?->approval_status === ApprovalStatus::Pending, 403, 'প্রোফাইলটি অনুমোদনের অপেক্ষায় আছে।');
@@ -184,7 +187,7 @@ class TeacherProfileForm extends Component
             $user = auth()->user();
             $college = College::query()->findOrFail($validated['collegeId']);
             if ($user->role === Role::Teacher) {
-                abort_unless($college->approval_status === ApprovalStatus::Approved, 403);
+                abort_unless($college->id === $user->college_id && $college->approval_status === ApprovalStatus::Approved, 403);
             } elseif ($user->role === Role::Principal) {
                 abort_unless($college->id === $user->college_id && $college->approval_status === ApprovalStatus::Approved, 403);
             }
@@ -234,6 +237,7 @@ class TeacherProfileForm extends Component
         return view('livewire.teacher-profile-form', [
             'colleges' => College::query()->where('is_active', true)->where('approval_status', ApprovalStatus::Approved)
                 ->when(auth()->user()->role === Role::Principal, fn ($query) => $query->whereKey(auth()->user()->college_id))
+                ->when(auth()->user()->role === Role::Teacher, fn ($query) => $query->whereKey(auth()->user()->college_id))
                 ->orderBy('name')->get(['id', 'code', 'name']),
             'designations' => Designation::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'subjects' => Subject::query()->where('is_active', true)->orderBy('name')->pluck('name'),

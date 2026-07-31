@@ -5,7 +5,6 @@ namespace App\Providers;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole as Role;
 use App\Models\College;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -53,12 +52,9 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::twoFactorChallengeView(fn () => view('pages::auth.two-factor-challenge'));
         Fortify::confirmPasswordView(fn () => view('pages::auth.confirm-password'));
         Fortify::registerView(fn () => view('pages::auth.register', [
-            'colleges' => College::query()
-                ->where('is_active', true)
+            'colleges' => College::query()->where('is_active', true)
                 ->where('approval_status', ApprovalStatus::Approved)
-                ->whereDoesntHave('users', fn ($query) => $query->where('role', Role::Principal->value))
-                ->orderBy('name')
-                ->get(['id', 'code', 'name']),
+                ->orderBy('name')->get(['id', 'code', 'name']),
         ]));
         Fortify::resetPasswordView(fn () => view('pages::auth.reset-password'));
         Fortify::requestPasswordResetLinkView(fn () => view('pages::auth.forgot-password'));
