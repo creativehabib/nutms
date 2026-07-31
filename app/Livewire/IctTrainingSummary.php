@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use App\Exports\SummaryExport;
 use App\Models\Teacher;
+use App\Models\TeacherOtherTraining;
+use App\Models\TrainingType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -36,10 +38,10 @@ class IctTrainingSummary extends Component
                             $index + 1,
                             $teacher->college_code ?? '-',
                             $teacher->college_name ?? '-',
-                            $teacher->name ?? '-',
-                            $teacher->ict_training_name ?? '-',
+                            $teacher->display_name ?: '-',
+                            $this->trainingDetails($teacher),
                             $teacher->other_training_name ?: 'উল্লেখ নেই',
-                            $teacher->training_institute ?: 'উল্লেখ নেই',
+                            $this->trainingInstitutes($teacher),
                         ],
                     ),
                 )->values()->all(),
@@ -53,7 +55,7 @@ class IctTrainingSummary extends Component
                             $index + 1,
                             $teacher->college_code ?? '-',
                             $teacher->college_name ?? '-',
-                            $teacher->name ?? '-',
+                            $teacher->display_name ?: '-',
                             $teacher->subject ?: 'উল্লেখ নেই',
                             $teacher->designation ?: 'উল্লেখ নেই',
                             $teacher->teacher_level ?: 'উল্লেখ নেই',
@@ -85,9 +87,15 @@ class IctTrainingSummary extends Component
 
     private function teachersWithIctQuery(): Builder
     {
-        return Teacher::select('id', 'college_code', 'college_name', 'name', 'ict_training_name', 'other_training_name', 'training_institute')
-            ->whereNotNull('ict_training_name')
-            ->where('ict_training_name', '!=', '')
+        return Teacher::select('id', 'user_id', 'college_code', 'college_name', 'name', 'ict_training_name', 'other_training_name', 'training_institute')
+            ->with(['user:id,name', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
+            ->where(function (Builder $query): void {
+                $query->whereHas('trainingTypes')
+                    ->orWhereHas('otherTrainings')
+                    ->orWhere(function (Builder $query): void {
+                        $query->whereNotNull('ict_training_name')->where('ict_training_name', '!=', '');
+                    });
+            })
             ->orderBy('college_code')
             ->orderBy('name')
             ->orderBy('id');
@@ -95,7 +103,10 @@ class IctTrainingSummary extends Component
 
     private function teachersWithoutIctQuery(): Builder
     {
-        return Teacher::select('id', 'college_code', 'college_name', 'name', 'subject', 'designation', 'teacher_level', 'employment_type')
+        return Teacher::select('id', 'user_id', 'college_code', 'college_name', 'name', 'subject', 'designation', 'teacher_level', 'employment_type')
+            ->with('user:id,name')
+            ->doesntHave('trainingTypes')
+            ->doesntHave('otherTrainings')
             ->where(function (Builder $query): void {
                 $query->whereNull('ict_training_name')
                     ->orWhere('ict_training_name', '');
@@ -103,6 +114,43 @@ class IctTrainingSummary extends Component
             ->orderBy('college_code')
             ->orderBy('name')
             ->orderBy('id');
+    }
+
+    public function trainingDetails(Teacher $teacher): string
+    {
+        if ($teacher->trainingTypes->isEmpty() && $teacher->otherTrainings->isEmpty()) {
+            return $teacher->ict_training_name ?: 'উল্লেখ নেই';
+        }
+
+        $units = ['hours' => 'ঘণ্টা', 'days' => 'দিন', 'weeks' => 'সপ্তাহ', 'months' => 'মাস'];
+
+        $catalogTrainings = $teacher->trainingTypes->map(function (TrainingType $trainingType) use ($units): string {
+            $duration = $trainingType->duration_value
+                ? "{$trainingType->duration_value} ".($units[$trainingType->duration_unit] ?? '')
+                : 'সময়কাল অনির্ধারিত';
+
+            return "{$trainingType->name} ({$trainingType->pivot->training_year}, {$duration})";
+        });
+        $otherTrainings = $teacher->otherTrainings->map(function (TeacherOtherTraining $training) use ($units): string {
+            $duration = $training->duration_value
+                ? "{$training->duration_value} ".($units[$training->duration_unit] ?? '')
+                : 'সময়কাল অনির্ধারিত';
+
+            return "{$training->name} (অন্যান্য, {$training->training_year}, {$duration})";
+        });
+
+        return $catalogTrainings->concat($otherTrainings)->implode(', ');
+    }
+
+    public function trainingInstitutes(Teacher $teacher): string
+    {
+        if ($teacher->trainingTypes->isEmpty() && $teacher->otherTrainings->isEmpty()) {
+            return $teacher->training_institute ?: 'উল্লেখ নেই';
+        }
+
+        return $teacher->trainingTypes->pluck('trainingInstitute.name')
+            ->concat($teacher->otherTrainings->map(fn (TeacherOtherTraining $training): ?string => $training->trainingInstitute?->name ?? $training->institute_name))
+            ->filter()->unique()->implode(', ');
     }
 
     /**
