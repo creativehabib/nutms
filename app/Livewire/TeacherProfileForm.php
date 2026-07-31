@@ -54,6 +54,9 @@ class TeacherProfileForm extends Component
         if ($user->role === Role::Teacher && $user->college_id !== null) {
             $this->collegeId = (string) $user->college_id;
         }
+        if ($user->role === Role::Teacher && (! $teacher?->exists)) {
+            $this->name = $user->name;
+        }
         if ((! $teacher?->exists) && $user->role === Role::Teacher && $user->teacher_id !== null) {
             $teacher = $user->teacher;
             abort_if($teacher?->approval_status === ApprovalStatus::Pending, 403, 'প্রোফাইলটি অনুমোদনের অপেক্ষায় আছে।');

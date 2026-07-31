@@ -85,7 +85,8 @@ it('submits a teacher profile under the selected college for principal approval'
     $teacher = Teacher::query()->where('user_id', $user->id)->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
         ->and($teacher->approval_status)->toBe(ApprovalStatus::Pending)
-        ->and($user->refresh()->teacher_id)->toBe($teacher->id);
+        ->and($user->refresh()->teacher_id)->toBe($teacher->id)
+        ->and($user->name)->toBe($teacher->name);
 });
 
 it('updates profile fields without changing existing institutional training history', function () {

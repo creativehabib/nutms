@@ -39,6 +39,16 @@ class User extends Authenticatable implements PasskeyUser
 
     protected $fillable = ['name', 'email', 'password', 'role', 'college_id', 'teacher_id', 'approval_status', 'approved_by', 'approved_at'];
 
+    protected static function booted(): void
+    {
+        static::saved(function (User $user): void {
+            if ($user->wasChanged('name')) {
+                Teacher::query()->where(fn ($query) => $query->whereKey($user->teacher_id)->orWhere('user_id', $user->id))
+                    ->update(['name' => $user->name]);
+            }
+        });
+    }
+
     /**
      * Get the attributes that should be cast.
      *

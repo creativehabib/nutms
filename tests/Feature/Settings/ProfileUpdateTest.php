@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\Teacher;
 use Livewire\Livewire;
 
 test('profile page is displayed', function () {
@@ -41,6 +42,23 @@ test('email verification status is unchanged when email address is unchanged', f
     $response->assertHasNoErrors();
 
     expect($user->refresh()->email_verified_at)->not->toBeNull();
+});
+
+test('updating an account name keeps the linked teacher profile name identical', function () {
+    $user = User::factory()->create(['name' => 'Original Account Name']);
+    $teacher = Teacher::query()->create(['name' => 'Original Teacher Name', 'user_id' => $user->id]);
+    $user->updateQuietly(['teacher_id' => $teacher->id]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::settings.profile')
+        ->set('name', 'Synchronized Teacher Name')
+        ->set('email', $user->email)
+        ->call('updateProfileInformation')
+        ->assertHasNoErrors();
+
+    expect($user->refresh()->name)->toBe('Synchronized Teacher Name')
+        ->and($teacher->refresh()->name)->toBe('Synchronized Teacher Name');
 });
 
 test('user can delete their account', function () {
