@@ -1,6 +1,9 @@
 <?php
 
+use App\Enums\ApprovalStatus;
+use App\Enums\UserRole;
 use App\Livewire\TeacherManagement;
+use App\Models\College;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Support\Facades\Schema;
@@ -50,6 +53,30 @@ it('shows the distinct college count beside the teacher count', function () {
     Livewire::test(TeacherManagement::class)
         ->assertSee('মোট 3 জন শিক্ষক')
         ->assertSee('মোট 2টি কলেজ');
+});
+
+it('gives principals a college-scoped teacher management interface', function () {
+    $principalCollege = College::query()->create(['code' => 'OWN-001', 'name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
+    $otherCollege = College::query()->create(['code' => 'OTHER-002', 'name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
+    $principal = User::factory()->create(['role' => UserRole::Principal, 'college_id' => $principalCollege->id]);
+    Teacher::query()->create(['college_id' => $principalCollege->id, 'college_code' => $principalCollege->code, 'name' => 'Own College Teacher', 'subject' => 'Physics']);
+    Teacher::query()->create(['college_id' => $otherCollege->id, 'college_code' => $otherCollege->code, 'name' => 'Other College Teacher', 'subject' => 'Chemistry']);
+
+    Livewire::actingAs($principal)->test(TeacherManagement::class)
+        ->assertSee('আমার কলেজের শিক্ষক')
+        ->assertSee('Own College Teacher')
+        ->assertSee('Physics')
+        ->assertDontSee('Other College Teacher')
+        ->assertDontSee('Chemistry')
+        ->assertDontSee('OTHER-002')
+        ->assertDontSee('সব কলেজ কোড')
+        ->assertDontSee('মোট 2টি কলেজ')
+        ->assertDontSee('ডেটা ইম্পোর্ট')
+        ->assertDontSee('ট্র্যাশ')
+        ->set('collegeCodeFilter', 'OTHER-002')
+        ->assertSet('collegeCodeFilter', '')
+        ->set('search', 'Other College Teacher')
+        ->assertDontSee('Other College Teacher');
 });
 
 it('keeps every row checkbox checked when selecting the current page', function () {

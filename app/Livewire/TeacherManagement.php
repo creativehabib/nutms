@@ -85,6 +85,10 @@ class TeacherManagement extends Component
 
     public function updatedCollegeCodeFilter(): void
     {
+        if (auth()->user()->role === Role::Principal) {
+            $this->collegeCodeFilter = '';
+        }
+
         $this->resetFiltersAndSelection();
     }
 
@@ -512,23 +516,22 @@ class TeacherManagement extends Component
 
     public function render(): View
     {
+        $user = auth()->user();
+        $isAdmin = $user->isAdmin();
         $query = $this->filteredTeachersQuery();
-        $collegeCount = (clone $query)
-            ->whereNotNull('college_code')
-            ->where('college_code', '!=', '')
-            ->distinct()
-            ->count('college_code');
-
-        // ড্রপডাউনের জন্য ডেটাবেস থেকে ইউনিক সাবজেক্ট এবং কলেজ কোড বের করা
-        $subjects = Subject::query()->where('is_active', true)->orderBy('name')->pluck('name');
-        $collegeCodes = College::query()->where('is_active', true)->whereNotNull('code')->orderBy('code')->pluck('code');
+        $subjects = $isAdmin
+            ? Subject::query()->where('is_active', true)->orderBy('name')->pluck('name')
+            : $this->accessibleTeachersQuery()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->orderBy('subject')->pluck('subject');
 
         return view('livewire.teacher-management', [
             'teachers' => $query->with('user:id,name,role')->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
-            'collegeCount' => $collegeCount,
+            'isAdmin' => $isAdmin,
+            'collegeCount' => $isAdmin ? (clone $query)->whereNotNull('college_id')->distinct()->count('college_id') : null,
             'subjects' => $subjects,
-            'collegeCodes' => $collegeCodes,
-            'colleges' => College::query()->where('is_active', true)->orderBy('name')->get(['code', 'name']),
+            'collegeCodes' => $isAdmin ? College::query()->where('is_active', true)->whereNotNull('code')->orderBy('code')->pluck('code') : collect(),
+            'colleges' => College::query()->where('is_active', true)
+                ->when(! $isAdmin, fn (Builder $query): Builder => $query->whereKey($user->college_id))
+                ->orderBy('name')->get(['code', 'name']),
             'designations' => Designation::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'teacherLevels' => TeacherLevel::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'employments' => Employment::query()->where('is_active', true)->orderBy('name')->pluck('name'),
@@ -587,7 +590,7 @@ class TeacherManagement extends Component
         }
 
         // কলেজ কোড অনুযায়ী ফিল্টার
-        if (!empty($this->collegeCodeFilter)) {
+        if (auth()->user()->isAdmin() && !empty($this->collegeCodeFilter)) {
             $query->where('college_code', $this->collegeCodeFilter);
         }
 
