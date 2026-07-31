@@ -147,3 +147,60 @@ it('protects teacher create edit and details pages with authentication', functio
     $this->actingAs($user)->get(route('teachers.edit', $teacher))->assertSuccessful();
     $this->actingAs($user)->get(route('teachers.show', $teacher))->assertSuccessful();
 });
+
+it('allows a teacher to view and update their profile after principal approval', function () {
+    $college = College::query()->create(['name' => 'Approved Profile College', 'approval_status' => ApprovalStatus::Approved]);
+    $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
+    $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
+    $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
+    $principal = User::factory()->create(['role' => Role::Principal, 'college_id' => $college->id]);
+    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
+    $teacher = Teacher::query()->create([
+        'name' => 'Approved Self Service Teacher',
+        'user_id' => $user->id,
+        'college_id' => $college->id,
+        'division_id' => $division->id,
+        'district_id' => $district->id,
+        'thana_id' => $thana->id,
+        'present_address' => 'Old Present Address',
+        'permanent_address' => 'Permanent Address',
+        'mobile_number' => '01700000002',
+        'approval_status' => ApprovalStatus::Approved,
+        'approved_by' => $principal->id,
+        'approved_at' => now(),
+    ]);
+    $user->update(['teacher_id' => $teacher->id]);
+
+    $this->actingAs($user)->get(route('teachers.show', $teacher))
+        ->assertSuccessful()
+        ->assertSee('Approved Self Service Teacher')
+        ->assertSee('সম্পাদনা')
+        ->assertSee(route('teachers.edit', $teacher), false)
+        ->assertSee('ড্যাশবোর্ডে ফিরুন');
+
+    Livewire::actingAs($user)->test(TeacherProfileForm::class, ['teacher' => $teacher])
+        ->set('presentAddress', 'Updated Present Address')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('dashboard'));
+
+    expect($teacher->refresh()->present_address)->toBe('Updated Present Address')
+        ->and($teacher->approval_status)->toBe(ApprovalStatus::Approved)
+        ->and($teacher->approved_by)->toBe($principal->id)
+        ->and($teacher->approved_at)->not->toBeNull();
+});
+
+it('does not allow a teacher to edit a profile before it is approved', function (ApprovalStatus $status) {
+    $user = User::factory()->create(['role' => Role::Teacher]);
+    $teacher = Teacher::query()->create([
+        'name' => 'Unapproved Teacher',
+        'user_id' => $user->id,
+        'approval_status' => $status,
+    ]);
+    $user->update(['teacher_id' => $teacher->id]);
+
+    $this->actingAs($user)->get(route('teachers.edit', $teacher))->assertForbidden();
+})->with([
+    'pending' => ApprovalStatus::Pending,
+    'rejected' => ApprovalStatus::Rejected,
+]);
