@@ -218,3 +218,31 @@ it('shows a concise college table and a separate full details page', function ()
         ->assertSee('BA')
         ->assertSee('BSS');
 });
+
+it('gives a principal direct view and edit access to only their college profile', function () {
+    $college = College::query()->create(['name' => 'Principal Profile College', 'approval_status' => ApprovalStatus::Approved]);
+    $otherCollege = College::query()->create(['name' => 'Restricted College', 'approval_status' => ApprovalStatus::Approved]);
+    $principal = User::factory()->create([
+        'role' => \App\Enums\UserRole::Principal,
+        'college_id' => $college->id,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    $this->actingAs($principal)->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee('কলেজ প্রোফাইল')
+        ->assertSee(route('colleges.show', $college), false)
+        ->assertDontSee('কলেজ ব্যবস্থাপনা');
+
+    $this->actingAs($principal)->get(route('colleges.show', $college))
+        ->assertSuccessful()
+        ->assertSee('Principal Profile College')
+        ->assertSee('সম্পাদনা')
+        ->assertSee(route('colleges.edit', $college), false)
+        ->assertSee('ড্যাশবোর্ডে ফিরুন');
+
+    $this->actingAs($principal)->get(route('colleges.edit', $college))->assertSuccessful();
+    $this->actingAs($principal)->get(route('colleges.show', $otherCollege))->assertForbidden();
+    $this->actingAs($principal)->get(route('colleges.edit', $otherCollege))->assertForbidden();
+    $this->actingAs($principal)->get(route('colleges.manage'))->assertForbidden();
+});
