@@ -20,6 +20,12 @@ it('does not keep obsolete legacy training columns on teachers', function () {
         ->and(Schema::hasColumn('teacher_profiles', 'training_year'))->toBeFalse();
 });
 
+it('keeps the final teacher profile schema when compatibility migrations run', function () {
+    expect(Schema::hasTable('teacher_profiles'))->toBeTrue()
+        ->and(Schema::getColumnListing('teacher_profiles'))->toContain('user_id', 'college_id', 'approval_status')
+        ->not->toContain('has_training', 'ict_training_duration', 'other_training_duration', 'training_year');
+});
+
 it('renders a responsive edit form with a blurred backdrop', function () {
     Livewire::test(TeacherManagement::class)
         ->assertSeeHtml('backdrop-blur-sm')

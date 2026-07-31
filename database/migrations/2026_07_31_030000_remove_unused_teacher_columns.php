@@ -8,23 +8,42 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('teachers', function (Blueprint $table): void {
-            $table->dropColumn([
-                'has_training',
-                'ict_training_duration',
-                'other_training_duration',
-                'training_year',
-            ]);
+        $tableName = $this->teacherTableName();
+
+        if ($tableName === null) {
+            return;
+        }
+
+        $columns = collect([
+            'has_training',
+            'ict_training_duration',
+            'other_training_duration',
+            'training_year',
+        ])->filter(fn (string $column): bool => Schema::hasColumn($tableName, $column))->all();
+
+        if ($columns === []) {
+            return;
+        }
+
+        Schema::table($tableName, function (Blueprint $table) use ($columns): void {
+            $table->dropColumn($columns);
         });
+    }
+
+    private function teacherTableName(): ?string
+    {
+        if (Schema::hasTable('teacher_profiles')) {
+            return 'teacher_profiles';
+        }
+
+        if (Schema::hasTable('teachers')) {
+            return 'teachers';
+        }
+
+        return null;
     }
 
     public function down(): void
     {
-        Schema::table('teachers', function (Blueprint $table): void {
-            $table->string('has_training')->nullable();
-            $table->text('ict_training_duration')->nullable();
-            $table->text('other_training_duration')->nullable();
-            $table->string('training_year')->nullable();
-        });
     }
 };
