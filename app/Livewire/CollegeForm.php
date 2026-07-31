@@ -113,7 +113,7 @@ class CollegeForm extends Component
             $college = auth()->user()->college;
         }
         if ($college?->exists && auth()->user()->role === UserRole::Principal) {
-            abort_unless($college->submitted_by === auth()->id(), 403);
+            abort_unless($college->submitted_by === auth()->id() || ($college->submitted_by === null && $college->id === auth()->user()->college_id), 403);
         }
         if ($college !== null && $college->exists) {
             $this->loadCollege($college);
@@ -207,7 +207,9 @@ class CollegeForm extends Component
                 'desktop_count' => $validated['hasComputerLab'] === '1' && in_array($validated['labEquipmentType'], ['desktop', 'both'], true) ? ($validated['desktopCount'] ?? null) : null,
                 'laptop_count' => $validated['hasComputerLab'] === '1' && in_array($validated['labEquipmentType'], ['laptop', 'both'], true) ? ($validated['laptopCount'] ?? null) : null,
                 'is_active' => $validated['isActive'],
-                'submitted_by' => $this->editingId ? College::query()->whereKey($this->editingId)->value('submitted_by') : $user->id,
+                'submitted_by' => $user->role === UserRole::Principal
+                    ? (College::query()->whereKey($this->editingId)->value('submitted_by') ?: $user->id)
+                    : College::query()->whereKey($this->editingId)->value('submitted_by'),
                 'approval_status' => $user->isAdmin() ? ApprovalStatus::Approved : ApprovalStatus::Pending,
                 'approved_by' => $user->isAdmin() ? $user->id : null,
                 'approved_at' => $user->isAdmin() ? now() : null,

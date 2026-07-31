@@ -6,7 +6,7 @@
                     <flux:heading size="xl">কলেজ ব্যবস্থাপনা</flux:heading>
                     <flux:text>প্রয়োজনীয় সংক্ষিপ্ত তথ্য দেখুন; বিস্তারিত জানতে “দেখুন” ব্যবহার করুন।</flux:text>
                 </div>
-                <flux:button variant="primary" icon="plus" :href="route('colleges.create')" wire:navigate>নতুন কলেজ তৈরি</flux:button>
+                <flux:button variant="primary" icon="plus" :href="route('colleges.create')" wire:navigate>{{ auth()->user()->isAdmin() ? 'নতুন কলেজ তৈরি' : 'কলেজ প্রোফাইল তৈরি/সম্পাদনা' }}</flux:button>
             </div>
             <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <flux:input wire:model.live.debounce.300ms="search" type="search" icon="magnifying-glass" placeholder="কলেজের নাম বা কোড দিয়ে খুঁজুন..." class="sm:max-w-md" />

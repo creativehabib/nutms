@@ -32,6 +32,11 @@ class College extends Model
         return $this->hasMany(Teacher::class);
     }
 
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
     public function division(): BelongsTo
     {
         return $this->belongsTo(Division::class);

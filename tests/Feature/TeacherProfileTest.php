@@ -11,6 +11,7 @@ use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\User;
 use App\Enums\UserRole;
+use App\Enums\ApprovalStatus;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -59,6 +60,32 @@ it('keeps an existing TTIS ID unchanged when a teacher profile is edited', funct
     $teacher->update(['name' => 'Updated Imported Teacher']);
 
     expect($teacher->refresh()->ttis_id)->toBe('LEGACY-TTIS-100');
+});
+
+it('submits a teacher profile under the selected college for principal approval', function () {
+    $college = College::query()->create(['name' => 'Selected Teacher College', 'approval_status' => ApprovalStatus::Approved]);
+    $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
+    $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
+    $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
+    $user = User::factory()->create(['role' => UserRole::Teacher]);
+
+    Livewire::actingAs($user)->test(TeacherProfileForm::class)
+        ->set('collegeId', (string) $college->id)
+        ->set('name', 'Self Submitted Teacher')
+        ->set('divisionId', (string) $division->id)
+        ->set('districtId', (string) $district->id)
+        ->set('thanaId', (string) $thana->id)
+        ->set('presentAddress', 'Present Address')
+        ->set('permanentAddress', 'Permanent Address')
+        ->set('mobileNumber', '01700000001')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('dashboard'));
+
+    $teacher = Teacher::query()->where('user_id', $user->id)->firstOrFail();
+    expect($teacher->college_id)->toBe($college->id)
+        ->and($teacher->approval_status)->toBe(ApprovalStatus::Pending)
+        ->and($user->refresh()->teacher_id)->toBe($teacher->id);
 });
 
 it('updates profile fields without changing existing institutional training history', function () {
