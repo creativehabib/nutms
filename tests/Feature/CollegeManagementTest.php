@@ -1,11 +1,14 @@
 <?php
 
+use App\Enums\ApprovalStatus;
 use App\Livewire\CollegeForm;
+use App\Livewire\CollegeManagement;
 use App\Models\College;
 use App\Models\District;
 use App\Models\Division;
 use App\Models\Thana;
 use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -15,6 +18,107 @@ beforeEach(function () {
     District::query()->firstOrCreate(['name' => 'Test District One', 'division_id' => $firstDivision->id], ['bn_name' => 'টেস্ট জেলা এক']);
     District::query()->firstOrCreate(['name' => 'Test District Two', 'division_id' => $secondDivision->id], ['bn_name' => 'টেস্ট জেলা দুই']);
     District::query()->get()->each(fn (District $district) => Thana::query()->firstOrCreate(['name' => "Test Thana {$district->id}", 'district_id' => $district->id], ['bn_name' => "টেস্ট থানা {$district->id}"]));
+});
+
+it('supports searchable soft-deleted colleges with Flux confirmation', function () {
+    expect(Schema::hasColumn('colleges', 'deleted_at'))->toBeTrue();
+
+    $college = College::query()->create([
+        'name' => 'Searchable College',
+        'code' => 'SEARCH-101',
+        'principal_name' => 'Professor Search',
+        'address' => 'Search Road',
+    ]);
+
+    Livewire::test(CollegeManagement::class)
+        ->set('search', 'Professor Search')
+        ->assertSee('Searchable College')
+        ->call('confirmDeletion', $college->id)
+        ->assertSet('deletingCollegeIds', [$college->id])
+        ->assertSee('কলেজ ট্র্যাশে পাঠাবেন?')
+        ->call('deleteConfirmed');
+
+    expect(College::query()->find($college->id))->toBeNull()
+        ->and(College::withTrashed()->find($college->id))->not->toBeNull();
+
+    Livewire::test(CollegeManagement::class)
+        ->call('toggleTrashed')
+        ->assertSee('Searchable College')
+        ->call('restore', $college->id);
+
+    expect($college->fresh())->not->toBeNull();
+});
+
+it('searches colleges by location and filters by type and approval status', function () {
+    $division = Division::query()->where('name', 'Test Division One')->firstOrFail();
+    $district = District::query()->whereBelongsTo($division)->firstOrFail();
+    $thana = Thana::query()->whereBelongsTo($district)->firstOrFail();
+
+    College::query()->create([
+        'name' => 'Matching Government College',
+        'division_id' => $division->id,
+        'district_id' => $district->id,
+        'thana_id' => $thana->id,
+        'college_type' => 'government',
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    College::query()->create([
+        'name' => 'Hidden Private College',
+        'college_type' => 'non_government',
+        'approval_status' => ApprovalStatus::Pending,
+    ]);
+
+    Livewire::test(CollegeManagement::class)
+        ->set('search', $district->name)
+        ->set('collegeTypeFilter', 'government')
+        ->set('approvalStatusFilter', ApprovalStatus::Approved->value)
+        ->assertSee('Matching Government College')
+        ->assertDontSee('Hidden Private College')
+        ->call('clearFilters')
+        ->assertSet('search', '')
+        ->assertSet('collegeTypeFilter', '')
+        ->assertSet('approvalStatusFilter', '');
+});
+
+it('soft deletes and restores selected colleges in groups', function () {
+    $colleges = collect([
+        College::query()->create(['name' => 'First Group College']),
+        College::query()->create(['name' => 'Second Group College']),
+    ]);
+    $selectedIds = $colleges->pluck('id')->map(fn (int $id): string => (string) $id)->all();
+
+    Livewire::test(CollegeManagement::class)
+        ->set('selectedCollegeIds', $selectedIds)
+        ->call('confirmBulkDeletion')
+        ->assertSet('deletingCollegeIds', $colleges->pluck('id')->all())
+        ->assertSee('নির্বাচিত 2টি কলেজ')
+        ->call('deleteConfirmed')
+        ->assertSet('selectedCollegeIds', []);
+
+    expect(College::query()->whereKey($colleges->pluck('id'))->count())->toBe(0)
+        ->and(College::onlyTrashed()->whereKey($colleges->pluck('id'))->count())->toBe(2);
+
+    Livewire::test(CollegeManagement::class)
+        ->call('toggleTrashed')
+        ->set('selectedCollegeIds', $selectedIds)
+        ->call('restoreSelected');
+
+    expect(College::query()->whereKey($colleges->pluck('id'))->count())->toBe(2);
+});
+
+it('permanently deletes trashed colleges only after Flux confirmation', function () {
+    $college = College::query()->create(['name' => 'Permanent College']);
+    $college->delete();
+
+    Livewire::test(CollegeManagement::class)
+        ->call('toggleTrashed')
+        ->call('confirmPermanentDeletion', $college->id)
+        ->assertSet('permanentDeletion', true)
+        ->assertSee('কলেজ স্থায়ীভাবে মুছে ফেলবেন?')
+        ->call('deleteConfirmed');
+
+    expect(College::withTrashed()->find($college->id))->toBeNull()
+        ->and(file_get_contents(resource_path('views/livewire/college-management.blade.php')))->not->toContain('wire:confirm');
 });
 
 it('requires authentication to manage colleges', function () {
