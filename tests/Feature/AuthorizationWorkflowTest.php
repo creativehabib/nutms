@@ -47,7 +47,8 @@ it('allows admin to promote an approved teacher to principal of their college', 
     $this->actingAs($principal)->get(route('colleges.edit', $college))->assertSuccessful();
     $this->actingAs($principal)->get(route('teachers.edit', $teacher))->assertSuccessful()
         ->assertSee('শিক্ষক প্রোফাইল সম্পাদনা')
-        ->assertSee('আমার শিক্ষক প্রোফাইল');
+        ->assertSee('আমার প্রোফাইল')
+        ->assertSee('কলেজ প্রোফাইল');
     $this->actingAs($principal)->get(route('colleges.edit', $otherCollege))->assertForbidden();
     $this->actingAs($principal)->get(route('colleges.create'))->assertForbidden();
 });

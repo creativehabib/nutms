@@ -34,7 +34,7 @@
                 </flux:sidebar.item>
                 @if(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->teacher_id)
                     <flux:sidebar.item icon="identification" :href="route('teachers.edit', auth()->user()->teacher_id)" :current="request()->routeIs('teachers.edit') && (int) request()->route('teacher')?->id === auth()->user()->teacher_id" wire:navigate>
-                        আমার শিক্ষক প্রোফাইল
+                        আমার প্রোফাইল
                     </flux:sidebar.item>
                 @endif
                 @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
@@ -63,7 +63,7 @@
                     {{ __('ICT Training Summary') }}
                 </flux:sidebar.item>
                 @elseif(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())
-                    <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>আমার কলেজ</flux:sidebar.item>
+                    <flux:sidebar.item icon="building-library" :href="route('colleges.edit', auth()->user()->college_id)" :current="request()->routeIs('colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>কলেজ প্রোফাইল</flux:sidebar.item>
                 @elseif(auth()->user()->role === \App\Enums\UserRole::Principal)
                     <div class="px-3 py-2 text-sm text-amber-600">Principal account অনুমোদনের অপেক্ষায়</div>
                 @endif
