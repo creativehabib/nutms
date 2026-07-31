@@ -27,6 +27,30 @@ it('allows an admin to approve a principal submitted college', function () {
         ->and($principal->refresh()->college_id)->toBe($college->id);
 });
 
+it('requires admin approval before a principal can manage only the selected college', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $college = College::query()->create(['name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
+    $otherCollege = College::query()->create(['name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
+    $principal = User::factory()->create([
+        'role' => UserRole::Principal,
+        'college_id' => $college->id,
+        'approval_status' => ApprovalStatus::Pending,
+    ]);
+
+    $this->actingAs($principal)->get(route('colleges.edit', $college))->assertForbidden();
+
+    Livewire::actingAs($admin)->test(ApprovalManagement::class)
+        ->call('approvePrincipal', $principal->id)
+        ->assertHasNoErrors();
+
+    $principal->refresh();
+    expect($principal->approval_status)->toBe(ApprovalStatus::Approved)
+        ->and($principal->approved_by)->toBe($admin->id);
+    $this->actingAs($principal)->get(route('colleges.edit', $college))->assertSuccessful();
+    $this->actingAs($principal)->get(route('colleges.edit', $otherCollege))->assertForbidden();
+    $this->actingAs($principal)->get(route('colleges.create'))->assertForbidden();
+});
+
 it('allows only the college principal or admin to approve a teacher', function () {
     $college = College::query()->create(['name' => 'Approved College', 'approval_status' => ApprovalStatus::Approved]);
     $principal = User::factory()->create(['role' => UserRole::Principal, 'college_id' => $college->id]);

@@ -109,11 +109,8 @@ class CollegeForm extends Component
     public function mount(?College $college = null): void
     {
         abort_unless(auth()->user()->role === UserRole::Admin || auth()->user()->role === UserRole::Principal, 403);
-        if ((! $college?->exists) && auth()->user()->role === UserRole::Principal && auth()->user()->college_id !== null) {
-            $college = auth()->user()->college;
-        }
         if ($college?->exists && auth()->user()->role === UserRole::Principal) {
-            abort_unless($college->submitted_by === auth()->id() || ($college->submitted_by === null && $college->id === auth()->user()->college_id), 403);
+            abort_unless($college->id === auth()->user()->college_id && auth()->user()->isApproved(), 403);
         }
         if ($college !== null && $college->exists) {
             $this->loadCollege($college);
@@ -210,9 +207,9 @@ class CollegeForm extends Component
                 'submitted_by' => $user->role === UserRole::Principal
                     ? (College::query()->whereKey($this->editingId)->value('submitted_by') ?: $user->id)
                     : College::query()->whereKey($this->editingId)->value('submitted_by'),
-                'approval_status' => $user->isAdmin() ? ApprovalStatus::Approved : ApprovalStatus::Pending,
-                'approved_by' => $user->isAdmin() ? $user->id : null,
-                'approved_at' => $user->isAdmin() ? now() : null,
+                'approval_status' => $user->isAdmin() ? ApprovalStatus::Approved : (College::query()->whereKey($this->editingId)->value('approval_status') ?: ApprovalStatus::Approved),
+                'approved_by' => $user->isAdmin() ? $user->id : College::query()->whereKey($this->editingId)->value('approved_by'),
+                'approved_at' => $user->isAdmin() ? now() : College::query()->whereKey($this->editingId)->value('approved_at'),
             ]);
             if ($user->role === UserRole::Principal) {
                 $user->update(['college_id' => $college->id]);
@@ -228,7 +225,7 @@ class CollegeForm extends Component
             DB::table('teachers')->where('college_id', $college->id)->update(['college_code' => $college->code, 'college_name' => $college->name]);
         });
 
-        Flux::toast(variant: 'success', text: auth()->user()->isAdmin() ? 'কলেজের বিস্তারিত তথ্য সংরক্ষণ করা হয়েছে।' : 'কলেজ প্রোফাইল অনুমোদনের জন্য জমা হয়েছে।');
+        Flux::toast(variant: 'success', text: 'কলেজের বিস্তারিত তথ্য সংরক্ষণ করা হয়েছে।');
         $this->redirectRoute('colleges.manage', navigate: true);
     }
 

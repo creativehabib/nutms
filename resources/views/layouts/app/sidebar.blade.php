@@ -22,12 +22,12 @@
                     ট্রেনিং ক্যাটালগ
                 </flux:sidebar.item>
                 @endif
-                @if(auth()->user()->role !== \App\Enums\UserRole::Teacher)
+                @if(auth()->user()->isAdmin() || (auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved()))
                 <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.*')" wire:navigate>
                     {{ __('Teacher Management') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="check-circle" :href="route('approvals.manage')" :current="request()->routeIs('approvals.manage')" wire:navigate>অনুমোদন</flux:sidebar.item>
-                @else
+                @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
                     @if(auth()->user()->teacher?->approval_status === \App\Enums\ApprovalStatus::Approved)
                         <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacher_id)" :current="request()->routeIs('teachers.show')" wire:navigate>আমার প্রোফাইল</flux:sidebar.item>
                     @elseif(auth()->user()->teacher_id)
@@ -53,8 +53,10 @@
                 <flux:sidebar.item icon="academic-cap" :href="route('ict.summary')" :current="request()->routeIs('ict.summary')" wire:navigate>
                     {{ __('ICT Training Summary') }}
                 </flux:sidebar.item>
-                @elseif(auth()->user()->role === \App\Enums\UserRole::Principal)
+                @elseif(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())
                     <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>আমার কলেজ</flux:sidebar.item>
+                @elseif(auth()->user()->role === \App\Enums\UserRole::Principal)
+                    <div class="px-3 py-2 text-sm text-amber-600">Principal account অনুমোদনের অপেক্ষায়</div>
                 @endif
 
             </flux:sidebar.nav>

@@ -21,7 +21,9 @@ test('a principal must select an available approved college', function () {
         'college_id' => $college->id,
     ])->assertSessionHasNoErrors();
 
-    expect(User::query()->where('email', 'principal@example.com')->firstOrFail()->college_id)->toBe($college->id);
+    $principal = User::query()->where('email', 'principal@example.com')->firstOrFail();
+    expect($principal->college_id)->toBe($college->id)
+        ->and($principal->approval_status)->toBe(ApprovalStatus::Pending);
 });
 
 test('the same college cannot be claimed by another principal account', function () {

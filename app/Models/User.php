@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Enums\ApprovalStatus;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -35,7 +36,7 @@ class User extends Authenticatable implements PasskeyUser
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'college_id', 'teacher_id'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'college_id', 'teacher_id', 'approval_status', 'approved_by', 'approved_at'];
 
     /**
      * Get the attributes that should be cast.
@@ -48,6 +49,8 @@ class User extends Authenticatable implements PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'approval_status' => ApprovalStatus::class,
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -64,6 +67,11 @@ class User extends Authenticatable implements PasskeyUser
     public function isAdmin(): bool
     {
         return $this->role === UserRole::Admin;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approval_status === ApprovalStatus::Approved;
     }
 
     /**

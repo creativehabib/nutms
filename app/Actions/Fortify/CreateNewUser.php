@@ -48,6 +48,7 @@ class CreateNewUser implements CreatesNewUsers
                 'password' => $input['password'],
                 'role' => $input['role'],
                 'college_id' => $collegeId,
+                'approval_status' => $input['role'] === UserRole::Principal->value ? ApprovalStatus::Pending : ApprovalStatus::Approved,
             ]);
         });
     }

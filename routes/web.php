@@ -27,7 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereIn('type', ['subjects', 'designations', 'teacher-levels', 'employments'])
         ->name('reference-data.manage');
     Route::get('/colleges', CollegeManagement::class)->middleware('role:admin,principal')->name('colleges.manage');
-    Route::get('/colleges/create', CollegeForm::class)->middleware('role:admin,principal')->name('colleges.create');
+    Route::get('/colleges/create', CollegeForm::class)->middleware('role:admin')->name('colleges.create');
     Route::get('/colleges/{college}/edit', CollegeForm::class)->middleware('role:admin,principal')->name('colleges.edit');
     Route::get('/colleges/{college}', CollegeDetails::class)->middleware('role:admin,principal')->name('colleges.show');
     Route::get('/approvals', ApprovalManagement::class)->middleware('role:admin,principal')->name('approvals.manage');
