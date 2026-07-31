@@ -183,7 +183,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
                             কোনো ডেটা পাওয়া যায়নি!
                         </td>
                     </tr>
