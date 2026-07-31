@@ -11,6 +11,13 @@ use App\Models\User;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role as PermissionRole;
 
+it('defines user mass assignable attributes without redeclaring the fillable property', function () {
+    expect((new User)->getFillable())->toEqualCanonicalizing([
+        'name', 'email', 'password', 'role', 'college_id', 'teacher_id',
+        'approval_status', 'approved_by', 'approved_at',
+    ]);
+});
+
 it('allows an admin to approve a principal submitted college', function () {
     $admin = User::factory()->create(['role' => Role::Admin]);
     $principal = User::factory()->create(['role' => Role::Principal]);

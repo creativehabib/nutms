@@ -39,7 +39,28 @@ class User extends Authenticatable implements PasskeyUser
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'college_id', 'teacher_id', 'approval_status', 'approved_by', 'approved_at'];
+    /**
+     * Get the attributes that are mass assignable.
+     *
+     * Defining the allow-list through Eloquent's accessor avoids redeclaring the
+     * inherited $fillable property while preserving strict mass-assignment rules.
+     *
+     * @return array<int, string>
+     */
+    public function getFillable(): array
+    {
+        return [
+            'name',
+            'email',
+            'password',
+            'role',
+            'college_id',
+            'teacher_id',
+            'approval_status',
+            'approved_by',
+            'approved_at',
+        ];
+    }
 
     protected static function booted(): void
     {
@@ -49,18 +70,6 @@ class User extends Authenticatable implements PasskeyUser
             }
         });
 
-        static::saved(function (User $user): void {
-            if ($user->wasChanged('name')) {
-                Teacher::query()->where(fn ($query) => $query->whereKey($user->teacher_id)->orWhere('user_id', $user->id))
-                    ->update(['name' => $user->name]);
-            }
-        });
-    }
-
-    protected $fillable = ['name', 'email', 'password', 'role', 'college_id', 'teacher_id', 'approval_status', 'approved_by', 'approved_at'];
-
-    protected static function booted(): void
-    {
         static::saved(function (User $user): void {
             if ($user->wasChanged('name')) {
                 Teacher::query()->where(fn ($query) => $query->whereKey($user->teacher_id)->orWhere('user_id', $user->id))
