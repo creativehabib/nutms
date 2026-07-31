@@ -3,6 +3,9 @@
 namespace App\Imports;
 
 use App\Models\Teacher;
+use App\Models\TeacherOtherTraining;
+use App\Models\TrainingInstitute;
+use App\Models\TrainingType;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
@@ -91,9 +94,9 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
 
             // ডেটা সেভ বা আপডেট করা
             if ($tmisId) {
-                Teacher::updateOrCreate(['tmis_id' => $tmisId], $data);
+                $teacher = Teacher::updateOrCreate(['tmis_id' => $tmisId], $data);
             } else {
-                Teacher::updateOrCreate(
+                $teacher = Teacher::updateOrCreate(
                     [
                         'name' => $name,
                         'subject' => $data['subject'],
@@ -102,6 +105,8 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
                     $data
                 );
             }
+
+            $this->synchronizeTraining($teacher, $data);
         }
     }
 
@@ -109,5 +114,57 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
     public function chunkSize(): int
     {
         return 500;
+    }
+
+    /** @param array<string, mixed> $data */
+    private function synchronizeTraining(Teacher $teacher, array $data): void
+    {
+        $year = filter_var($data['training_year'], FILTER_VALIDATE_INT);
+        if ($year === false || $year < 1900 || $year > ((int) date('Y') + 1)) {
+            return;
+        }
+
+        $instituteName = trim((string) $data['training_institute']) ?: 'অনির্ধারিত প্রতিষ্ঠান';
+        $institute = TrainingInstitute::query()->firstOrCreate(['name' => $instituteName]);
+
+        $trainingName = trim((string) $data['ict_training_name']);
+        if ($trainingName !== '') {
+            [$durationValue, $durationUnit] = $this->parseDuration((string) $data['ict_training_duration']);
+            $trainingType = TrainingType::query()->firstOrCreate(
+                ['training_institute_id' => $institute->id, 'name' => $trainingName],
+                ['duration_value' => $durationValue, 'duration_unit' => $durationUnit],
+            );
+            $alreadyLinked = $teacher->trainingTypes()->whereKey($trainingType->id)
+                ->wherePivot('training_year', $year)->exists();
+            if (! $alreadyLinked) {
+                $teacher->trainingTypes()->attach($trainingType->id, ['training_year' => $year]);
+            }
+        }
+
+        $otherTrainingName = trim((string) $data['other_training_name']);
+        if ($otherTrainingName !== '') {
+            [$durationValue, $durationUnit] = $this->parseDuration((string) $data['other_training_duration']);
+            TeacherOtherTraining::query()->firstOrCreate([
+                'teacher_id' => $teacher->id,
+                'name' => $otherTrainingName,
+                'training_year' => $year,
+            ], [
+                'training_institute_id' => $institute->id,
+                'duration_value' => $durationValue,
+                'duration_unit' => $durationUnit,
+            ]);
+        }
+    }
+
+    /** @return array{0: int|null, 1: string|null} */
+    private function parseDuration(string $duration): array
+    {
+        if (preg_match('/(\d+)\s*(hour|day|week|month|ঘণ্টা|দিন|সপ্তাহ|মাস)/iu', $duration, $matches) !== 1) {
+            return [null, null];
+        }
+
+        $units = ['hour' => 'hours', 'ঘণ্টা' => 'hours', 'day' => 'days', 'দিন' => 'days', 'week' => 'weeks', 'সপ্তাহ' => 'weeks', 'month' => 'months', 'মাস' => 'months'];
+
+        return [(int) $matches[1], $units[mb_strtolower($matches[2])] ?? null];
     }
 }
