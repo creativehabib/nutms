@@ -68,7 +68,7 @@
                             <flux:table.cell>
                                 <div class="flex items-center justify-end gap-1">
                                     <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="edit({{ $record->id }})" title="সম্পাদনা" class="text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400" />
-                                    <flux:button variant="ghost" size="sm" icon="trash" wire:click="delete({{ $record->id }})" wire:confirm="আপনি কি নিশ্চিত যে এই তথ্যটি মুছে ফেলতে চান?" title="মুছুন" class="text-zinc-500 hover:text-red-600 dark:hover:text-red-400" />
+                                    <flux:button variant="ghost" size="sm" icon="trash" wire:click="confirmDelete({{ $record->id }})" title="মুছুন" class="text-zinc-500 hover:text-red-600 dark:hover:text-red-400" />
                                 </div>
                             </flux:table.cell>
 
@@ -140,5 +140,25 @@
             </div>
 
         </form>
+    </flux:modal>
+
+    <flux:modal name="confirm-reference-data-deletion" wire:model="showDeleteModal" @close="cancelDelete" focusable class="max-w-md">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ $title }} মুছে ফেলবেন?</flux:heading>
+                <flux:text class="mt-2">
+                    <span class="font-semibold text-zinc-900 dark:text-white">{{ $deletingName }}</span>
+                    মুছে গেলে এটি আর তালিকায় থাকবে না।
+                </flux:text>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close><flux:button type="button" wire:click="cancelDelete">বাতিল</flux:button></flux:modal.close>
+                <flux:button variant="danger" wire:click="deleteConfirmed" wire:loading.attr="disabled" wire:target="deleteConfirmed">
+                    <span wire:loading.remove wire:target="deleteConfirmed">মুছে ফেলুন</span>
+                    <span wire:loading wire:target="deleteConfirmed">মুছে ফেলা হচ্ছে...</span>
+                </flux:button>
+            </div>
+        </div>
     </flux:modal>
 </div>

@@ -105,7 +105,7 @@ it('protects training types that are used by teachers from deletion', function (
     $teacher = Teacher::query()->create(['name' => 'Teacher']);
     $teacher->trainingTypes()->attach($trainingType->id, ['training_year' => 2024]);
 
-    Livewire::test(TrainingCatalogManagement::class)->call('deleteTrainingType', $trainingType->id);
+    Livewire::test(TrainingCatalogManagement::class)->call('confirmDeleteTrainingType', $trainingType->id);
 
     expect($trainingType->fresh())->not->toBeNull();
 });
@@ -167,4 +167,33 @@ it('stores an uncatalogued other training with its own institute duration and ye
         ->assertSee('Teacher With Other Training')
         ->assertSee('Inclusive Education Workshop (অন্যান্য, 2026, 3 দিন)')
         ->assertSee('International Training Centre');
+});
+
+it('uses the Flux modal before deleting training catalog records', function () {
+    $institute = TrainingInstitute::query()->create(['name' => 'Temporary Institute']);
+    $trainingType = TrainingType::query()->create([
+        'training_institute_id' => $institute->id,
+        'name' => 'Temporary Training',
+        'duration_value' => 1,
+        'duration_unit' => 'days',
+    ]);
+
+    Livewire::test(TrainingCatalogManagement::class)
+        ->call('confirmDeleteTrainingType', $trainingType->id)
+        ->assertSet('showDeleteModal', true)
+        ->assertSet('deletingName', 'Temporary Training')
+        ->call('deleteConfirmed')
+        ->assertSet('showDeleteModal', false);
+
+    expect($trainingType->fresh())->toBeNull();
+
+    Livewire::test(TrainingCatalogManagement::class)
+        ->call('confirmDeleteInstitute', $institute->id)
+        ->assertSet('showDeleteModal', true)
+        ->assertSet('deletingName', 'Temporary Institute')
+        ->call('deleteConfirmed')
+        ->assertSet('showDeleteModal', false);
+
+    expect($institute->fresh())->toBeNull()
+        ->and(file_get_contents(resource_path('views/livewire/training-catalog-management.blade.php')))->not->toContain('wire:confirm');
 });
