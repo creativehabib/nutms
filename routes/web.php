@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Livewire\Admin\LanguageManager;
 use App\Livewire\CollegeDetails;
 use App\Livewire\CollegeForm;
 use App\Livewire\CollegeLabSummary;
@@ -20,6 +21,7 @@ Route::view('/', 'welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
+    Route::get('/admin/language-settings', LanguageManager::class)->name('admin.language_settings');
     Route::get('/teacher-management', TeacherManagement::class)->middleware(['role:admin,principal', 'permission:teachers.view'])->name('teachers.manage');
     Route::get('/teachers/create', TeacherProfileForm::class)->name('teachers.create');
     Route::get('/teachers/{teacher}/edit', TeacherProfileForm::class)->name('teachers.edit');
