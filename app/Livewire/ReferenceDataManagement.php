@@ -29,6 +29,9 @@ class ReferenceDataManagement extends Component
     public string $code = '';
     public bool $isActive = true;
     public bool $showModal = false;
+    public bool $showDeleteModal = false;
+    public ?int $deletingId = null;
+    public string $deletingName = '';
 
     /** @var array<string, array{model: class-string<Model>, title: string, legacy: string, foreign_key: string}> */
     private const TYPES = [
@@ -96,15 +99,40 @@ class ReferenceDataManagement extends Component
         Flux::toast(variant: 'success', text: 'তথ্য সফলভাবে সংরক্ষণ করা হয়েছে।');
     }
 
-    public function delete(int $id): void
+    public function confirmDelete(int $id): void
     {
         $record = $this->modelQuery()->withCount('teachers')->findOrFail($id);
         if ($record->getAttribute('teachers_count') > 0) {
             Flux::toast(variant: 'warning', text: 'শিক্ষকের সাথে যুক্ত থাকায় তথ্যটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।');
             return;
         }
+
+        $this->deletingId = $record->getKey();
+        $this->deletingName = (string) $record->getAttribute('name');
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteConfirmed(): void
+    {
+        if ($this->deletingId === null) {
+            return;
+        }
+
+        $record = $this->modelQuery()->withCount('teachers')->findOrFail($this->deletingId);
+        if ($record->getAttribute('teachers_count') > 0) {
+            $this->cancelDelete();
+            Flux::toast(variant: 'warning', text: 'শিক্ষকের সাথে যুক্ত থাকায় তথ্যটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।');
+            return;
+        }
+
         $record->delete();
+        $this->cancelDelete();
         Flux::toast(variant: 'success', text: 'তথ্য সফলভাবে মুছে ফেলা হয়েছে।');
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->reset('showDeleteModal', 'deletingId', 'deletingName');
     }
 
     public function cancelEdit(): void

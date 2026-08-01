@@ -42,11 +42,25 @@ it('does not delete reference data used by a teacher', function () {
     $subject = Subject::query()->create(['name' => 'Physics']);
     Teacher::query()->create(['name' => 'Teacher', 'subject_id' => $subject->id]);
 
-    Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])->call('delete', $subject->id);
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])->call('confirmDelete', $subject->id);
 
     expect($subject->fresh())->not->toBeNull();
 });
 
 it('allows authenticated users to open a reference data page', function () {
     $this->actingAs(User::factory()->create())->get(route('reference-data.manage', 'subjects'))->assertSuccessful();
+});
+
+it('uses the Flux modal before deleting reference data', function () {
+    $subject = Subject::query()->create(['name' => 'Temporary Subject']);
+
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
+        ->call('confirmDelete', $subject->id)
+        ->assertSet('showDeleteModal', true)
+        ->assertSet('deletingName', 'Temporary Subject')
+        ->call('deleteConfirmed')
+        ->assertSet('showDeleteModal', false);
+
+    expect($subject->fresh())->toBeNull()
+        ->and(file_get_contents(resource_path('views/livewire/reference-data-management.blade.php')))->not->toContain('wire:confirm');
 });

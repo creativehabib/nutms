@@ -24,6 +24,10 @@ class TrainingCatalogManagement extends Component
     public string $durationUnit = 'days';
     public bool $trainingTypeIsActive = true;
     public string $search = '';
+    public bool $showDeleteModal = false;
+    public ?string $deletingType = null;
+    public ?int $deletingId = null;
+    public string $deletingName = '';
 
     public function saveInstitute(): void
     {
@@ -48,14 +52,18 @@ class TrainingCatalogManagement extends Component
         $this->instituteIsActive = $institute->is_active;
     }
 
-    public function deleteInstitute(int $id): void
+    public function confirmDeleteInstitute(int $id): void
     {
         $institute = TrainingInstitute::query()->withCount('trainingTypes')->findOrFail($id);
         if ($institute->training_types_count > 0) {
             Flux::toast(variant: 'warning', text: 'এই প্রতিষ্ঠানের অধীনে ট্রেনিং আছে। মুছে না দিয়ে নিষ্ক্রিয় করুন।');
             return;
         }
-        $institute->delete();
+
+        $this->deletingType = 'institute';
+        $this->deletingId = $institute->id;
+        $this->deletingName = $institute->name;
+        $this->showDeleteModal = true;
     }
 
     public function saveTrainingType(): void
@@ -95,14 +103,55 @@ class TrainingCatalogManagement extends Component
         $this->trainingTypeIsActive = $trainingType->is_active;
     }
 
-    public function deleteTrainingType(int $id): void
+    public function confirmDeleteTrainingType(int $id): void
     {
         $trainingType = TrainingType::query()->withCount('teachers')->findOrFail($id);
         if ($trainingType->teachers_count > 0) {
             Flux::toast(variant: 'warning', text: 'শিক্ষকের সাথে যুক্ত থাকায় ট্রেনিংটি মুছতে পারবেন না। নিষ্ক্রিয় করুন।');
             return;
         }
-        $trainingType->delete();
+
+        $this->deletingType = 'training-type';
+        $this->deletingId = $trainingType->id;
+        $this->deletingName = $trainingType->name;
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteConfirmed(): void
+    {
+        if ($this->deletingId === null || $this->deletingType === null) {
+            return;
+        }
+
+        if ($this->deletingType === 'institute') {
+            $institute = TrainingInstitute::query()->withCount('trainingTypes')->findOrFail($this->deletingId);
+            if ($institute->training_types_count > 0) {
+                $this->cancelDelete();
+                Flux::toast(variant: 'warning', text: 'এই প্রতিষ্ঠানের অধীনে ট্রেনিং আছে। মুছে না দিয়ে নিষ্ক্রিয় করুন।');
+                return;
+            }
+
+            $institute->delete();
+        }
+
+        if ($this->deletingType === 'training-type') {
+            $trainingType = TrainingType::query()->withCount('teachers')->findOrFail($this->deletingId);
+            if ($trainingType->teachers_count > 0) {
+                $this->cancelDelete();
+                Flux::toast(variant: 'warning', text: 'শিক্ষকের সাথে যুক্ত থাকায় ট্রেনিংটি মুছতে পারবেন না। নিষ্ক্রিয় করুন।');
+                return;
+            }
+
+            $trainingType->delete();
+        }
+
+        $this->cancelDelete();
+        Flux::toast(variant: 'success', text: 'তথ্য সফলভাবে মুছে ফেলা হয়েছে।');
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->reset('showDeleteModal', 'deletingType', 'deletingId', 'deletingName');
     }
 
     public function cancelInstituteEdit(): void
