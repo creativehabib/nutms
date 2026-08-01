@@ -89,7 +89,7 @@
 
                     <flux:field class="sm:col-span-2">
                         <flux:label>TTIS ID</flux:label>
-                        <flux:input wire:model="ttisId" readonly placeholder="সংরক্ষণের পর স্বয়ংক্রিয়ভাবে তৈরি হবে" class="bg-zinc-50 text-zinc-500 dark:bg-zinc-900/50" />
+                        <flux:input wire:model="ttisId" readonly placeholder="সংরক্ষণের পর ৬ সংখ্যার ইউনিক নাম্বার তৈরি হবে" class="bg-zinc-50 text-zinc-500 dark:bg-zinc-900/50" />
                         <flux:description>Teachers Training Information System ID সিস্টেম থেকে স্বয়ংক্রিয়ভাবে নির্ধারিত হবে।</flux:description>
                     </flux:field>
                 </div>
