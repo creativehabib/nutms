@@ -65,11 +65,9 @@ class Teacher extends Model
             }
         });
 
-        static::created(function (Teacher $teacher): void {
+        static::creating(function (Teacher $teacher): void {
             if (blank($teacher->ttis_id)) {
-                $teacher->updateQuietly([
-                    'ttis_id' => self::generateTtisId($teacher->getKey()),
-                ]);
+                $teacher->ttis_id = self::generateTtisId();
             }
         });
 
@@ -83,16 +81,11 @@ class Teacher extends Model
         });
     }
 
-    private static function generateTtisId(int $teacherId): string
+    private static function generateTtisId(): string
     {
-        $baseTtisId = 'TTIS-'.str_pad((string) $teacherId, 8, '0', STR_PAD_LEFT);
-        $ttisId = $baseTtisId;
-        $suffix = 2;
-
-        while (self::withTrashed()->where('ttis_id', $ttisId)->exists()) {
-            $ttisId = $baseTtisId.'-'.$suffix;
-            $suffix++;
-        }
+        do {
+            $ttisId = (string) random_int(100000, 999999);
+        } while (self::withTrashed()->where('ttis_id', $ttisId)->exists());
 
         return $ttisId;
     }
