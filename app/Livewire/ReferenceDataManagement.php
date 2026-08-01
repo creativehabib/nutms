@@ -28,6 +28,7 @@ class ReferenceDataManagement extends Component
     public string $name = '';
     public string $code = '';
     public bool $isActive = true;
+    public bool $showModal = false;
 
     /** @var array<string, array{model: class-string<Model>, title: string, legacy: string, foreign_key: string}> */
     private const TYPES = [
@@ -48,6 +49,12 @@ class ReferenceDataManagement extends Component
         $this->resetPage();
     }
 
+    public function openCreateModal(): void
+    {
+        $this->resetForm();
+        $this->showModal = true;
+    }
+
     public function edit(int $id): void
     {
         $record = $this->modelQuery()->findOrFail($id);
@@ -55,6 +62,7 @@ class ReferenceDataManagement extends Component
         $this->name = (string) $record->getAttribute('name');
         $this->code = (string) ($record->getAttribute('code') ?? '');
         $this->isActive = (bool) $record->getAttribute('is_active');
+        $this->showModal = true;
     }
 
     public function save(): void
@@ -84,6 +92,7 @@ class ReferenceDataManagement extends Component
         });
 
         $this->resetForm();
+        $this->showModal = false;
         Flux::toast(variant: 'success', text: 'তথ্য সফলভাবে সংরক্ষণ করা হয়েছে।');
     }
 
@@ -101,6 +110,7 @@ class ReferenceDataManagement extends Component
     public function cancelEdit(): void
     {
         $this->resetForm();
+        $this->showModal = false;
     }
 
     public function render(): View
