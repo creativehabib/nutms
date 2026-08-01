@@ -93,6 +93,18 @@
                         <flux:description>Teachers Training Information System ID সিস্টেম থেকে স্বয়ংক্রিয়ভাবে নির্ধারিত হবে।</flux:description>
                     </flux:field>
                 </div>
+
+                @if(! $editingId && auth()->user()->role !== \App\Enums\UserRole::Teacher)
+                    <div class="mt-8 rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 dark:border-indigo-900 dark:bg-indigo-950/30">
+                        <flux:heading size="md">লগইন অ্যাকাউন্ট</flux:heading>
+                        <flux:text class="mt-1 text-sm">শুধু ইমেইল ও পাসওয়ার্ড দিয়ে শিক্ষকের অ্যাকাউন্ট তৈরি হবে। শিক্ষক পরে লগইন করে বাকি তথ্য পূরণ করতে পারবেন।</flux:text>
+                        <div class="mt-5 grid gap-6 sm:grid-cols-2">
+                            <flux:input wire:model="accountEmail" type="email" label="লগইন ইমেইল" placeholder="teacher@example.com" required />
+                            <flux:input wire:model="accountPassword" type="password" label="অস্থায়ী পাসওয়ার্ড" autocomplete="new-password" required />
+                            <flux:input wire:model="accountPassword_confirmation" type="password" label="পাসওয়ার্ড নিশ্চিত করুন" autocomplete="new-password" required />
+                        </div>
+                    </div>
+                @endif
             </flux:card>
         </div>
 
@@ -296,7 +308,7 @@
 
                 <!-- Save Button (Always visible) -->
                 <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm">
-                    {{ $editingId ? 'পরিবর্তন সেভ করুন' : 'প্রোফাইল তৈরি করুন' }}
+                    {{ $editingId ? 'পরিবর্তন সেভ করুন' : (auth()->user()->role === \App\Enums\UserRole::Teacher ? 'প্রোফাইল তৈরি করুন' : 'অ্যাকাউন্ট তৈরি করুন') }}
                 </flux:button>
             </div>
         </div>

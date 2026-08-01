@@ -3,6 +3,7 @@
 use App\Enums\ApprovalStatus;
 use App\Enums\UserRole;
 use App\Livewire\TeacherManagement;
+use App\Livewire\TeacherProfileForm;
 use App\Models\College;
 use App\Models\Teacher;
 use App\Models\User;
@@ -55,6 +56,40 @@ it('shows the distinct college count beside the teacher count', function () {
     Livewire::test(TeacherManagement::class)
         ->assertSee('মোট 3 জন শিক্ষক')
         ->assertSee('মোট 2টি কলেজ');
+});
+
+it('lets staff create a teacher login account without completing the full profile', function () {
+    $college = College::query()->create([
+        'name' => 'Account Bootstrap College',
+        'approval_status' => ApprovalStatus::Approved,
+        'is_active' => true,
+    ]);
+
+    Livewire::test(TeacherManagement::class)
+        ->assertSee('নতুন শিক্ষক');
+
+    Livewire::test(TeacherProfileForm::class)
+        ->set('collegeId', (string) $college->id)
+        ->set('name', 'New Account Teacher')
+        ->set('accountEmail', 'new.teacher@example.com')
+        ->set('accountPassword', 'password')
+        ->set('accountPassword_confirmation', 'password')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $user = User::query()->where('email', 'new.teacher@example.com')->first();
+    $teacher = Teacher::query()->where('user_id', $user?->id)->first();
+
+    expect($user)->not->toBeNull()
+        ->and($user->role)->toBe(UserRole::Teacher)
+        ->and($user->college_id)->toBe($college->id)
+        ->and($user->approval_status)->toBe(ApprovalStatus::Approved)
+        ->and($teacher)->not->toBeNull()
+        ->and($teacher->name)->toBe('New Account Teacher')
+        ->and($teacher->email)->toBe('new.teacher@example.com')
+        ->and($teacher->college_id)->toBe($college->id)
+        ->and($teacher->approval_status)->toBe(ApprovalStatus::Approved)
+        ->and($teacher->present_address)->toBeNull();
 });
 
 it('lets an admin toggle a teacher approval status from the table', function () {

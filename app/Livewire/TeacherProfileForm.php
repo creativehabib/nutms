@@ -2,6 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Concerns\PasswordValidationRules;
+use App\Enums\ApprovalStatus;
+use App\Enums\UserRole as Role;
 use App\Models\College;
 use App\Models\Designation;
 use App\Models\District;
@@ -14,6 +17,7 @@ use App\Models\Thana;
 use App\Models\TeacherOtherTraining;
 use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
+use App\Models\User;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -21,11 +25,11 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
-use App\Enums\ApprovalStatus;
-use App\Enums\UserRole as Role;
 
 class TeacherProfileForm extends Component
 {
+    use PasswordValidationRules;
+
     #[Locked]
     public ?int $editingId = null;
     public string $collegeId = '';
@@ -48,6 +52,9 @@ class TeacherProfileForm extends Component
     public string $bankBranchName = '';
     public string $bankAccountNumber = '';
     public string $bankRoutingNumber = '';
+    public string $accountEmail = '';
+    public string $accountPassword = '';
+    public string $accountPassword_confirmation = '';
 
     /** @var array<int, array<string, string>> */
     public array $trainingEntries = [];
@@ -86,6 +93,7 @@ class TeacherProfileForm extends Component
             $this->permanentAddress = (string) ($teacher->permanent_address ?? '');
             $this->mobileNumber = (string) ($teacher->mobile_number ?? '');
             $this->email = (string) ($teacher->email ?? '');
+            $this->accountEmail = (string) ($teacher->user?->email ?? $teacher->email ?? '');
             $this->bankName = (string) ($teacher->bank_name ?? '');
             $this->bankBranchName = (string) ($teacher->bank_branch_name ?? '');
             $this->bankAccountNumber = (string) ($teacher->bank_account_number ?? '');
@@ -105,6 +113,7 @@ class TeacherProfileForm extends Component
 
         if ($user->role === Role::Teacher) {
             $this->email = $user->email;
+            $this->accountEmail = $user->email;
         }
 
         if ($this->trainingEntries === []) {
@@ -147,6 +156,9 @@ class TeacherProfileForm extends Component
 
     public function save(): void
     {
+        $isStaffCreatingTeacherAccount = $this->editingId === null && auth()->user()->role !== Role::Teacher;
+        $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
+
         $validated = $this->validate([
             'collegeId' => ['required', Rule::exists('colleges', 'id')->where('is_active', true)],
             'tmisId' => ['nullable', 'string', 'max:255', Rule::unique('teacher_profiles', 'tmis_id')->ignore($this->editingId)],
@@ -156,13 +168,15 @@ class TeacherProfileForm extends Component
             'subject' => ['nullable', 'string', 'max:255'],
             'teacherLevel' => ['nullable', 'string', 'max:255'],
             'employmentType' => ['nullable', 'string', 'max:255'],
-            'divisionId' => ['required', Rule::exists('divisions', 'id')],
-            'districtId' => ['required', Rule::exists('districts', 'id')],
-            'thanaId' => ['required', Rule::exists('thanas', 'id')],
-            'presentAddress' => ['required', 'string', 'max:2000'],
-            'permanentAddress' => ['required', 'string', 'max:2000'],
-            'mobileNumber' => ['required', 'string', 'max:50'],
+            'divisionId' => [$profileRequiredRule, Rule::exists('divisions', 'id')],
+            'districtId' => [$profileRequiredRule, Rule::exists('districts', 'id')],
+            'thanaId' => [$profileRequiredRule, Rule::exists('thanas', 'id')],
+            'presentAddress' => [$profileRequiredRule, 'string', 'max:2000'],
+            'permanentAddress' => [$profileRequiredRule, 'string', 'max:2000'],
+            'mobileNumber' => [$profileRequiredRule, 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
+            'accountEmail' => [$isStaffCreatingTeacherAccount ? 'required' : 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore(Teacher::query()->whereKey($this->editingId)->value('user_id'))],
+            'accountPassword' => $isStaffCreatingTeacherAccount ? $this->passwordRules() : ['nullable'],
             'bankName' => ['nullable', 'string', 'max:255'],
             'bankBranchName' => ['nullable', 'string', 'max:255'],
             'bankAccountNumber' => ['nullable', 'string', 'max:100'],
@@ -178,10 +192,10 @@ class TeacherProfileForm extends Component
             'trainingEntries.*.training_year' => ['nullable', 'integer', 'min:1950', 'max:'.((int) date('Y') + 1)],
         ]);
 
-        if (! District::query()->whereKey($validated['districtId'])->where('division_id', $validated['divisionId'])->exists()) {
+        if (filled($validated['districtId'] ?? null) && ! District::query()->whereKey($validated['districtId'])->where('division_id', $validated['divisionId'])->exists()) {
             throw ValidationException::withMessages(['districtId' => 'নির্বাচিত জেলা এই বিভাগের অন্তর্ভুক্ত নয়।']);
         }
-        if (! Thana::query()->whereKey($validated['thanaId'])->where('district_id', $validated['districtId'])->exists()) {
+        if (filled($validated['thanaId'] ?? null) && ! Thana::query()->whereKey($validated['thanaId'])->where('district_id', $validated['districtId'])->exists()) {
             throw ValidationException::withMessages(['thanaId' => 'নির্বাচিত থানা এই জেলার অন্তর্ভুক্ত নয়।']);
         }
 
@@ -202,7 +216,7 @@ class TeacherProfileForm extends Component
             $validated['email'] = auth()->user()->email;
         }
 
-        DB::transaction(function () use ($validated): void {
+        DB::transaction(function () use ($validated, $isStaffCreatingTeacherAccount): void {
             $user = auth()->user();
             $college = College::query()->findOrFail($validated['collegeId']);
             if ($user->role === Role::Teacher) {
@@ -218,19 +232,33 @@ class TeacherProfileForm extends Component
                     ->where('approval_status', ApprovalStatus::Approved)
                     ->exists();
 
+            $teacherAccount = null;
+            if ($isStaffCreatingTeacherAccount) {
+                $teacherAccount = User::query()->create([
+                    'name' => $validated['name'],
+                    'email' => $validated['accountEmail'],
+                    'password' => $validated['accountPassword'],
+                    'role' => Role::Teacher,
+                    'college_id' => $college->id,
+                    'approval_status' => ApprovalStatus::Approved,
+                    'approved_by' => $user->id,
+                    'approved_at' => now(),
+                ]);
+            }
+
             $teacher = Teacher::query()->updateOrCreate(['id' => $this->editingId], [
                 'college_id' => $college->id, 'college_code' => $college->code, 'college_name' => $college->name,
                 'tmis_id' => $validated['tmisId'] ?: null,
                 'name' => $validated['name'], 'birth_date' => $validated['birthDate'] ?: null, 'designation' => $validated['designation'] ?: null,
                 'subject' => $validated['subject'] ?: null, 'teacher_level' => $validated['teacherLevel'] ?: null,
                 'employment_type' => $validated['employmentType'] ?: null,
-                'division_id' => $validated['divisionId'], 'district_id' => $validated['districtId'], 'thana_id' => $validated['thanaId'],
-                'present_address' => $validated['presentAddress'], 'permanent_address' => $validated['permanentAddress'],
-                'mobile_number' => $validated['mobileNumber'], 'email' => $validated['email'] ?: null,
+                'division_id' => $validated['divisionId'] ?: null, 'district_id' => $validated['districtId'] ?: null, 'thana_id' => $validated['thanaId'] ?: null,
+                'present_address' => $validated['presentAddress'] ?: null, 'permanent_address' => $validated['permanentAddress'] ?: null,
+                'mobile_number' => $validated['mobileNumber'] ?: null, 'email' => ($isStaffCreatingTeacherAccount ? $validated['accountEmail'] : $validated['email']) ?: null,
                 'bank_name' => $validated['bankName'] ?: null, 'bank_branch_name' => $validated['bankBranchName'] ?: null,
                 'bank_account_number' => $validated['bankAccountNumber'] ?: null,
                 'bank_routing_number' => $validated['bankRoutingNumber'] ?: null,
-                'user_id' => $this->editingId ? Teacher::query()->whereKey($this->editingId)->value('user_id') : ($user->role === Role::Teacher ? $user->id : null),
+                'user_id' => $this->editingId ? Teacher::query()->whereKey($this->editingId)->value('user_id') : ($teacherAccount?->id ?? ($user->role === Role::Teacher ? $user->id : null)),
                 'approval_status' => $user->role === Role::Teacher && ! $isApprovedTeacherEditingOwnProfile ? ApprovalStatus::Pending : ApprovalStatus::Approved,
                 'approved_by' => $user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_by') : $user->id,
                 'approved_at' => $user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_at') : now(),
