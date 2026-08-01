@@ -12,12 +12,18 @@ it('protects all reference data pages with authentication', function (string $ty
 
 it('creates and updates subject reference data', function () {
     Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
-        ->set('name', 'Physics')->call('save')->assertHasNoErrors();
+        ->call('openCreateModal')
+        ->assertSet('showModal', true)
+        ->set('name', 'Physics')->call('save')->assertHasNoErrors()
+        ->assertSet('showModal', false);
 
     $subject = Subject::query()->where('name', 'Physics')->firstOrFail();
 
     Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
-        ->call('edit', $subject->id)->set('name', 'Applied Physics')->set('isActive', false)->call('save')->assertHasNoErrors();
+        ->call('edit', $subject->id)
+        ->assertSet('showModal', true)
+        ->set('name', 'Applied Physics')->set('isActive', false)->call('save')->assertHasNoErrors()
+        ->assertSet('showModal', false);
 
     expect($subject->refresh()->name)->toBe('Applied Physics')->and($subject->is_active)->toBeFalse();
 });
