@@ -30,10 +30,10 @@
                 placeholder="email@example.com"
             />
 
-            <flux:callout variant="info" heading="শিক্ষক account">নতুন account শিক্ষক হিসেবে তৈরি হবে। প্রয়োজন হলে এডমিন অনুমোদিত শিক্ষককে তার কলেজের প্রিন্সিপাল রোল প্রদান করবেন।</flux:callout>
+            <flux:callout variant="info" :heading="__('Teacher account')">{{ __('A new account will be created as a teacher. If needed, an admin can assign the principal role to an approved teacher for their college.') }}</flux:callout>
 
-            <flux:select name="college_id" label="কলেজের নাম" required>
-                <option value="">কলেজ নির্বাচন করুন</option>
+            <flux:select name="college_id" :label="__('College Name')" required>
+                <option value="">{{ __('Select college') }}</option>
                 @foreach($colleges as $college)
                     <option value="{{ $college->id }}" @selected((string) old('college_id') === (string) $college->id)>{{ $college->code ? $college->code.' — ' : '' }}{{ $college->name }}</option>
                 @endforeach
