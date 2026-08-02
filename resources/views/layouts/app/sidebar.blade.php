@@ -114,10 +114,10 @@
     </flux:header>
 
     <flux:sidebar sticky collapsible class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
-                <flux:sidebar.collapse class="lg:hidden" />
-            </flux:sidebar.header>
+        <flux:sidebar.header>
+            <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
+            <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
+        </flux:sidebar.header>
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
@@ -165,7 +165,7 @@
                 @endif
 
                 @can('reference-data.manage')
-                <flux:sidebar.group heading="শিক্ষক সেটিংস" expandable :expanded="request()->routeIs('reference-data.manage')" class="grid">
+                <flux:sidebar.group expandable icon="cog-8-tooth" :heading="__('Teacher Setting')" expandable :expanded="request()->routeIs('reference-data.manage')" class="grid">
                     <flux:sidebar.item icon="book-open" :href="route('reference-data.manage', 'subjects')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'subjects'" wire:navigate>সাবজেক্ট</flux:sidebar.item>
                     <flux:sidebar.item icon="briefcase" :href="route('reference-data.manage', 'designations')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'designations'" wire:navigate>পদবি</flux:sidebar.item>
                     <flux:sidebar.item icon="academic-cap" :href="route('reference-data.manage', 'teacher-levels')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'teacher-levels'" wire:navigate>শিক্ষক স্তর</flux:sidebar.item>
