@@ -2,16 +2,17 @@
 
 namespace App\Livewire\Layout;
 
-use Livewire\Component;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Livewire\Component;
 
 class LanguageSwitcher extends Component
 {
-    public function changeLanguage($lang)
+    public function changeLanguage(string $lang): void
     {
-        if (in_array($lang, ['en', 'bn'])) {
+        if (in_array($lang, ['en', 'bn'], true)) {
             Session::put('locale', $lang);
 
             if (Auth::check()) {
@@ -22,9 +23,10 @@ class LanguageSwitcher extends Component
         $this->redirect(request()->header('Referer') ?? '/dashboard');
     }
 
-    public function render()
+    public function render(): View
     {
         $currentLocale = Auth::check() ? Auth::user()->locale : Session::get('locale', config('app.locale'));
+
         return view('livewire.layout.language-switcher', ['currentLocale' => $currentLocale]);
     }
 }
