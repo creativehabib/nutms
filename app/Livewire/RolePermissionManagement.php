@@ -41,7 +41,7 @@ class RolePermissionManagement extends Component
     public function changeRole(int $userId, string $role): void
     {
         abort_unless(auth()->user()->can('roles.manage'), 403);
-        abort_if($userId === auth()->id(), 422, 'নিজের এডমিন রোল পরিবর্তন করা যাবে না।');
+        abort_if($userId === auth()->id(), 422, __('You cannot change your own admin role.'));
 
         $validated = validator(['role' => $role], ['role' => ['required', Rule::enum(Role::class)]])->validate();
         $newRole = Role::from($validated['role']);
@@ -53,12 +53,12 @@ class RolePermissionManagement extends Component
             if ($newRole === Role::Principal) {
                 $teacher = $user->teacherProfile;
                 if ($teacher === null || $teacher->college_id === null || $teacher->approval_status !== ApprovalStatus::Approved) {
-                    throw ValidationException::withMessages(['role' => 'শুধু অনুমোদিত শিক্ষক প্রোফাইল ও কলেজ থাকা user-কে Principal করা যাবে।']);
+                    throw ValidationException::withMessages(['role' => __('Only a user with an approved teacher profile and college can become a Principal.')]);
                 }
                 $alreadyAssigned = User::query()->where('id', '!=', $user->id)->where('role', Role::Principal->value)
                     ->where('college_id', $teacher->college_id)->exists();
                 if ($alreadyAssigned) {
-                    throw ValidationException::withMessages(['role' => 'এই কলেজে ইতোমধ্যে একজন Principal রয়েছে।']);
+                    throw ValidationException::withMessages(['role' => __('This college already has a Principal.')]);
                 }
                 $user->college_id = $teacher->college_id;
                 $user->approval_status = ApprovalStatus::Approved;
@@ -74,7 +74,7 @@ class RolePermissionManagement extends Component
             $user->syncRoles([$newRole->value]);
         });
 
-        Flux::toast(variant: 'success', text: 'User role সফলভাবে পরিবর্তন করা হয়েছে।');
+        Flux::toast(variant: 'success', text: __('User role has been updated successfully.'));
     }
 
     public function updatedSelectedRole(): void
@@ -92,12 +92,12 @@ class RolePermissionManagement extends Component
         )->validate();
 
         if ($validated['role'] === Role::Admin->value && ! in_array('roles.manage', $validated['permissions'], true)) {
-            throw ValidationException::withMessages(['permissions' => 'Admin রোল থেকে রোল ব্যবস্থাপনার পারমিশন সরানো যাবে না।']);
+            throw ValidationException::withMessages(['permissions' => __('The role management permission cannot be removed from the Admin role.')]);
         }
 
         PermissionRole::findByName($validated['role'])->syncPermissions($validated['permissions']);
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        Flux::toast(variant: 'success', text: 'রোলের পারমিশন সফলভাবে সংরক্ষণ করা হয়েছে।');
+        Flux::toast(variant: 'success', text: __('Role permissions have been saved successfully.'));
     }
 
     private function loadRolePermissions(): void
