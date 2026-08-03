@@ -148,7 +148,7 @@
                     @if(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Approved)
                         <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacherProfile)" :current="request()->routeIs('teachers.show')" wire:navigate>{{ __('My Profile') }}</flux:sidebar.item>
                     @elseif(auth()->user()->teacherProfile)
-                        <div class="px-3 py-2 text-sm text-amber-600">{{ __('Profile information') }}</div>
+                        <div class="px-3 py-2 text-sm text-amber-600">{{ __('Profile needs attention') }}</div>
                     @else
                         <flux:sidebar.item icon="user-plus" :href="route('teachers.create')" :current="request()->routeIs('teachers.create')" wire:navigate>{{ __('Create Profile') }}</flux:sidebar.item>
                     @endif
@@ -180,7 +180,7 @@
                 @if(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())
                     <flux:sidebar.item icon="building-library" :href="route('colleges.show', auth()->user()->college_id)" :current="request()->routeIs('colleges.show', 'colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>{{ __('College Profile') }}</flux:sidebar.item>
                 @elseif(auth()->user()->role === \App\Enums\UserRole::Principal)
-                    <div class="px-3 py-2 text-sm text-amber-600">{{ __('Approval information') }}</div>
+                    <div class="px-3 py-2 text-sm text-amber-600">{{ __('Awaiting approval') }}</div>
                 @endif
 
             </flux:sidebar.nav>

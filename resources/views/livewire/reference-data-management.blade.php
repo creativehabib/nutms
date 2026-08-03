@@ -12,13 +12,13 @@
                     </div>
                     <div>
                         <flux:heading size="lg" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">{{ $title }} Management</flux:heading>
-                        <flux:text class="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">Total {{ $records->total() }}items records added</flux:text>
+                        <flux:text class="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{{ trans_choice(':count record added|:count records added', $records->total()) }}</flux:text>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center w-full sm:w-auto">
                     <flux:input wire:model.live.debounce.300ms="search" type="search" :placeholder="__('Search...')" icon="magnifying-glass" class="w-full sm:w-64 shadow-sm" />
-                    <flux:button variant="primary" icon="plus" wire:click="openCreateModal" class="w-full sm:w-auto shadow-sm">{{ __('Information') }}</flux:button>
+                    <flux:button variant="primary" icon="plus" wire:click="openCreateModal" class="w-full sm:w-auto shadow-sm">{{ __('Add New') }}</flux:button>
                 </div>
             </div>
         </div>
@@ -28,10 +28,10 @@
             <flux:table>
                 <flux:table.columns>
                     @if ($isCollege)
-                        <flux:table.column>{{ __('Information') }}</flux:table.column>
+                        <flux:table.column>{{ __('Code') }}</flux:table.column>
                     @endif
                     <flux:table.column>{{ __('Name') }}</flux:table.column>
-                    <flux:table.column>{{ __('Information') }}</flux:table.column>
+                    <flux:table.column>{{ __('Teachers Count') }}</flux:table.column>
                     <flux:table.column>{{ __('Status') }}</flux:table.column>
                     <flux:table.column class="text-right">{{ __('Action') }}</flux:table.column>
                 </flux:table.columns>
@@ -78,8 +78,8 @@
                                     <div class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 mb-3">
                                         <flux:icon.document-text class="h-6 w-6 text-zinc-400" />
                                     </div>
-                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">{{ __('Information') }}</p>
-                                    <p class="text-sm mt-1">{{ __('Information') }}</p>
+                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">{{ __('No records found') }}</p>
+                                    <p class="text-sm mt-1">{{ __('Create a record or adjust your search.') }}</p>
                                 </div>
                             </flux:table.cell>
                         </flux:table.row>
@@ -106,7 +106,7 @@
                     <flux:icon.pencil-square class="size-4" />
                 </div>
                 <div>
-                    <flux:heading size="lg" class="font-semibold">{{ $editingId ? $title.__('Edit') : __('Information').$title }}</flux:heading>
+                    <flux:heading size="lg" class="font-semibold">{{ $editingId ? __('Edit :title', ['title' => $title]) : __('Create :title', ['title' => $title]) }}</flux:heading>
                 </div>
             </div>
 
@@ -114,24 +114,24 @@
             <div class="p-6 space-y-5 bg-white dark:bg-zinc-900">
                 @if ($isCollege)
                     <div class="space-y-1">
-                        <flux:input wire:model="code" :label="__('College Code')" :placeholder="__('Information')" />
+                        <flux:input wire:model="code" :label="__('College Code')" :placeholder="__('Enter value')" />
                         @error('code') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
                     </div>
                 @endif
 
                 <div class="space-y-1">
-                    <flux:input wire:model="name" :label="$title.__('Name')" :placeholder="__('Information')" required />
+                    <flux:input wire:model="name" :label="$title.__('Name')" :placeholder="__('Enter value')" required />
                     @error('name') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="pt-2">
-                    <flux:switch wire:model="isActive" :label="__('Keep active')" :description="__('Information')" />
+                    <flux:switch wire:model="isActive" :label="__('Keep active')" :description="__('Inactive records are hidden from selection lists.')" />
                 </div>
             </div>
 
             <!-- Modal Footer -->
             <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <flux:button type="button" variant="ghost" wire:click="cancelEdit" class="w-full sm:w-auto">{{ __('Information') }}</flux:button>
+                <flux:button type="button" variant="ghost" wire:click="cancelEdit" class="w-full sm:w-auto">{{ __('Cancel') }}</flux:button>
                 <flux:button type="submit" variant="primary" icon="check-circle" wire:loading.attr="disabled" class="w-full sm:w-auto shadow-sm">
                     {{ $editingId ? __('Update') : __('Save') }}
                 </flux:button>
@@ -145,14 +145,14 @@
             <div>
                 <flux:heading size="lg">{{ $title }} Delete?</flux:heading>
                 <flux:text class="mt-2">
-                    <span class="font-semibold text-zinc-900 dark:text-white">{{ $deletingName }}</span>{{ __('Delete information') }}</flux:text>
+                    <span class="font-semibold text-zinc-900 dark:text-white">{{ $deletingName }}</span>{{ __('Delete record') }}</flux:text>
             </div>
 
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button type="button" wire:click="cancelDelete">{{ __('Cancel') }}</flux:button></flux:modal.close>
                 <flux:button variant="danger" wire:click="deleteConfirmed" wire:loading.attr="disabled" wire:target="deleteConfirmed">
-                    <span wire:loading.remove wire:target="deleteConfirmed">{{ __('Delete information') }}</span>
-                    <span wire:loading wire:target="deleteConfirmed">{{ __('Delete information') }}</span>
+                    <span wire:loading.remove wire:target="deleteConfirmed">{{ __('Delete record') }}</span>
+                    <span wire:loading wire:target="deleteConfirmed">{{ __('Delete record') }}</span>
                 </flux:button>
             </div>
         </div>

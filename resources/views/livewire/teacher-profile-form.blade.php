@@ -19,11 +19,11 @@
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                {{ $editingId ? __('Teacher information') : __('Teacher information') }}
+                {{ $editingId ? __('Edit Teacher Profile') : __('Create Teacher Profile') }}
             </flux:heading>
-            <flux:subheading class="mt-1 text-zinc-500">{{ __('Information') }}</flux:subheading>
+            <flux:subheading class="mt-1 text-zinc-500">{{ __('Enter accurate personal, professional, contact, training, and bank details.') }}</flux:subheading>
         </div>
-        <flux:button variant="subtle" :href="auth()->user()->role === \App\Enums\UserRole::Teacher ? route('dashboard') : route('teachers.manage')" icon="arrow-left" wire:navigate class="shrink-0">{{ __('Information') }}</flux:button>
+        <flux:button variant="subtle" :href="auth()->user()->role === \App\Enums\UserRole::Teacher ? route('dashboard') : route('teachers.manage')" icon="arrow-left" wire:navigate class="shrink-0">{{ __('Back') }}</flux:button>
     </div>
 
     <!-- Tab Navigation (Horizontal) -->
@@ -31,23 +31,23 @@
         <nav class="-mb-px flex space-x-6 overflow-x-auto scrollbar-hide" aria-label="Tabs">
             <!-- Basic Info Tab -->
             <button @click="activeTab = 'basic'" :class="activeTab === 'basic' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
-                <flux:icon.building-office-2 class="size-4" />{{ __('Information') }}</button>
+                <flux:icon.building-office-2 class="size-4" />{{ __('Basic Details') }}</button>
 
             <!-- Professional Tab -->
             <button @click="activeTab = 'professional'" :class="activeTab === 'professional' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
-                <flux:icon.briefcase class="size-4" />{{ __('Information') }}</button>
+                <flux:icon.briefcase class="size-4" />{{ __('Professional Details') }}</button>
 
             <!-- Contact Tab -->
             <button @click="activeTab = 'contact'" :class="activeTab === 'contact' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
-                <flux:icon.map-pin class="size-4" />{{ __('Information') }}</button>
+                <flux:icon.map-pin class="size-4" />{{ __('Contact & Address') }}</button>
 
             <!-- Training Tab -->
             <button @click="activeTab = 'training'" :class="activeTab === 'training' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
-                <flux:icon.academic-cap class="size-4" />{{ __('Training information') }}</button>
+                <flux:icon.academic-cap class="size-4" />{{ __('Training History') }}</button>
 
             <!-- Bank Tab -->
             <button @click="activeTab = 'bank'" :class="activeTab === 'bank' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
-                <flux:icon.banknotes class="size-4" />{{ __('Information') }}</button>
+                <flux:icon.banknotes class="size-4" />{{ __('Bank Details') }}</button>
         </nav>
     </div>
 
@@ -58,36 +58,36 @@
         <div x-show="activeTab === 'basic'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
             <flux:card class="shadow-sm p-6 sm:p-8 border-t-4 border-t-indigo-500">
                 <div class="mb-6">
-                    <flux:heading size="lg">{{ __('Information') }}</flux:heading>
-                    <flux:text class="text-sm">{{ __('Teacher information') }}</flux:text>
+                    <flux:heading size="lg">{{ __('Basic Teacher Details') }}</flux:heading>
+                    <flux:text class="text-sm">{{ __('Select the college and enter the teacher identity details.') }}</flux:text>
                 </div>
                 <div class="grid gap-6 sm:grid-cols-2">
                     <flux:select wire:model="collegeId" :label="__('College')" required>
-                        <option value="">{{ __('College information') }}</option>
+                        <option value="">{{ __('Select a college') }}</option>
                         @foreach($colleges as $college)
                             <option value="{{ $college->id }}">{{ $college->code ? $college->code.' — ' : '' }}{{ $college->name }}</option>
                         @endforeach
                     </flux:select>
-                    <flux:input wire:model="name" :label="__('Teacher information')" :placeholder="__('Information')" required />
+                    <flux:input wire:model="name"  :label="__('Teacher Name')" :placeholder="__('Enter teacher name')" required />
 
-                    <flux:input wire:model="birthDate" type="date" :label="__('Information')" />
-                    <flux:input wire:model="tmisId" label="TMIS ID" :placeholder="__('Information')" />
+                    <flux:input wire:model="birthDate" type="date"  :label="__('Date of Birth')" />
+                    <flux:input wire:model="tmisId" label="TMIS ID" :placeholder="__('Enter TMIS ID')" />
 
                     <flux:field class="sm:col-span-2">
                         <flux:label>TTIS ID</flux:label>
-                        <flux:input wire:model="ttisId" readonly :placeholder="__('Information')" class="bg-zinc-50 text-zinc-500 dark:bg-zinc-900/50" />
-                        <flux:description>{{ __('Information') }}</flux:description>
+                        <flux:input wire:model="ttisId" readonly :placeholder="__('Generated after saving')" class="bg-zinc-50 text-zinc-500 dark:bg-zinc-900/50" />
+                        <flux:description>{{ __('TTIS ID is generated automatically by the system.') }}</flux:description>
                     </flux:field>
                 </div>
 
                 @if(! $editingId && auth()->user()->role !== \App\Enums\UserRole::Teacher)
                     <div class="mt-8 rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 dark:border-indigo-900 dark:bg-indigo-950/30">
-                        <flux:heading size="md">{{ __('Information') }}</flux:heading>
-                        <flux:text class="mt-1 text-sm">{{ __('Teacher information') }}</flux:text>
+                        <flux:heading size="md">{{ __('Teacher Login Account') }}</flux:heading>
+                        <flux:text class="mt-1 text-sm">{{ __('Create login credentials for this teacher.') }}</flux:text>
                         <div class="mt-5 grid gap-6 sm:grid-cols-2">
-                            <flux:input wire:model="accountEmail" type="email" :label="__('Information')" placeholder="teacher@example.com" required />
-                            <flux:input wire:model="accountPassword" type="password" :label="__('Information')" autocomplete="new-password" required />
-                            <flux:input wire:model="accountPassword_confirmation" type="password" :label="__('Information')" autocomplete="new-password" required />
+                            <flux:input wire:model="accountEmail" type="email"  :label="__('Account Email')" placeholder="teacher@example.com" required />
+                            <flux:input wire:model="accountPassword" type="password"  :label="__('Password')" autocomplete="new-password" required />
+                            <flux:input wire:model="accountPassword_confirmation" type="password" :label="__('Confirm Password')" autocomplete="new-password" required />
                         </div>
                     </div>
                 @endif
@@ -98,8 +98,8 @@
         <div x-show="activeTab === 'professional'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
             <flux:card class="shadow-sm p-6 sm:p-8 border-t-4 border-t-indigo-500">
                 <div class="mb-6">
-                    <flux:heading size="lg">{{ __('Information') }}</flux:heading>
-                    <flux:text class="text-sm">{{ __('Teacher information') }}</flux:text>
+                    <flux:heading size="lg">{{ __('Professional Details') }}</flux:heading>
+                    <flux:text class="text-sm">{{ __('Add designation, subject, level, and employment type.') }}</flux:text>
                 </div>
                 <div class="grid gap-6 sm:grid-cols-2">
                     <flux:select wire:model="designation" :label="__('Designation')">
@@ -109,7 +109,7 @@
                         @endforeach
                     </flux:select>
 
-                    <flux:select wire:model="subject" :label="__('Information')">
+                    <flux:select wire:model="subject" :label="__('Subject')">
                         <option value="">{{ __('Select') }}</option>
                         @foreach($subjects as $item)
                             <option>{{ $item }}</option>
@@ -137,8 +137,8 @@
         <div x-show="activeTab === 'contact'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
             <flux:card class="shadow-sm p-6 sm:p-8 border-t-4 border-t-indigo-500">
                 <div class="mb-6">
-                    <flux:heading size="lg">{{ __('Information') }}</flux:heading>
-                    <flux:text class="text-sm">{{ __('Teacher information') }}</flux:text>
+                    <flux:heading size="lg">{{ __('Contact & Address') }}</flux:heading>
+                    <flux:text class="text-sm">{{ __('Add location, address, mobile, and email details.') }}</flux:text>
                 </div>
                 <div class="grid gap-6">
                     <div class="grid gap-6 sm:grid-cols-3 bg-zinc-50/50 p-4 rounded-xl border border-zinc-100 dark:bg-zinc-900/30 dark:border-zinc-800">
@@ -154,7 +154,7 @@
                                 <option value="{{ $item->id }}">{{ $item->name }}</option>
                             @endforeach
                         </flux:select>
-                        <flux:select wire:model="thanaId" :label="__('Information')" required>
+                        <flux:select wire:model="thanaId" :label="__('Thana / Upazila')" required>
                             <option value="">{{ __('Select') }}</option>
                             @foreach($thanas as $item)
                                 <option value="{{ $item->id }}">{{ $item->name }}</option>
@@ -163,12 +163,12 @@
                     </div>
 
                     <div class="grid gap-6 sm:grid-cols-2">
-                        <flux:textarea wire:model="presentAddress" :label="__('Information')" rows="2" :placeholder="__('Information')" required />
-                        <flux:textarea wire:model="permanentAddress" :label="__('Information')" rows="2" :placeholder="__('Information')" required />
-                        <flux:input wire:model="mobileNumber" :label="__('Information')" :placeholder="__('Information')" required />
+                        <flux:textarea wire:model="presentAddress" :label="__('Present Address')" rows="2" :placeholder="__('Enter present address')" required />
+                        <flux:textarea wire:model="permanentAddress" :label="__('Permanent Address')" rows="2" :placeholder="__('Enter permanent address')" required />
+                        <flux:input wire:model="mobileNumber" :label="__('Mobile Number')" :placeholder="__('Enter mobile number')" required />
 
                         <flux:field>
-                            <flux:label>{{ __('Information') }}</flux:label>
+                            <flux:label>{{ __('Email Address') }}</flux:label>
                             <flux:input wire:model="email" type="email" placeholder="example@gmail.com" :readonly="auth()->user()->role === \App\Enums\UserRole::Teacher" />
                             <flux:error name="email" />
                         </flux:field>
@@ -182,10 +182,10 @@
             <flux:card class="shadow-sm p-6 sm:p-8 border-t-4 border-t-indigo-500">
                 <div class="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                     <div>
-                        <flux:heading size="lg">{{ __('Training information') }}</flux:heading>
-                        <flux:text class="text-sm">{{ __('Training information') }}</flux:text>
+                        <flux:heading size="lg">{{ __('Training History') }}</flux:heading>
+                        <flux:text class="text-sm">{{ __('Add ICT and professional development training records.') }}</flux:text>
                     </div>
-                    <flux:button type="button" size="sm" variant="outline" icon="plus" wire:click="addTrainingEntry" class="text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-500/10">{{ __('Training information') }}</flux:button>
+                    <flux:button type="button" size="sm" variant="outline" icon="plus" wire:click="addTrainingEntry" class="text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-500/10">{{ __('Add Training') }}</flux:button>
                 </div>
 
                 <div class="space-y-6">
@@ -194,19 +194,19 @@
 
                             <!-- Remove Button -->
                             <div class="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                                <button type="button" wire:click="removeTrainingEntry({{ $index }})" class="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors" :title="__('Training information')">
+                                <button type="button" wire:click="removeTrainingEntry({{ $index }})" class="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors"  :title="__('Remove training entry')">
                                     <flux:icon.trash variant="micro" class="size-4" />
                                 </button>
                             </div>
 
                             <div class="grid gap-5 pr-8 sm:grid-cols-2 lg:grid-cols-4">
-                                <flux:select wire:model.live="trainingEntries.{{ $index }}.kind" :label="__('Training information')">
-                                    <option value="catalog">{{ __('Information') }}</option>
-                                    <option value="other">{{ __('Information') }}</option>
+                                <flux:select wire:model.live="trainingEntries.{{ $index }}.kind" :label="__('Training Source')">
+                                    <option value="catalog">{{ __('Catalog Training') }}</option>
+                                    <option value="other">{{ __('Custom Training') }}</option>
                                 </flux:select>
 
                                 <flux:select wire:model.live="trainingEntries.{{ $index }}.training_institute_id" :label="__('Training Institute')">
-                                    <option value="">{{ $entry['kind'] === 'other' ? __('Information') : __('Select') }}</option>
+                                    <option value="">{{ $entry['kind'] === 'other' ? __('No institute selected') : __('Select') }}</option>
                                     @foreach($trainingInstitutes as $institute)
                                         <option value="{{ $institute->id }}">{{ $institute->name }}</option>
                                     @endforeach
@@ -221,15 +221,15 @@
                                     </flux:select>
                                 @else
                                     <div class="space-y-5 lg:col-span-2">
-                                        <flux:input wire:model="trainingEntries.{{ $index }}.name" :label="__('Training information')" :placeholder="__('Training information')" />
+                                        <flux:input wire:model="trainingEntries.{{ $index }}.name"  :label="__('Training Name')" :placeholder="__('Enter training name')" />
 
                                         @if(blank($entry['training_institute_id']))
-                                            <flux:input wire:model="trainingEntries.{{ $index }}.institute_name" :label="__('Institute Name')" :placeholder="__('Training information')" />
+                                            <flux:input wire:model="trainingEntries.{{ $index }}.institute_name"  :label="__('Institute Name')" :placeholder="__('Enter institute name')" />
                                         @endif
 
                                         <div class="grid grid-cols-2 gap-4">
-                                            <flux:input wire:model="trainingEntries.{{ $index }}.duration_value" type="number" min="1" :label="__('Duration')" :placeholder="__('Information')" />
-                                            <flux:select wire:model="trainingEntries.{{ $index }}.duration_unit" :label="__('Information')">
+                                            <flux:input wire:model="trainingEntries.{{ $index }}.duration_value" type="number" min="1"  :label="__('Duration')" :placeholder="__('Enter duration')" />
+                                            <flux:select wire:model="trainingEntries.{{ $index }}.duration_unit" :label="__('Duration Unit')">
                                                 <option value="hours">{{ __('Hours') }}</option>
                                                 <option value="days">{{ __('Days') }}</option>
                                                 <option value="weeks">{{ __('Weeks') }}</option>
@@ -240,7 +240,7 @@
                                 @endif
 
                                 <div class="lg:col-span-4 mt-2 border-t border-dashed border-zinc-200 pt-4 dark:border-zinc-700">
-                                    <flux:input wire:model="trainingEntries.{{ $index }}.training_year" type="number" min="1950" max="{{ date('Y') + 1 }}" :label="__('Information')" :placeholder="__('Information')" class="max-w-[200px]" />
+                                    <flux:input wire:model="trainingEntries.{{ $index }}.training_year" type="number" min="1950" max="{{ date('Y') + 1 }}" :label="__('Training Year')" :placeholder="__('Enter training year')" class="max-w-[200px]" />
                                 </div>
                             </div>
 
@@ -252,8 +252,8 @@
                     @if(count($trainingEntries) === 0)
                         <div class="rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900">
                             <flux:icon.academic-cap class="mx-auto h-8 w-8 text-zinc-400" />
-                            <h3 class="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Training information') }}</h3>
-                            <p class="mt-1 text-sm text-zinc-500">{{ __('Training information') }}</p>
+                            <h3 class="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('No training entries yet') }}</h3>
+                            <p class="mt-1 text-sm text-zinc-500">{{ __('Add training records to keep this profile complete.') }}</p>
                         </div>
                     @endif
                 </div>
@@ -264,14 +264,14 @@
         <div x-show="activeTab === 'bank'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
             <flux:card class="shadow-sm p-6 sm:p-8 border-t-4 border-t-indigo-500">
                 <div class="mb-6">
-                    <flux:heading size="lg">{{ __('Information') }}</flux:heading>
-                    <flux:text class="text-sm">{{ __('Information') }}</flux:text>
+                    <flux:heading size="lg">{{ __('Bank Details') }}</flux:heading>
+                    <flux:text class="text-sm">{{ __('Add optional bank account details for payroll and records.') }}</flux:text>
                 </div>
                 <div class="grid gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="bankName" :label="__('Information')" :placeholder="__('Information')" />
-                    <flux:input wire:model="bankBranchName" :label="__('Information')" :placeholder="__('Information')" />
-                    <flux:input wire:model="bankAccountNumber" :label="__('Information')" autocomplete="off" :placeholder="__('Information')" />
-                    <flux:input wire:model="bankRoutingNumber" :label="__('Information')" inputmode="numeric" :placeholder="__('Information')" />
+                    <flux:input wire:model="bankName" :label="__('Bank Name')" :placeholder="__('Enter bank name')" />
+                    <flux:input wire:model="bankBranchName" :label="__('Branch Name')" :placeholder="__('Enter branch name')" />
+                    <flux:input wire:model="bankAccountNumber" :label="__('Account Number')" autocomplete="off" :placeholder="__('Enter account number')" />
+                    <flux:input wire:model="bankRoutingNumber" :label="__('Routing Number')" inputmode="numeric" :placeholder="__('Enter routing number')" />
                 </div>
             </flux:card>
         </div>
@@ -282,13 +282,13 @@
 
                 <!-- Prev/Next Navigation (Handled by Alpine.js) -->
                 <div class="flex items-center gap-2">
-                    <flux:button type="button" variant="outline" icon="chevron-left" @click="goToPrev()" x-show="activeTab !== 'basic'">{{ __('Information') }}</flux:button>
-                    <flux:button type="button" variant="outline" icon-trailing="chevron-right" @click="goToNext()" x-show="activeTab !== 'bank'">{{ __('Information') }}</flux:button>
+                    <flux:button type="button" variant="outline" icon="chevron-left" @click="goToPrev()" x-show="activeTab !== 'basic'">{{ __('Previous') }}</flux:button>
+                    <flux:button type="button" variant="outline" icon-trailing="chevron-right" @click="goToNext()" x-show="activeTab !== 'bank'">{{ __('Next') }}</flux:button>
                 </div>
 
                 <!-- Save Button (Always visible) -->
                 <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm">
-                    {{ $editingId ? __('Information') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Profile information') : __('Information')) }}
+                    {{ $editingId ? __('Update Profile') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Submit Profile') : __('Create Teacher')) }}
                 </flux:button>
             </div>
         </div>

@@ -1,8 +1,8 @@
 <div class="space-y-6 p-4 sm:p-6">
     <!-- Page Header -->
     <div class="flex flex-col gap-2">
-        <flux:heading size="xl" class="font-bold tracking-tight">{{ __('Information') }}</flux:heading>
-        <flux:subheading>{{ __('Information') }}</flux:subheading>
+        <flux:heading size="xl" class="font-bold tracking-tight">{{ __('Roles & Permissions') }}</flux:heading>
+        <flux:subheading>{{ __('Manage role permissions and user role assignments.') }}</flux:subheading>
     </div>
 
     <!-- Permissions Setup Card -->
@@ -14,14 +14,14 @@
                     <flux:icon.shield-check class="size-5" />
                 </div>
                 <div>
-                    <flux:heading size="lg">{{ __('Information') }}</flux:heading>
-                    <flux:subheading class="mt-0.5">{{ __('Information') }}</flux:subheading>
+                    <flux:heading size="lg">{{ __('Permission Matrix') }}</flux:heading>
+                    <flux:subheading class="mt-0.5">{{ __('Choose a role and select the permissions it should have.') }}</flux:subheading>
                 </div>
             </div>
 
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div class="w-full sm:w-64">
-                    <flux:select wire:model.live="selectedRole" :placeholder="__('Select an option')">
+                    <flux:select wire:model.live="selectedRole" :placeholder="__('Select a role')">
                         @foreach($roles as $role)
                             <option value="{{ $role->value }}">{{ $role->label() }}</option>
                         @endforeach
@@ -41,7 +41,7 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="text-sm font-semibold text-zinc-900 group-has-[:checked]:text-indigo-700 dark:text-zinc-100 dark:group-has-[:checked]:text-indigo-400">
-                                {{ $permissionLabels[$permission->name] ?? $permission->name }}
+                                {{ __($permissionLabels[$permission->name] ?? $permission->name) }}
                             </span>
                             <span class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 font-mono">
                                 {{ $permission->name }}
@@ -61,13 +61,13 @@
         <div class="border-b border-zinc-200 bg-zinc-50/40 p-4 dark:border-zinc-700/50 dark:bg-zinc-900/40 sm:p-6">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <flux:heading size="lg">{{ __('Information') }}</flux:heading>
-                    <flux:subheading class="mt-1">{{ __('Information') }}</flux:subheading>
+                    <flux:heading size="lg">{{ __('User Roles') }}</flux:heading>
+                    <flux:subheading class="mt-1">{{ __('Review users and update their assigned roles.') }}</flux:subheading>
                 </div>
                 <flux:input
                     wire:model.live.debounce.300ms="search"
                     icon="magnifying-glass"
-                    :placeholder="__('Information')"
+                    :placeholder="__('Search users')"
                     class="w-full sm:max-w-xs shadow-sm"
                 />
             </div>
@@ -77,10 +77,10 @@
         <div class="overflow-x-auto px-4 pb-4 sm:px-6 pt-2">
             <flux:table>
                 <flux:table.columns>
-                    <flux:table.column>{{ __('Information') }}</flux:table.column>
-                    <flux:table.column>{{ __('Teacher information') }}</flux:table.column>
-                    <flux:table.column>{{ __('Information') }}</flux:table.column>
-                    <flux:table.column class="text-right">{{ __('Information') }}</flux:table.column>
+                    <flux:table.column>{{ __('User') }}</flux:table.column>
+                    <flux:table.column>{{ __('Teacher & College') }}</flux:table.column>
+                    <flux:table.column>{{ __('Current Role') }}</flux:table.column>
+                    <flux:table.column class="text-right">{{ __('Change Role') }}</flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -108,11 +108,11 @@
                             <flux:table.cell>
                                 <div class="flex flex-col">
                                     <span class="font-medium text-zinc-700 dark:text-zinc-300">
-                                        {{ $teacherProfile?->display_name ?: __('Teacher information') }}
+                                        {{ $teacherProfile?->display_name ?: __('No teacher profile') }}
                                     </span>
                                     <div class="flex items-center gap-1 mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
                                         <flux:icon.building-library variant="micro" />
-                                        <span class="truncate max-w-[200px]">{{ $teacherProfile?->college?->name ?: $user->college?->name ?: __('College information') }}</span>
+                                        <span class="truncate max-w-[200px]">{{ $teacherProfile?->college?->name ?: $user->college?->name ?: __('No college assigned') }}</span>
                                     </div>
                                 </div>
                             </flux:table.cell>
@@ -149,8 +149,8 @@
                             <flux:table.cell colspan="4">
                                 <div class="flex flex-col items-center justify-center py-12 text-zinc-500 dark:text-zinc-400">
                                     <flux:icon.users class="h-10 w-10 mb-3 text-zinc-400" />
-                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">{{ __('Information') }}</p>
-                                    <p class="text-sm mt-1">{{ __('Information') }}</p>
+                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">{{ __('No users found') }}</p>
+                                    <p class="text-sm mt-1">{{ __('Try adjusting your search criteria.') }}</p>
                                 </div>
                             </flux:table.cell>
                         </flux:table.row>

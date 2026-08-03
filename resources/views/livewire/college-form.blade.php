@@ -4,11 +4,11 @@
     <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                {{ $editingId ? __('College information') : __('College information') }}
+                {{ $editingId ? __('Edit College') : __('Create College') }}
             </flux:heading>
-            <flux:subheading class="mt-1 text-zinc-500">{{ __('College information') }}</flux:subheading>
+            <flux:subheading class="mt-1 text-zinc-500">{{ __('College Profile') }}</flux:subheading>
         </div>
-        <flux:button variant="subtle" :href="route('colleges.manage')" icon="arrow-left" wire:navigate class="shrink-0">{{ __('Information') }}</flux:button>
+        <flux:button variant="subtle" :href="route('colleges.manage')" icon="arrow-left" wire:navigate class="shrink-0">{{ __('Back') }}</flux:button>
     </div>
 
     <!-- Main Form Wrapper -->
@@ -27,12 +27,12 @@
 
             <div class="p-6">
                 <div class="grid gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="code" :label="__('College information')" :placeholder="__('Information')" />
-                    <flux:input wire:model="name" :label="__('College Name')" :placeholder="__('College information')" required />
-                    <flux:input wire:model="principalName" :label="__('Information')" :placeholder="__('Information')" required />
-                    <flux:input wire:model="collegeEmail" type="email" :label="__('College information')" :placeholder="__('Information')" />
-                    <flux:input wire:model="collegeWebsite" type="url" :label="__('College information')" :placeholder="__('Information')" />
-                    <flux:select wire:model="collegeType" :label="__('College information')" required>
+                    <flux:input wire:model="code"  :label="__('College Code')" :placeholder="__('Enter college code')" />
+                    <flux:input wire:model="name"  :label="__('College Name')" :placeholder="__('Enter college name')" required />
+                    <flux:input wire:model="principalName" :label="__('Principal Name')" :placeholder="__('Enter principal name')" required />
+                    <flux:input wire:model="collegeEmail" type="email" :label="__('College Email')" :placeholder="__('college@example.com')" />
+                    <flux:input wire:model="collegeWebsite" type="url" :label="__('College Website')" :placeholder="__('https://example.edu')" />
+                    <flux:select wire:model="collegeType" :label="__('College Type')" required>
                         <option value="">{{ __('Select...') }}</option>
                         <option value="government">{{ __('Government') }}</option>
                         <option value="non_government">{{ __('Non-government') }}</option>
@@ -49,7 +49,7 @@
                     <div class="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
                         <flux:icon.map-pin class="size-4" />
                     </div>
-                    <flux:heading size="lg" class="font-semibold">{{ __('Information') }}</flux:heading>
+                    <flux:heading size="lg" class="font-semibold">{{ __('Location Details') }}</flux:heading>
                 </div>
             </div>
 
@@ -68,7 +68,7 @@
                                 <option value="{{ $district->id }}">{{ $district->name }}</option>
                             @endforeach
                         </flux:select>
-                        <flux:select wire:model="thanaId" :label="__('Information')" required>
+                        <flux:select wire:model="thanaId" :label="__('Thana / Upazila')" required>
                             <option value="">{{ __('Select') }}</option>
                             @foreach($thanas as $thana)
                                 <option value="{{ $thana->id }}">{{ $thana->name }}</option>
@@ -82,7 +82,7 @@
                         @error('thanaId')<span class="text-xs text-red-600">{{ $message }}</span>@enderror
                     </div>
 
-                    <flux:textarea wire:model="address" :label="__('Full Address')" rows="2" :placeholder="__('Information')" required />
+                    <flux:textarea wire:model="address" :label="__('Full Address')" rows="2"  :placeholder="__('Enter full address')" required />
                 </div>
             </div>
         </flux:card>
@@ -94,9 +94,9 @@
                     <div class="flex h-8 w-8 items-center justify-center rounded-md bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
                         <flux:icon.academic-cap class="size-4" />
                     </div>
-                    <flux:heading size="lg" class="font-semibold">{{ __('Information') }}</flux:heading>
+                    <flux:heading size="lg" class="font-semibold">{{ __('Programs and Courses') }}</flux:heading>
                 </div>
-                <flux:button type="button" size="sm" variant="subtle" icon="plus" wire:click="addProgram" class="text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10">{{ __('Information') }}</flux:button>
+                <flux:button type="button" size="sm" variant="subtle" icon="plus" wire:click="addProgram" class="text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10">{{ __('Add Program') }}</flux:button>
             </div>
 
             <div class="p-6 bg-zinc-50/30 dark:bg-zinc-900/20">
@@ -106,13 +106,13 @@
 
                             <!-- Remove Button -->
                             <div class="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                                <button type="button" wire:click="removeProgram({{ $index }})" class="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors" :title="__('Delete information')">
+                                <button type="button" wire:click="removeProgram({{ $index }})" class="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors" :title="__('Remove item')">
                                     <flux:icon.trash variant="micro" class="size-4" />
                                 </button>
                             </div>
 
                             <div class="grid gap-5 pr-8 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-start">
-                                <flux:select wire:model.live="programs.{{ $index }}.level" :label="__('College information')">
+                                <flux:select wire:model.live="programs.{{ $index }}.level" :label="__('Program Level')">
                                     <option value="degree">{{ __('Degree') }}</option>
                                     <option value="honours">{{ __('Honours') }}</option>
                                     <option value="masters">{{ __('Masters') }}</option>
@@ -122,7 +122,7 @@
 
                                 <div class="flex flex-col gap-1.5">
                                     <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                        {{ $program['level'] === 'degree' ? __('Information') : __('Information') }}
+                                        {{ $program['level'] === 'degree' ? __('Degree Courses') : __('Subjects / Programs') }}
                                     </label>
 
                                     <!-- Elevated Pillbox Input -->
@@ -130,7 +130,7 @@
                                         @foreach($program['names'] as $tagIndex => $programName)
                                             <span wire:key="program-tag-{{ $index }}-{{ $tagIndex }}" class="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-800 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700 shadow-sm">
                                                 {{ $programName }}
-                                                <button type="button" wire:click="removeProgramTag({{ $index }}, {{ $tagIndex }})" class="group -mr-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30" :aria-label="__('Information')">
+                                                <button type="button" wire:click="removeProgramTag({{ $index }}, {{ $tagIndex }})" class="group -mr-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"  :aria-label="__('Remove program name')">
                                                     <flux:icon.x-mark variant="micro" class="text-zinc-500 group-hover:text-red-500 dark:group-hover:text-red-400" />
                                                 </button>
                                             </span>
@@ -142,7 +142,7 @@
                                             wire:keydown.enter.prevent.stop="addProgramTag({{ $index }})"
                                             list="program-suggestions-{{ $index }}"
                                             autocomplete="off"
-                                            :placeholder="__('Information')"
+                                             :placeholder="__('Type a program name and press Enter')"
                                         >
                                     </div>
                                     <datalist id="program-suggestions-{{ $index }}">
@@ -167,20 +167,20 @@
                     <div class="flex h-8 w-8 items-center justify-center rounded-md bg-cyan-100 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400">
                         <flux:icon.computer-desktop class="size-4" />
                     </div>
-                    <flux:heading size="lg" class="font-semibold">{{ __('Lab information') }}</flux:heading>
+                    <flux:heading size="lg" class="font-semibold">{{ __('Computer Lab Details') }}</flux:heading>
                 </div>
             </div>
 
             <div class="p-6">
                 <div class="grid gap-6 sm:grid-cols-2">
-                    <flux:select wire:model.live="hasComputerLab" :label="__('Lab information')" required>
+                    <flux:select wire:model.live="hasComputerLab" :label="__('Has Computer Lab?')" required>
                         <option value="">{{ __('Select') }}</option>
-                        <option value="1">{{ __('Lab information') }}</option>
-                        <option value="0">{{ __('Lab information') }}</option>
+                        <option value="1">{{ __('Yes, has a computer lab') }}</option>
+                        <option value="0">{{ __('No computer lab') }}</option>
                     </flux:select>
 
                     @if ($hasComputerLab === '1')
-                        <flux:select wire:model.live="labEquipmentType" :label="__('Lab information')" required>
+                        <flux:select wire:model.live="labEquipmentType" :label="__('Lab Equipment Type')" required>
                             <option value="">{{ __('Select') }}</option>
                             <option value="desktop">{{ __('Desktop only') }}</option>
                             <option value="laptop">{{ __('Laptop only') }}</option>
@@ -192,11 +192,11 @@
                 @if ($hasComputerLab === '1')
                     <div class="mt-6 grid gap-6 sm:grid-cols-2 rounded-xl border border-dashed border-cyan-200 bg-cyan-50/30 p-5 dark:border-cyan-900/30 dark:bg-cyan-900/10">
                         @if (in_array($labEquipmentType, ['desktop', 'both'], true))
-                            <flux:input wire:model="desktopCount" type="number" min="1" :label="__('Information')" :placeholder="__('Information')" required />
+                            <flux:input wire:model="desktopCount" type="number" min="1" :label="__('Desktop Count')" :placeholder="__('Enter desktop count')" required />
                         @endif
 
                         @if (in_array($labEquipmentType, ['laptop', 'both'], true))
-                            <flux:input wire:model="laptopCount" type="number" min="1" :label="__('Information')" :placeholder="__('Information')" required />
+                            <flux:input wire:model="laptopCount" type="number" min="1" :label="__('Laptop Count')" :placeholder="__('Enter laptop count')" required />
                         @endif
                     </div>
                 @endif
@@ -207,13 +207,13 @@
         <div class="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200 bg-white/80 p-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
             <div class="mx-auto flex w-full max-w-4xl items-center justify-between">
                 <div class="flex items-center">
-                    <flux:switch wire:model="isActive" :label="__('College information')" />
+                    <flux:switch wire:model="isActive" :label="__('Keep college active')" />
                 </div>
 
                 <div class="flex items-center gap-3">
                     <flux:button :href="route('colleges.manage')" wire:navigate class="hidden sm:flex">{{ __('Cancel') }}</flux:button>
                     <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm">
-                        {{ $editingId ? __('Information') : __('College information') }}
+                        {{ $editingId ? __('Update College') : __('Create College') }}
                     </flux:button>
                 </div>
             </div>

@@ -4,8 +4,8 @@
             <flux:icon.arrow-up-tray class="size-6" />
         </div>
         <div>
-            <flux:heading size="xl">{{ __('Teacher information') }}</flux:heading>
-            <flux:text class="mt-1">{{ __('Teacher information') }}</flux:text>
+            <flux:heading size="xl">{{ __('Teacher Data Import') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Teacher Data Import') }}</flux:text>
         </div>
     </div>
 
@@ -22,17 +22,17 @@
                     </div>
                     <div>
                         <flux:heading size="lg">{{ __('Select an option') }}</flux:heading>
-                        <flux:text class="mt-1">{{ __('Information') }}</flux:text>
+                        <flux:text class="mt-1">{{ __('Select an Excel or CSV file containing teacher records.') }}</flux:text>
                     </div>
                     <flux:input id="teacher-import-file" type="file" wire:model="file" accept=".csv,.xlsx,.xls" />
-                    <flux:text wire:loading wire:target="file" class="text-indigo-600 dark:text-indigo-300">{{ __('Information') }}</flux:text>
+                    <flux:text wire:loading wire:target="file" class="text-indigo-600 dark:text-indigo-300">{{ __('Select an Excel or CSV file containing teacher records.') }}</flux:text>
                     <flux:error name="file" />
                 </div>
             </flux:card>
 
             <flux:button type="submit" variant="primary" icon="arrow-up-tray" class="w-full" wire:loading.attr="disabled" wire:target="import">
-                <span wire:loading.remove wire:target="import">{{ __('Information') }}</span>
-                <span wire:loading wire:target="import">{{ __('Information') }}</span>
+                <span wire:loading.remove wire:target="import">{{ __('Select an Excel or CSV file containing teacher records.') }}</span>
+                <span wire:loading wire:target="import">{{ __('Select an Excel or CSV file containing teacher records.') }}</span>
             </flux:button>
         </form>
     </div>
