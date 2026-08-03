@@ -2,7 +2,7 @@
     <!-- Page Header -->
     <div class="flex flex-col gap-2">
         <flux:heading size="xl" class="font-bold tracking-tight">{{ __('Training Catalog') }}</flux:heading>
-        <flux:subheading>{{ __('Training information') }}</flux:subheading>
+        <flux:subheading>{{ __('Manage training institutes, course names, durations, and active catalog items.') }}</flux:subheading>
     </div>
 
     <!-- Forms Section (Grid) -->
@@ -21,7 +21,7 @@
                 <flux:input
                     wire:model="instituteName"
                     :label="__('Institute Name')"
-                    :placeholder="__('Information')"
+                    :placeholder="__('Enter name')"
                     required
                 />
 
@@ -42,7 +42,7 @@
 
             <!-- Institutes List -->
             <div class="mt-2 divide-y divide-zinc-100 rounded-lg border border-zinc-200 bg-zinc-50/50 px-4 dark:divide-zinc-800 dark:border-zinc-700/50 dark:bg-zinc-900/50">
-                <flux:heading size="sm" class="py-3 text-zinc-500">{{ __('Information') }}</flux:heading>
+                <flux:heading size="sm" class="py-3 text-zinc-500">{{ __('Search training institutes and courses') }}</flux:heading>
                 @forelse ($institutes as $institute)
                     <div wire:key="institute-{{ $institute->id }}" class="flex items-center justify-between gap-4 py-3">
                         <div class="min-w-0 flex-1">
@@ -52,7 +52,7 @@
                                     <flux:badge size="sm" color="amber">{{ __('Inactive') }}</flux:badge>
                                 @endif
                             </div>
-                            <flux:text class="mt-0.5 text-xs">{{ $institute->training_types_count }}items training types added</flux:text>
+                            <flux:text class="mt-0.5 text-xs">{{ trans_choice(':count training type added|:count training types added', $institute->training_types_count) }}</flux:text>
                         </div>
                         <div class="flex shrink-0 gap-1">
                             <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="editInstitute({{ $institute->id }})" :title="__('Edit')" />
@@ -60,7 +60,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="py-6 text-center text-sm text-zinc-500">{{ __('Information') }}</div>
+                    <div class="py-6 text-center text-sm text-zinc-500">{{ __('Search training institutes and courses') }}</div>
                 @endforelse
             </div>
         </flux:card>
@@ -76,18 +76,18 @@
 
             <form wire:submit="saveTrainingType" class="grid gap-5 sm:grid-cols-2">
                 <div class="sm:col-span-2">
-                    <flux:select wire:model="trainingInstituteId" :label="__('Select Institute')" :placeholder="__('Information')" required>
+                    <flux:select wire:model="trainingInstituteId" :label="__('Select Institute')" :placeholder="__('Enter name')" required>
                         @foreach ($institutes as $institute)
-                            <option value="{{ $institute->id }}">{{ $institute->name }}{{ $institute->is_active ? '' : __('Information') }}</option>
+                            <option value="{{ $institute->id }}">{{ $institute->name }}{{ $institute->is_active ? '' : __(' (inactive)') }}</option>
                         @endforeach
                     </flux:select>
                 </div>
 
                 <div class="sm:col-span-2">
-                    <flux:input wire:model="trainingTypeName" :label="__('Training Name')" :placeholder="__('Information')" required />
+                    <flux:input wire:model="trainingTypeName" :label="__('Training Name')" :placeholder="__('Enter name')" required />
                 </div>
 
-                <flux:input wire:model="durationValue" type="number" min="1" max="999" :label="__('Duration (number)')" :placeholder="__('Information')" required />
+                <flux:input wire:model="durationValue" type="number" min="1" max="999" :label="__('Duration (number)')" :placeholder="__('Enter name')" required />
                 <flux:select wire:model="durationUnit" :label="__('Duration Unit')">
                     <option value="hours">{{ __('Hours') }}</option>
                     <option value="days">{{ __('Days') }}</option>
@@ -124,12 +124,12 @@
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <flux:heading size="lg">{{ __('Training Type List') }}</flux:heading>
-                    <flux:subheading class="mt-1">{{ __('Training information') }}</flux:subheading>
+                    <flux:subheading class="mt-1">{{ __('Browse and update available training types.') }}</flux:subheading>
                 </div>
                 <flux:input
                     wire:model.live.debounce.300ms="search"
                     icon="magnifying-glass"
-                    :placeholder="__('Training information')"
+                    :placeholder="__('Search training types')"
                     class="w-full sm:max-w-xs"
                 />
             </div>
@@ -197,8 +197,8 @@
                             <flux:table.cell colspan="6">
                                 <div class="flex flex-col items-center justify-center py-12 text-zinc-500 dark:text-zinc-400">
                                     <flux:icon.document-magnifying-glass class="h-10 w-10 mb-3 text-zinc-400" />
-                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">{{ __('Training information') }}</p>
-                                    <p class="text-sm mt-1">{{ __('Training information') }}</p>
+                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">{{ __('No training types found') }}</p>
+                                    <p class="text-sm mt-1">{{ __('Create a training type or adjust the search term.') }}</p>
                                 </div>
                             </flux:table.cell>
                         </flux:table.row>
@@ -219,16 +219,16 @@
     <flux:modal name="confirm-training-catalog-deletion" wire:model="showDeleteModal" @close="cancelDelete" focusable class="max-w-md">
         <div class="space-y-6">
             <div>
-                <flux:heading size="lg">{{ $deletingType === 'institute' ? __('Delete information') : __('Training information') }}</flux:heading>
+                <flux:heading size="lg">{{ $deletingType === 'institute' ? __('Delete Training Institute') : __('Delete Training Type') }}</flux:heading>
                 <flux:text class="mt-2">
-                    <span class="font-semibold text-zinc-900 dark:text-white">{{ $deletingName }}</span>{{ __('Delete information') }}</flux:text>
+                    <span class="font-semibold text-zinc-900 dark:text-white">{{ $deletingName }}</span>{{ __(' will be permanently removed from the catalog.') }}</flux:text>
             </div>
 
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button type="button" wire:click="cancelDelete">{{ __('Cancel') }}</flux:button></flux:modal.close>
                 <flux:button variant="danger" wire:click="deleteConfirmed" wire:loading.attr="disabled" wire:target="deleteConfirmed">
-                    <span wire:loading.remove wire:target="deleteConfirmed">{{ __('Delete information') }}</span>
-                    <span wire:loading wire:target="deleteConfirmed">{{ __('Delete information') }}</span>
+                    <span wire:loading.remove wire:target="deleteConfirmed">{{ __('Delete training item') }}</span>
+                    <span wire:loading wire:target="deleteConfirmed">{{ __('Delete training item') }}</span>
                 </flux:button>
             </div>
         </div>

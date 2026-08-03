@@ -7,14 +7,14 @@
             <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <flux:heading size="xl" class="font-bold tracking-tight">{{ __('College Management') }}</flux:heading>
-                    <flux:subheading class="mt-1">{{ __('Information') }}</flux:subheading>
+                    <flux:subheading class="mt-1">{{ __('All Colleges') }}</flux:subheading>
                 </div>
 
                 <div class="flex-shrink-0">
                     @if(auth()->user()->isAdmin())
-                        <flux:button variant="primary" icon="plus" :href="route('colleges.create')" wire:navigate class="shadow-sm">{{ __('College information') }}</flux:button>
+                        <flux:button variant="primary" icon="plus" :href="route('colleges.create')" wire:navigate class="shadow-sm">{{ __('Add College') }}</flux:button>
                     @elseif(auth()->user()->college_id)
-                        <flux:button variant="primary" icon="pencil-square" :href="route('colleges.edit', auth()->user()->college_id)" wire:navigate class="shadow-sm">{{ __('Profile information') }}</flux:button>
+                        <flux:button variant="primary" icon="pencil-square" :href="route('colleges.edit', auth()->user()->college_id)" wire:navigate class="shadow-sm">{{ __('Edit College Profile') }}</flux:button>
                     @endif
                 </div>
             </div>
@@ -24,52 +24,52 @@
                 <flux:input
                     wire:model.live.debounce.300ms="search"
                     icon="magnifying-glass"
-                    :label="__('College information')"
-                    :placeholder="__('Information')"
+                    :label="__('Search Colleges')"
+                    :placeholder="__('Search by college name, code, or principal')"
                     class="w-full shadow-sm"
                 />
 
-                <flux:select wire:model.live="collegeTypeFilter" :label="__('College information')">
-                    <flux:select.option value="">{{ __('Information') }}</flux:select.option>
+                <flux:select wire:model.live="collegeTypeFilter" :label="__('College Type')">
+                    <flux:select.option value="">{{ __('All Colleges') }}</flux:select.option>
                     <flux:select.option value="government">{{ __('Government') }}</flux:select.option>
                     <flux:select.option value="non_government">{{ __('Non-government') }}</flux:select.option>
                     <flux:select.option value="other">{{ __('Other') }}</flux:select.option>
                 </flux:select>
 
-                <flux:select wire:model.live="approvalStatusFilter" :label="__('Approve')">
-                    <flux:select.option value="">{{ __('Information') }}</flux:select.option>
-                    <flux:select.option value="approved">{{ __('Approval information') }}</flux:select.option>
-                    <flux:select.option value="pending">{{ __('Information') }}</flux:select.option>
-                    <flux:select.option value="rejected">{{ __('Information') }}</flux:select.option>
+                <flux:select wire:model.live="approvalStatusFilter" :label="__('Approval Status')">
+                    <flux:select.option value="">{{ __('All Colleges') }}</flux:select.option>
+                    <flux:select.option value="approved">{{ __('Approved') }}</flux:select.option>
+                    <flux:select.option value="pending">{{ __('Pending') }}</flux:select.option>
+                    <flux:select.option value="rejected">{{ __('Rejected') }}</flux:select.option>
                 </flux:select>
 
                 <div class="flex flex-wrap items-center gap-2">
                     @if(auth()->user()->isAdmin())
                         <flux:button wire:click="toggleTrashed" :icon="$showTrashed ? 'building-office-2' : 'trash'">
-                            {{ $showTrashed ? __('College information') : __('Information') }}
+                            {{ $showTrashed ? __('Show Active Colleges') : __('View Trash') }}
                         </flux:button>
                     @endif
-                    <flux:badge color="indigo" size="sm" class="font-medium shadow-sm">Total {{ $colleges->total() }}items College</flux:badge>
+                    <flux:badge color="indigo" size="sm" class="font-medium shadow-sm">{{ trans_choice(':count college found|:count colleges found', $colleges->total()) }}</flux:badge>
                 </div>
             </div>
 
             @if(trim($search) !== '' || $collegeTypeFilter !== '' || $approvalStatusFilter !== '')
                 <div class="mt-3 flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-indigo-50/70 px-3 py-2 dark:border-indigo-900 dark:bg-indigo-950/30">
-                    <flux:text class="text-xs text-indigo-700 dark:text-indigo-300">{{ __('Information') }}</flux:text>
-                    <flux:button size="sm" variant="ghost" wire:click="clearFilters">{{ __('Delete information') }}</flux:button>
+                    <flux:text class="text-xs text-indigo-700 dark:text-indigo-300">{{ __('Showing colleges that match the active filters.') }}</flux:text>
+                    <flux:button size="sm" variant="ghost" wire:click="clearFilters">{{ __('Clear Filters') }}</flux:button>
                 </div>
             @endif
         </div>
 
         @if(auth()->user()->isAdmin() && count($selectedCollegeIds) > 0)
             <div class="flex flex-col gap-3 border-b border-indigo-100 bg-indigo-50 px-4 py-3 dark:border-indigo-900 dark:bg-indigo-950/40 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <flux:text class="font-semibold text-indigo-900 dark:text-indigo-200">{{ count($selectedCollegeIds) }}items College selected</flux:text>
+                <flux:text class="font-semibold text-indigo-900 dark:text-indigo-200">{{ trans_choice(':count college selected|:count colleges selected', count($selectedCollegeIds)) }}</flux:text>
                 <div class="flex flex-wrap gap-2">
                     @if($showTrashed)
-                        <flux:button size="sm" variant="primary" wire:click="restoreSelected">{{ __('College information') }}</flux:button>
-                        <flux:button size="sm" variant="danger" wire:click="confirmBulkPermanentDeletion">{{ __('Delete information') }}</flux:button>
+                        <flux:button size="sm" variant="primary" wire:click="restoreSelected">{{ __('Restore Selected') }}</flux:button>
+                        <flux:button size="sm" variant="danger" wire:click="confirmBulkPermanentDeletion">{{ __('Delete selected') }}</flux:button>
                     @else
-                        <flux:button size="sm" variant="danger" wire:click="confirmBulkDeletion">{{ __('College information') }}</flux:button>
+                        <flux:button size="sm" variant="danger" wire:click="confirmBulkDeletion">{{ __('Move Selected to Trash') }}</flux:button>
                     @endif
                 </div>
             </div>
@@ -81,13 +81,13 @@
                 <flux:table.columns>
                     @if(auth()->user()->isAdmin())
                         <flux:table.column class="w-12 text-center">
-                            <input type="checkbox" wire:click="toggleSelectAllOnPage" @checked($selectAllOnPage) :aria-label="__('College information')" class="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500">
+                            <input type="checkbox" wire:click="toggleSelectAllOnPage" @checked($selectAllOnPage) :aria-label="__('College')" class="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500">
                         </flux:table.column>
                     @endif
                     <flux:table.column>{{ __('College') }}</flux:table.column>
-                    <flux:table.column>{{ __('Information') }}</flux:table.column>
-                    <flux:table.column>{{ __('Information') }}</flux:table.column>
-                    <flux:table.column>{{ __('Lab information') }}</flux:table.column>
+                    <flux:table.column>{{ __('Location') }}</flux:table.column>
+                    <flux:table.column>{{ __('Type') }}</flux:table.column>
+                    <flux:table.column>{{ __('Computer Lab') }}</flux:table.column>
                     <flux:table.column>{{ __('Approve') }}</flux:table.column>
                     <flux:table.column>{{ __('Teacher') }}</flux:table.column>
                     <flux:table.column class="text-right">{{ __('Action') }}</flux:table.column>
@@ -111,7 +111,7 @@
                                     </div>
                                     <div class="flex flex-col">
                                         <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $college->name }}</span>
-                                        <span class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ __('Information') }}<span class="font-mono font-medium">{{ $college->code ?: 'N/A' }}</span></span>
+                                        <span class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ __('Code: ') }}<span class="font-mono font-medium">{{ $college->code ?: 'N/A' }}</span></span>
                                     </div>
                                 </div>
                             </flux:table.cell>
@@ -157,9 +157,9 @@
                                     default => 'amber'
                                 }">
                                     {{ match($approvalStatus) {
-                                        \App\Enums\ApprovalStatus::Approved => __('Approval information'),
-                                        \App\Enums\ApprovalStatus::Rejected => __('Information'),
-                                        default => __('Information')
+                                        \App\Enums\ApprovalStatus::Approved => __('Approved'),
+                                        \App\Enums\ApprovalStatus::Rejected => __('Rejected'),
+                                        default => __('Pending')
                                     } }}
                                 </flux:badge>
                             </flux:table.cell>
@@ -176,8 +176,8 @@
                             <flux:table.cell class="whitespace-nowrap">
                                 <div class="flex items-center justify-end gap-1">
                                     @if($showTrashed)
-                                        <flux:button variant="ghost" size="sm" icon="arrow-path" wire:click="restore({{ $college->id }})" :title="__('Information')" />
-                                        <flux:button variant="danger" size="sm" icon="trash" wire:click="confirmPermanentDeletion({{ $college->id }})" :title="__('Delete information')" />
+                                        <flux:button variant="ghost" size="sm" icon="arrow-path" wire:click="restore({{ $college->id }})"  :title="__('Restore')" />
+                                        <flux:button variant="danger" size="sm" icon="trash" wire:click="confirmPermanentDeletion({{ $college->id }})" :title="__('Delete')" />
                                     @else
                                         <flux:button variant="ghost" size="sm" icon="eye" :href="route('colleges.show', $college)" wire:navigate :title="__('View')" class="text-zinc-500 hover:text-indigo-600" />
                                         <flux:button variant="ghost" size="sm" icon="pencil-square" :href="route('colleges.edit', $college)" wire:navigate :title="__('Edit')" class="text-zinc-500 hover:text-indigo-600" />
@@ -187,10 +187,10 @@
                                             <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" class="text-zinc-500" />
                                             <flux:menu>
                                                 @if($college->approval_status === \App\Enums\ApprovalStatus::Pending)
-                                                    <flux:menu.item icon="check-badge" wire:click="approveCollege({{ $college->id }})">{{ __('Information') }}</flux:menu.item>
+                                                    <flux:menu.item icon="check-badge" wire:click="approveCollege({{ $college->id }})">{{ __('Approve College') }}</flux:menu.item>
                                                     <flux:menu.separator />
                                                 @endif
-                                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDeletion({{ $college->id }})">{{ __('Delete information') }}</flux:menu.item>
+                                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDeletion({{ $college->id }})">{{ __('Delete selected') }}</flux:menu.item>
                                             </flux:menu>
                                         </flux:dropdown>
                                         @endif
@@ -205,8 +205,8 @@
                                     <div class="rounded-full bg-zinc-100 p-4 dark:bg-zinc-800/50 mb-3">
                                         <flux:icon.building-library class="h-8 w-8 text-zinc-400" />
                                     </div>
-                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">{{ __('College information') }}</p>
-                                    <p class="text-sm mt-1">{{ __('College information') }}</p>
+                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">{{ __('No colleges found') }}</p>
+                                    <p class="text-sm mt-1">{{ __('Create a college or adjust your search filters.') }}</p>
                                 </div>
                             </flux:table.cell>
                         </flux:table.row>
@@ -227,17 +227,17 @@
     <flux:modal name="confirm-college-deletion" focusable class="max-w-md">
         <div class="space-y-6">
             <div>
-                <flux:heading size="lg">{{ $permanentDeletion ? __('College information') : __('College information') }}</flux:heading>
+                <flux:heading size="lg">{{ $permanentDeletion ? __('Permanently Delete College') : __('Move College to Trash') }}</flux:heading>
                 <flux:text class="mt-2">
                     <span class="font-semibold text-zinc-900 dark:text-white">{{ $deletingCollegeName }}</span>
-                    {{ $permanentDeletion ? __('Delete information') : __('Information') }}
+                    {{ $permanentDeletion ? __('This college will be permanently deleted.') : __('This college will be moved to trash.') }}
                 </flux:text>
             </div>
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button wire:click="cancelDeletion">{{ __('Cancel') }}</flux:button></flux:modal.close>
                 <flux:button variant="danger" wire:click="deleteConfirmed" wire:loading.attr="disabled" wire:target="deleteConfirmed">
-                    <span wire:loading.remove wire:target="deleteConfirmed">{{ $permanentDeletion ? __('Delete information') : __('Information') }}</span>
-                    <span wire:loading wire:target="deleteConfirmed">{{ __('Delete information') }}</span>
+                    <span wire:loading.remove wire:target="deleteConfirmed">{{ $permanentDeletion ? __('This college will be permanently deleted.') : __('This college will be moved to trash.') }}</span>
+                    <span wire:loading wire:target="deleteConfirmed">{{ __('Deleting...') }}</span>
                 </flux:button>
             </div>
         </div>

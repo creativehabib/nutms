@@ -11,16 +11,16 @@
         <div class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/80 p-4 sm:p-5">
             <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ $isAdmin ? __('Teacher information') : __('Teacher information') }}</h2>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ $isAdmin ? __('Teacher information') : __('Teacher information') }}</p>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ $isAdmin ? __('Teacher Management') : __('My College Teachers') }}</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ $isAdmin ? __('Search, filter, approve, import, and manage teacher profiles.') : __('Review and manage teacher profiles for your college.') }}</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    <flux:button variant="primary" icon="plus" :href="route('teachers.create')" wire:navigate>{{ __('Teacher information') }}</flux:button>
+                    <flux:button variant="primary" icon="plus" :href="route('teachers.create')" wire:navigate>{{ __('Add Teacher') }}</flux:button>
                     <span class="inline-flex w-fit items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400 shadow-sm">
                         Total {{ $teachers->total() }} teachers
                     </span>
                     @if($isAdmin)<span class="inline-flex w-fit items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm">
-                        Total {{ $collegeCount }}items College
+                        {{ trans_choice(':count college|:count colleges', $collegeCount) }}
                     </span>@endif
                 </div>
             </div>
@@ -29,14 +29,14 @@
 
                 <!-- Search input -->
                 <div>
-                    <label for="teacher-search" class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('Teacher information') }}</label>
+                    <label for="teacher-search" class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('Teacher') }}</label>
                     <div class="relative">
                         <svg class="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"></path></svg>
                         <input
                             id="teacher-search"
                             type="search"
                             wire:model.live.debounce.300ms="search"
-                            :placeholder="__('College information')"
+                             :placeholder="__('Search by name, TMIS ID, email, or college')"
                             class="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 py-2.5 pl-10 pr-3 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         >
                     </div>
@@ -45,9 +45,9 @@
                 <!-- Filter options -->
                     <!-- Subject filter -->
                     <div>
-                        <label for="subject-filter" class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('Information') }}</label>
+                        <label for="subject-filter" class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('Subject') }}</label>
                         <select id="subject-filter" wire:model.live="subjectFilter" class="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                            <option value="">{{ __('Information') }}</option>
+                            <option value="">{{ __('All Subjects') }}</option>
                             @foreach($subjects as $subject)
                                 <option value="{{ $subject }}">{{ $subject }}</option>
                             @endforeach
@@ -59,7 +59,7 @@
                     <div>
                         <label for="college-filter" class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('College Code') }}</label>
                         <select id="college-filter" wire:model.live="collegeCodeFilter" class="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                            <option value="">{{ __('College information') }}</option>
+                            <option value="">{{ __('All College Codes') }}</option>
                             @foreach($collegeCodes as $code)
                                 <option value="{{ $code }}">{{ $code }}</option>
                             @endforeach
@@ -74,20 +74,20 @@
                         wire:click="toggleTrashed"
                         class="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm transition hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 lg:w-auto"
                     >
-                        {{ $showTrashed ? __('Information') : __('Information') }}
+                        {{ $showTrashed ? __('Show Active Teachers') : __('View Trash') }}
                     </button>
                     <button
                         @click="showImportModal = true"
                         class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-transparent bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 lg:w-auto"
                     >
-                        <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14"></path></svg>{{ __('Information') }}</button>
+                        <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14"></path></svg>{{ __('Import Teachers') }}</button>
                 </div>@endif
             </div>
 
             @if(trim($search) !== '' || $subjectFilter !== '' || $collegeCodeFilter !== '')
                 <div class="mt-3 flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-indigo-50/70 px-3 py-2 dark:border-indigo-900 dark:bg-indigo-950/30">
-                    <p class="text-xs font-medium text-indigo-700 dark:text-indigo-300">{{ __('Information') }}</p>
-                    <button type="button" wire:click="clearFilters" class="shrink-0 text-xs font-semibold text-indigo-700 underline decoration-indigo-300 underline-offset-4 transition hover:text-indigo-900 dark:text-indigo-300 dark:hover:text-indigo-100">{{ __('Delete information') }}</button>
+                    <p class="text-xs font-medium text-indigo-700 dark:text-indigo-300">{{ __('Showing results that match the active search or filters.') }}</p>
+                    <button type="button" wire:click="clearFilters" class="shrink-0 text-xs font-semibold text-indigo-700 underline decoration-indigo-300 underline-offset-4 transition hover:text-indigo-900 dark:text-indigo-300 dark:hover:text-indigo-100">{{ __('Clear Filters') }}</button>
                 </div>
             @endif
         </div>
@@ -100,11 +100,11 @@
                 </p>
                 @if ($showTrashed)
                     <div class="flex flex-col gap-2 sm:flex-row">
-                        <flux:button variant="primary" size="sm" wire:click="restoreSelectedTeachers">{{ __('Select an option') }}</flux:button>
-                        <flux:button variant="danger" size="sm" wire:click="confirmBulkPermanentDeletion">{{ __('Delete information') }}</flux:button>
+                        <flux:button variant="primary" size="sm" wire:click="restoreSelectedTeachers">{{ __('Restore Selected') }}</flux:button>
+                        <flux:button variant="danger" size="sm" wire:click="confirmBulkPermanentDeletion">{{ __('Delete') }}</flux:button>
                     </div>
                 @else
-                    <flux:button variant="danger" size="sm" wire:click="confirmBulkTeacherDeletion">{{ __('Delete information') }}</flux:button>
+                    <flux:button variant="danger" size="sm" wire:click="confirmBulkTeacherDeletion">{{ __('Delete') }}</flux:button>
                 @endif
             </div>
         @endif
@@ -119,17 +119,17 @@
                             wire:click="toggleSelectAllOnPage"
                             data-teacher-checkbox
                             class="size-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
-                            :aria-label="__('Teacher information')"
+                            :aria-label="__('Teacher')"
                             @checked($selectAllOnPage)
                         >
                     </th>@endif
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">TMIS ID</th>
                     @if($isAdmin)<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('College Code') }}</th>@endif
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('Teacher information') }}</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('Information') }}</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('Information') }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('Teacher Name') }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('Designation & Subject') }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('Contact') }}</th>
                     <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">{{ __('Approve') }}</th>
-                    @can('teachers.assign-role')<th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">{{ __('Information') }}</th>@endcan
+                    @can('teachers.assign-role')<th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">{{ __('Role') }}</th>@endcan
                     <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">{{ __('Action') }}</th>
                 </tr>
                 </thead>
@@ -181,11 +181,11 @@
                                         'text-red-600 dark:text-red-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Rejected,
                                         'text-amber-600 dark:text-amber-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Pending,
                                     ])>
-                                        {{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => __('Approval information'), \App\Enums\ApprovalStatus::Rejected => __('Information'), default => __('Information') } }}
+                                        {{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => __('Approved'), \App\Enums\ApprovalStatus::Rejected => __('Rejected'), default => __('Pending') } }}
                                     </span>
                                 </div>
                             @else
-                                <flux:badge :color="match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'green', \App\Enums\ApprovalStatus::Rejected => 'red', default => 'amber' }">{{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => __('Approval information'), \App\Enums\ApprovalStatus::Rejected => __('Information'), default => __('Information') } }}</flux:badge>
+                                <flux:badge :color="match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'green', \App\Enums\ApprovalStatus::Rejected => 'red', default => 'amber' }">{{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => __('Approved'), \App\Enums\ApprovalStatus::Rejected => __('Rejected'), default => __('Pending') } }}</flux:badge>
                             @endif
                         </td>
                         @can('teachers.assign-role')
@@ -193,10 +193,10 @@
                                 @if($teacher->user)
                                     <flux:select size="sm" wire:change="changeTeacherRole({{ $teacher->id }}, $event.target.value)" aria-label="{{ $teacher->display_name }}change role">
                                         <option value="teacher" @selected($teacher->user->role === \App\Enums\UserRole::Teacher)>{{ __('Teacher') }}</option>
-                                        <option value="principal" @selected($teacher->user->role === \App\Enums\UserRole::Principal)>{{ __('College information') }}</option>
+                                        <option value="principal" @selected($teacher->user->role === \App\Enums\UserRole::Principal)>{{ __('College Principal') }}</option>
                                     </flux:select>
                                 @else
-                                    <flux:badge color="zinc">{{ __('Information') }}</flux:badge>
+                                    <flux:badge color="zinc">{{ __('No linked account') }}</flux:badge>
                                 @endif
                             </td>
                         @endcan
@@ -209,8 +209,8 @@
                                 @can('teachers.update')<flux:button size="sm" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate>{{ __('Edit') }}</flux:button>@endcan
                                 @can('teachers.approve')
                                 @if(! $isAdmin && $teacher->approval_status === \App\Enums\ApprovalStatus::Pending)
-                                    <flux:button size="sm" variant="primary" wire:click="approveTeacher({{ $teacher->id }})">{{ __('Information') }}</flux:button>
-                                    <flux:button size="sm" variant="danger" wire:click="rejectTeacher({{ $teacher->id }})">{{ __('Information') }}</flux:button>
+                                    <flux:button size="sm" variant="primary" wire:click="approveTeacher({{ $teacher->id }})">{{ __('Approve') }}</flux:button>
+                                    <flux:button size="sm" variant="danger" wire:click="rejectTeacher({{ $teacher->id }})">{{ __('Reject') }}</flux:button>
                                 @endif
                                 @endcan
                                 @can('teachers.delete')<button wire:click="confirmTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200 hover:text-red-900 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900">Delete</button>@endcan
@@ -219,7 +219,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $isAdmin ? 9 : 6 }}" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">{{ __('Information') }}</td>
+                        <td colspan="{{ $isAdmin ? 9 : 6 }}" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">{{ __('No teachers found.') }}</td>
                     </tr>
                 @endforelse
                 </tbody>
@@ -268,7 +268,7 @@
                     class="relative w-full max-w-xl transform overflow-hidden rounded-2xl border border-white/60 bg-white dark:bg-slate-900 text-left shadow-2xl transition-all"
                 >
                     <!-- Close Button -->
-                    <button type="button" @click="showImportModal = false" class="absolute right-4 top-4 z-10 inline-flex size-9 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 shadow-sm transition hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300" :aria-label="__('Information')">
+                    <button type="button" @click="showImportModal = false" class="absolute right-4 top-4 z-10 inline-flex size-9 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 shadow-sm transition hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300"  :aria-label="__('Close modal')">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
 
@@ -284,7 +284,7 @@
             <div class="space-y-6">
                 <div>
                     <flux:heading size="lg">
-                        {{ $permanentDeletion ? __('Teacher information') : __('Teacher information') }}
+                        {{ $permanentDeletion ? __('Permanently Delete Teacher') : __('Move Teacher to Trash') }}
                     </flux:heading>
                     <flux:subheading class="mt-2">
                         @if ($permanentDeletion)
@@ -301,8 +301,8 @@
                     </flux:modal.close>
 
                     <flux:button variant="danger" wire:click="deleteTeacher" wire:loading.attr="disabled" wire:target="deleteTeacher" class="w-full sm:w-auto">
-                        <span wire:loading.remove wire:target="deleteTeacher">{{ $permanentDeletion ? __('Delete information') : __('Information') }}</span>
-                        <span wire:loading wire:target="deleteTeacher">{{ __('Delete information') }}</span>
+                        <span wire:loading.remove wire:target="deleteTeacher">{{ $permanentDeletion ? __('Delete Permanently') : __('Move to Trash') }}</span>
+                        <span wire:loading wire:target="deleteTeacher">{{ __('Delete') }}</span>
                     </flux:button>
                 </div>
             </div>
@@ -339,14 +339,14 @@
 
                     <div class="relative border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-4 sm:px-7 sm:py-5">
                         <!-- Close Button -->
-                        <button type="button" @click="showEditModal = false" class="absolute right-4 top-4 inline-flex size-9 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 shadow-sm transition hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" :aria-label="__('Information')">
+                        <button type="button" @click="showEditModal = false" class="absolute right-4 top-4 inline-flex size-9 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 shadow-sm transition hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"  :aria-label="__('Close modal')">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
 
                         <div class="pr-12">
                             <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600">Teacher profile</p>
-                            <h3 class="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100 sm:text-2xl" id="modal-title">{{ __('Teacher information') }}</h3>
-                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ __('Information') }}</p>
+                            <h3 class="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100 sm:text-2xl" id="modal-title">{{ __('Edit Teacher Profile') }}</h3>
+                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ __('Update teacher, college, training, and contact details.') }}</p>
                         </div>
                     </div>
 
@@ -359,15 +359,15 @@
                                     <div class="flex items-start gap-3">
                                         <svg class="mt-0.5 size-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.3 3.7 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"></path></svg>
                                         <div>
-                                            <p class="text-sm font-semibold">{{ __('Information') }}</p>
-                                            <p class="mt-0.5 text-xs text-red-700 dark:text-red-300">{{ __('Information') }}</p>
+                                            <p class="text-sm font-semibold">{{ __('Unable to update teacher') }}</p>
+                                            <p class="mt-0.5 text-xs text-red-700 dark:text-red-300">{{ __('Please fix the highlighted fields and try again.') }}</p>
                                         </div>
                                     </div>
                                 </div>
                             @endif
 
                             <fieldset class="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
-                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('College information') }}</legend>
+                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('College') }}</legend>
                                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('College Code') }}</label>
@@ -388,20 +388,20 @@
                             </fieldset>
 
                             <fieldset class="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
-                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('Teacher information') }}</legend>
+                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('Teacher') }}</legend>
                                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     <div class="lg:col-span-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Teacher information') }}</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Teacher') }}</label>
                                         <input type="text" wire:model="editForm.name" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                                         @error('editForm.name') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Information') }}</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Designation') }}</label>
                                         <select wire:model="editForm.designation" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">{{ __('Select') }}</option>@foreach($designations as $designation)<option value="{{ $designation }}">{{ $designation }}</option>@endforeach</select>
                                         @error('editForm.designation') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Information') }}</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Subject') }}</label>
                                         <select wire:model="editForm.subject" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">{{ __('Select') }}</option>@foreach($subjects as $subject)<option value="{{ $subject }}">{{ $subject }}</option>@endforeach</select>
                                         @error('editForm.subject') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                     </div>
@@ -420,34 +420,34 @@
 
                             <fieldset class="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
                                 <div class="flex items-center justify-between gap-3">
-                                    <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('Training information') }}</legend>
-                                    <flux:button type="button" size="sm" wire:click="addTrainingEntry">{{ __('Training information') }}</flux:button>
+                                    <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('Training History') }}</legend>
+                                    <flux:button type="button" size="sm" wire:click="addTrainingEntry">{{ __('Add Training') }}</flux:button>
                                 </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Training information') }}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Keep ICT and professional development records current.') }}</p>
                                 <div class="grid gap-3">
                                     @foreach ($trainingEntries as $index => $entry)
                                         <div wire:key="teacher-training-{{ $index }}" class="grid gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700 sm:grid-cols-2 lg:grid-cols-4">
-                                            <div><label class="block text-sm font-medium">{{ __('Training information') }}</label><select wire:model.live="trainingEntries.{{ $index }}.kind" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="catalog">{{ __('Training information') }}</option><option value="other">{{ __('Training information') }}</option></select></div>
-                                            <div><label class="block text-sm font-medium">{{ __('Institute') }}</label><select wire:model.live="trainingEntries.{{ $index }}.training_institute_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="">{{ $entry['kind'] === 'other' ? __('Information') : __('Select') }}</option>@foreach ($trainingInstitutes as $institute)<option value="{{ $institute->id }}">{{ $institute->name }}</option>@endforeach</select></div>
+                                            <div><label class="block text-sm font-medium">{{ __('Training Source') }}</label><select wire:model.live="trainingEntries.{{ $index }}.kind" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="catalog">{{ __('Catalog Training') }}</option><option value="other">{{ __('Custom Training') }}</option></select></div>
+                                            <div><label class="block text-sm font-medium">{{ __('Institute') }}</label><select wire:model.live="trainingEntries.{{ $index }}.training_institute_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="">{{ $entry['kind'] === 'other' ? __('No institute selected') : __('Select') }}</option>@foreach ($trainingInstitutes as $institute)<option value="{{ $institute->id }}">{{ $institute->name }}</option>@endforeach</select></div>
                                             @if ($entry['kind'] === 'catalog')
                                                 <div><label class="block text-sm font-medium">{{ __('Training Type') }}</label><select wire:model="trainingEntries.{{ $index }}.training_type_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="">{{ __('Select') }}</option>@foreach ($trainingTypes->where('training_institute_id', (int) $entry['training_institute_id']) as $trainingType)<option value="{{ $trainingType->id }}">{{ $trainingType->name }} — {{ $trainingType->duration_value }} {{ ['hours' => __('Hours'), 'days' => __('Days'), 'weeks' => __('Weeks'), 'months' => __('Months')][$trainingType->duration_unit] ?? '' }}</option>@endforeach</select>@error("trainingEntries.$index.training_type_id")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
                                             @else
-                                                <div><label class="block text-sm font-medium">{{ __('Training information') }}</label><input type="text" wire:model="trainingEntries.{{ $index }}.name" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900">@error("trainingEntries.$index.name")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
-                                                @if (blank($entry['training_institute_id']))<div><label class="block text-sm font-medium">{{ __('Information') }}</label><input type="text" wire:model="trainingEntries.{{ $index }}.institute_name" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"></div>@endif
-                                                <div class="grid grid-cols-2 gap-2"><div><label class="block text-sm font-medium">{{ __('Duration') }}</label><input type="number" min="1" wire:model="trainingEntries.{{ $index }}.duration_value" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"></div><div><label class="block text-sm font-medium">{{ __('Information') }}</label><select wire:model="trainingEntries.{{ $index }}.duration_unit" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="hours">{{ __('Hours') }}</option><option value="days">{{ __('Days') }}</option><option value="weeks">{{ __('Weeks') }}</option><option value="months">{{ __('Months') }}</option></select></div></div>
+                                                <div><label class="block text-sm font-medium">{{ __('Training Name') }}</label><input type="text" wire:model="trainingEntries.{{ $index }}.name" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900">@error("trainingEntries.$index.name")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
+                                                @if (blank($entry['training_institute_id']))<div><label class="block text-sm font-medium">{{ __('Institute Name') }}</label><input type="text" wire:model="trainingEntries.{{ $index }}.institute_name" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"></div>@endif
+                                                <div class="grid grid-cols-2 gap-2"><div><label class="block text-sm font-medium">{{ __('Duration') }}</label><input type="number" min="1" wire:model="trainingEntries.{{ $index }}.duration_value" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"></div><div><label class="block text-sm font-medium">{{ __('Duration Unit') }}</label><select wire:model="trainingEntries.{{ $index }}.duration_unit" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="hours">{{ __('Hours') }}</option><option value="days">{{ __('Days') }}</option><option value="weeks">{{ __('Weeks') }}</option><option value="months">{{ __('Months') }}</option></select></div></div>
                                             @endif
-                                            <div><label class="block text-sm font-medium">{{ __('Information') }}</label><input type="number" min="1950" max="{{ date('Y') + 1 }}" wire:model="trainingEntries.{{ $index }}.training_year" placeholder="{{ date('Y') }}" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900">@error("trainingEntries.$index.training_year")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
-                                            <div class="flex items-end"><flux:button type="button" size="sm" variant="danger" wire:click="removeTrainingEntry({{ $index }})">{{ __('Information') }}</flux:button></div>
+                                            <div><label class="block text-sm font-medium">{{ __('Training Year') }}</label><input type="number" min="1950" max="{{ date('Y') + 1 }}" wire:model="trainingEntries.{{ $index }}.training_year" placeholder="{{ date('Y') }}" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900">@error("trainingEntries.$index.training_year")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
+                                            <div class="flex items-end"><flux:button type="button" size="sm" variant="danger" wire:click="removeTrainingEntry({{ $index }})">{{ __('Remove') }}</flux:button></div>
                                         </div>
                                     @endforeach
                                 </div>
                             </fieldset>
 
                             <fieldset class="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
-                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('Information') }}</legend>
+                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('Contact Details') }}</legend>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Information') }}</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Mobile Number') }}</label>
                                     <input type="text" wire:model="editForm.mobile_number" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                                     @error('editForm.mobile_number') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
                                 </div>
@@ -464,7 +464,7 @@
                             <div class="flex flex-col-reverse gap-3 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-4 sm:flex-row sm:justify-end sm:px-7">
                                 <button type="button" @click="showEditModal = false" class="inline-flex w-full justify-center rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 sm:w-auto">{{ __('Cancel') }}</button>
                                 <button type="submit" class="inline-flex w-full justify-center rounded-lg border border-transparent bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" wire:loading.attr="disabled" wire:target="updateTeacher">
-                                    <span wire:loading wire:target="updateTeacher" class="mr-2">{{ __('Information') }}</span>{{ __('Update') }}</button>
+                                    <span wire:loading wire:target="updateTeacher" class="mr-2">{{ __('Updating...') }}</span>{{ __('Update') }}</button>
                             </div>
                         </form>
                 </div>

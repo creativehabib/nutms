@@ -27,13 +27,13 @@
     <!-- ========================================== -->
     <div class="no-print mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <flux:heading size="xl" class="font-bold">{{ __('Teacher information') }}</flux:heading>
-            <flux:text class="mt-1">{{ __('Information') }}</flux:text>
+            <flux:heading size="xl" class="font-bold">{{ __('Teacher Profile') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Teacher profile details and official printable record.') }}</flux:text>
         </div>
 
         <div class="flex items-center gap-2">
-            <flux:button variant="subtle" :href="auth()->user()->role === \App\Enums\UserRole::Teacher ? route('dashboard') : route('teachers.manage')" icon="arrow-left" wire:navigate class="hidden sm:flex">{{ __('Information') }}</flux:button>
-            <flux:button type="button" variant="outline" icon="printer" onclick="window.print()">{{ __('Information') }}</flux:button>
+            <flux:button variant="subtle" :href="auth()->user()->role === \App\Enums\UserRole::Teacher ? route('dashboard') : route('teachers.manage')" icon="arrow-left" wire:navigate class="hidden sm:flex">{{ __('Back') }}</flux:button>
+            <flux:button type="button" variant="outline" icon="printer" onclick="window.print()">{{ __('Print') }}</flux:button>
             <flux:button variant="primary" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate class="shadow-sm">{{ __('Edit') }}</flux:button>
         </div>
     </div>
@@ -58,33 +58,33 @@
             <table class="w-full text-sm text-left border-collapse border border-zinc-300 dark:border-zinc-700 print-border min-w-[600px]">
                 <tbody>
                 <tr>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Teacher information') }}</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Teacher Name') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-bold text-lg">
                         {{ $teacher->display_name }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('College information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('College Name') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->college?->name ?: $teacher->college_name ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Designation') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->designation ?: __('Not specified') }}
                     </td>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Subject') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->subject ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Teacher information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Teacher Level') }}</th>
                     <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->teacher_level ?: __('Not specified') }}
                     </td>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Employment Type') }}</th>
                     <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->employment_type ?: __('Not specified') }}
                     </td>
@@ -100,7 +100,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Date of Birth') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->birth_date?->format('d F Y') ?: __('Not specified') }}
                     </td>
@@ -117,17 +117,17 @@
             <table class="w-full text-sm text-left border-collapse border border-zinc-300 dark:border-zinc-700 print-border min-w-[600px]">
                 <tbody>
                 <tr>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Mobile Number') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-medium">
                         {{ $teacher->mobile_number ?: __('Not specified') }}
                     </td>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Email Address') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-indigo-600 dark:text-indigo-400 print-text font-medium">
                         {{ $teacher->email ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Location') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->thana?->name ?: __('Not specified') }},
                         {{ $teacher->district?->name ?: __('Not specified') }},
@@ -135,13 +135,13 @@
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Present Address') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->present_address ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Permanent Address') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->permanent_address ?: __('Not specified') }}
                     </td>
@@ -158,21 +158,21 @@
             <table class="w-full text-sm text-left border-collapse border border-zinc-300 dark:border-zinc-700 print-border min-w-[600px]">
                 <tbody>
                 <tr>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Bank Name') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->bank_name ?: __('Not specified') }}
                     </td>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Branch Name') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
                         {{ $teacher->bank_branch_name ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Account Number') }}</th>
                     <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-mono font-medium">
                         {{ $teacher->bank_account_number ?: __('Not specified') }}
                     </td>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Routing Number') }}</th>
                     <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-mono font-medium">
                         {{ $teacher->bank_routing_number ?: __('Not specified') }}
                     </td>
@@ -189,16 +189,16 @@
             <table class="w-full text-sm text-left border-collapse border border-zinc-300 dark:border-zinc-700 print-border min-w-[600px]">
                 <thead class="bg-zinc-50/50 dark:bg-zinc-800/30 print-bg-transparent">
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Training information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Training Name') }}</th>
                     <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Institute') }}</th>
                     <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Duration') }}</th>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold text-center">{{ __('Information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold text-center">{{ __('Training Year') }}</th>
                 </tr>
                 </thead>
                 <tbody>
                 @if($teacher->trainingTypes->isEmpty() && $teacher->otherTrainings->isEmpty() && empty($teacher->ict_training_name))
                     <tr>
-                        <td colspan="4" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-6 text-center text-zinc-500 print-text">{{ __('Training information') }}</td>
+                        <td colspan="4" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-6 text-center text-zinc-500 print-text">{{ __('No training records have been added yet.') }}</td>
                     </tr>
                 @else
                     <!-- Legacy ICT Training -->
@@ -226,7 +226,7 @@
                         <tr>
                             <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-medium">
                                 {{ $training->name }} <span class="no-print text-xs bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded ml-1 text-zinc-600 dark:text-zinc-300">{{ __('Other') }}</span>
-                                <span class="hidden print:inline-block text-xs">{{ __('Information') }}</span>
+                                <span class="hidden print:inline-block text-xs">{{ __('No training records have been added yet.') }}</span>
                             </td>
                             <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $training->trainingInstitute?->name ?: $training->institute_name ?: __('Not specified') }}</td>
                             <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $training->duration_value ? $training->duration_value . ' ' . (['hours'=>__('Hours'),'days'=>__('Days'),'weeks'=>__('Weeks'),'months'=>__('Months')][$training->duration_unit] ?? '') : '—' }}</td>
@@ -242,14 +242,14 @@
         <div class="mt-16 flex justify-between items-end avoid-break px-4 pb-4">
             <div class="text-center">
                 <div class="w-40 sm:w-48 border-t border-zinc-400 dark:border-zinc-600 print-border pt-2 mx-auto">
-                    <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-200 print-text">{{ __('Teacher information') }}</p>
+                    <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-200 print-text">{{ __('Teacher Signature') }}</p>
                     <p class="text-xs text-zinc-500 dark:text-zinc-400 print-text mt-0.5">Teacher's Signature</p>
                 </div>
             </div>
 
             <div class="text-center">
                 <div class="w-40 sm:w-48 border-t border-zinc-400 dark:border-zinc-600 print-border pt-2 mx-auto">
-                    <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-200 print-text">{{ __('Information') }}</p>
+                    <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-200 print-text">{{ __('custom training') }}</p>
                     <p class="text-xs text-zinc-500 dark:text-zinc-400 print-text mt-0.5">Principal's Signature</p>
                 </div>
             </div>
