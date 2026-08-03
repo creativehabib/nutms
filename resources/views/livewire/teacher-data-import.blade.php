@@ -4,8 +4,8 @@
             <flux:icon.arrow-up-tray class="size-6" />
         </div>
         <div>
-            <flux:heading size="xl">শিক্ষকের ডেটা ইম্পোর্ট</flux:heading>
-            <flux:text class="mt-1">Excel অথবা CSV ফাইল থেকে একসঙ্গে শিক্ষক তথ্য যুক্ত করুন।</flux:text>
+            <flux:heading size="xl">{{ __('Teacher information') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Teacher information') }}</flux:text>
         </div>
     </div>
 
@@ -21,18 +21,18 @@
                         <flux:icon.document-arrow-up class="size-7" />
                     </div>
                     <div>
-                        <flux:heading size="lg">Excel বা CSV ফাইল নির্বাচন করুন</flux:heading>
-                        <flux:text class="mt-1">সর্বোচ্চ ১০ MB — XLSX, XLS অথবা CSV</flux:text>
+                        <flux:heading size="lg">{{ __('Select an option') }}</flux:heading>
+                        <flux:text class="mt-1">{{ __('Information') }}</flux:text>
                     </div>
                     <flux:input id="teacher-import-file" type="file" wire:model="file" accept=".csv,.xlsx,.xls" />
-                    <flux:text wire:loading wire:target="file" class="text-indigo-600 dark:text-indigo-300">ফাইল প্রস্তুত হচ্ছে...</flux:text>
+                    <flux:text wire:loading wire:target="file" class="text-indigo-600 dark:text-indigo-300">{{ __('Information') }}</flux:text>
                     <flux:error name="file" />
                 </div>
             </flux:card>
 
             <flux:button type="submit" variant="primary" icon="arrow-up-tray" class="w-full" wire:loading.attr="disabled" wire:target="import">
-                <span wire:loading.remove wire:target="import">ডেটা ইম্পোর্ট করুন</span>
-                <span wire:loading wire:target="import">ইম্পোর্ট হচ্ছে...</span>
+                <span wire:loading.remove wire:target="import">{{ __('Information') }}</span>
+                <span wire:loading wire:target="import">{{ __('Information') }}</span>
             </flux:button>
         </form>
     </div>

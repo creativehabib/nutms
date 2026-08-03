@@ -1,7 +1,7 @@
 <div class="mx-auto w-full max-w-5xl p-4 sm:p-6 print:p-0 print:m-0">
 
     <!-- ========================================== -->
-    <!-- স্পেশাল প্রিন্ট CSS (A4 Page Setup) -->
+    <!-- Special print CSS (A4 Page Setup) -->
     <!-- ========================================== -->
     <style>
         @media print {
@@ -10,7 +10,7 @@
             body * { visibility: hidden; }
             .no-print { display: none !important; }
 
-            /* শুধু প্রিন্ট এরিয়া দেখাবে */
+            /* Only print area will be shown */
             #official-print-document, #official-print-document * { visibility: visible; }
             #official-print-document { position: absolute; left: 0; top: 0; width: 100%; font-family: 'Kalpurush', Arial, sans-serif; }
             /* Print Specific Overrides to ensure pure B&W rendering */
@@ -27,20 +27,14 @@
     <!-- ========================================== -->
     <div class="no-print mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <flux:heading size="xl" class="font-bold">শিক্ষক প্রোফাইল বিস্তারিত</flux:heading>
-            <flux:text class="mt-1">স্ক্রিনে যেমন দেখছেন, প্রিন্ট করলেও ঠিক তেমনই আসবে।</flux:text>
+            <flux:heading size="xl" class="font-bold">{{ __('Teacher information') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Information') }}</flux:text>
         </div>
 
         <div class="flex items-center gap-2">
-            <flux:button variant="subtle" :href="auth()->user()->role === \App\Enums\UserRole::Teacher ? route('dashboard') : route('teachers.manage')" icon="arrow-left" wire:navigate class="hidden sm:flex">
-                ফিরে যান
-            </flux:button>
-            <flux:button type="button" variant="outline" icon="printer" onclick="window.print()">
-                প্রিন্ট করুন
-            </flux:button>
-            <flux:button variant="primary" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate class="shadow-sm">
-                সম্পাদনা
-            </flux:button>
+            <flux:button variant="subtle" :href="auth()->user()->role === \App\Enums\UserRole::Teacher ? route('dashboard') : route('teachers.manage')" icon="arrow-left" wire:navigate class="hidden sm:flex">{{ __('Information') }}</flux:button>
+            <flux:button type="button" variant="outline" icon="printer" onclick="window.print()">{{ __('Information') }}</flux:button>
+            <flux:button variant="primary" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate class="shadow-sm">{{ __('Edit') }}</flux:button>
         </div>
     </div>
 
@@ -64,35 +58,35 @@
             <table class="w-full text-sm text-left border-collapse border border-zinc-300 dark:border-zinc-700 print-border min-w-[600px]">
                 <tbody>
                 <tr>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">শিক্ষকের নাম (Name)</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Teacher information') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-bold text-lg">
                         {{ $teacher->display_name }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">কলেজ (College)</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('College information') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->college?->name ?: $teacher->college_name ?: 'অনির্ধারিত' }}
+                        {{ $teacher->college?->name ?: $teacher->college_name ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">পদবি (Designation)</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->designation ?: 'অনির্ধারিত' }}
+                        {{ $teacher->designation ?: __('Not specified') }}
                     </td>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">বিষয় (Subject)</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->subject ?: 'অনির্ধারিত' }}
+                        {{ $teacher->subject ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">শিক্ষক স্তর (Level)</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Teacher information') }}</th>
                     <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->teacher_level ?: 'অনির্ধারিত' }}
+                        {{ $teacher->teacher_level ?: __('Not specified') }}
                     </td>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">চাকরির ধরন (Type)</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->employment_type ?: 'অনির্ধারিত' }}
+                        {{ $teacher->employment_type ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
@@ -106,9 +100,9 @@
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">জন্ম তারিখ (DOB)</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->birth_date?->format('d F Y') ?: 'অনির্ধারিত' }}
+                        {{ $teacher->birth_date?->format('d F Y') ?: __('Not specified') }}
                     </td>
                 </tr>
                 </tbody>
@@ -123,33 +117,33 @@
             <table class="w-full text-sm text-left border-collapse border border-zinc-300 dark:border-zinc-700 print-border min-w-[600px]">
                 <tbody>
                 <tr>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">মোবাইল (Mobile)</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-medium">
-                        {{ $teacher->mobile_number ?: 'অনির্ধারিত' }}
+                        {{ $teacher->mobile_number ?: __('Not specified') }}
                     </td>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">ইমেইল (Email)</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-indigo-600 dark:text-indigo-400 print-text font-medium">
-                        {{ $teacher->email ?: 'অনির্ধারিত' }}
+                        {{ $teacher->email ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">বিভাগ, জেলা ও থানা</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->thana?->name ?: 'অনির্ধারিত' }},
-                        {{ $teacher->district?->name ?: 'অনির্ধারিত' }},
-                        {{ $teacher->division?->name ?: 'অনির্ধারিত' }}
+                        {{ $teacher->thana?->name ?: __('Not specified') }},
+                        {{ $teacher->district?->name ?: __('Not specified') }},
+                        {{ $teacher->division?->name ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">বর্তমান ঠিকানা</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->present_address ?: 'অনির্ধারিত' }}
+                        {{ $teacher->present_address ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">স্থায়ী ঠিকানা</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->permanent_address ?: 'অনির্ধারিত' }}
+                        {{ $teacher->permanent_address ?: __('Not specified') }}
                     </td>
                 </tr>
                 </tbody>
@@ -164,23 +158,23 @@
             <table class="w-full text-sm text-left border-collapse border border-zinc-300 dark:border-zinc-700 print-border min-w-[600px]">
                 <tbody>
                 <tr>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">ব্যাংকের নাম</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->bank_name ?: 'অনির্ধারিত' }}
+                        {{ $teacher->bank_name ?: __('Not specified') }}
                     </td>
-                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">শাখা (Branch)</th>
+                    <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->bank_branch_name ?: 'অনির্ধারিত' }}
+                        {{ $teacher->bank_branch_name ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">অ্যাকাউন্ট (A/C No)</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-mono font-medium">
-                        {{ $teacher->bank_account_number ?: 'অনির্ধারিত' }}
+                        {{ $teacher->bank_account_number ?: __('Not specified') }}
                     </td>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">রাউটিং (Routing)</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Information') }}</th>
                     <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-mono font-medium">
-                        {{ $teacher->bank_routing_number ?: 'অনির্ধারিত' }}
+                        {{ $teacher->bank_routing_number ?: __('Not specified') }}
                     </td>
                 </tr>
                 </tbody>
@@ -195,24 +189,24 @@
             <table class="w-full text-sm text-left border-collapse border border-zinc-300 dark:border-zinc-700 print-border min-w-[600px]">
                 <thead class="bg-zinc-50/50 dark:bg-zinc-800/30 print-bg-transparent">
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold">ট্রেনিংয়ের নাম</th>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold">প্রতিষ্ঠান</th>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold">সময়কাল</th>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold text-center">বছর</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Training information') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Institute') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Duration') }}</th>
+                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-700 dark:text-zinc-300 print-text font-semibold text-center">{{ __('Information') }}</th>
                 </tr>
                 </thead>
                 <tbody>
                 @if($teacher->trainingTypes->isEmpty() && $teacher->otherTrainings->isEmpty() && empty($teacher->ict_training_name))
                     <tr>
-                        <td colspan="4" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-6 text-center text-zinc-500 print-text">কোনো ট্রেনিং ইতিহাস পাওয়া যায়নি।</td>
+                        <td colspan="4" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-6 text-center text-zinc-500 print-text">{{ __('Training information') }}</td>
                     </tr>
                 @else
                     <!-- Legacy ICT Training -->
                     @if($teacher->ict_training_name)
                         <tr>
                             <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-medium">{{ $teacher->ict_training_name }}</td>
-                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $teacher->training_institute ?: 'অনির্ধারিত' }}</td>
-                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $teacher->ict_training_duration ?: 'অনির্ধারিত' }}</td>
+                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $teacher->training_institute ?: __('Not specified') }}</td>
+                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $teacher->ict_training_duration ?: __('Not specified') }}</td>
                             <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text text-center">{{ $teacher->training_year ?: '—' }}</td>
                         </tr>
                     @endif
@@ -222,7 +216,7 @@
                         <tr>
                             <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-medium">{{ $training->name }}</td>
                             <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $training->trainingInstitute->name }}</td>
-                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $training->duration_value }} {{ ['hours'=>'ঘণ্টা','days'=>'দিন','weeks'=>'সপ্তাহ','months'=>'মাস'][$training->duration_unit] ?? '' }}</td>
+                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $training->duration_value }} {{ ['hours'=>__('Hours'),'days'=>__('Days'),'weeks'=>__('Weeks'),'months'=>__('Months')][$training->duration_unit] ?? '' }}</td>
                             <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text text-center">{{ $training->pivot->training_year }}</td>
                         </tr>
                     @endforeach
@@ -231,11 +225,11 @@
                     @foreach($teacher->otherTrainings as $training)
                         <tr>
                             <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-medium">
-                                {{ $training->name }} <span class="no-print text-xs bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded ml-1 text-zinc-600 dark:text-zinc-300">অন্যান্য</span>
-                                <span class="hidden print:inline-block text-xs">(অন্যান্য)</span>
+                                {{ $training->name }} <span class="no-print text-xs bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded ml-1 text-zinc-600 dark:text-zinc-300">{{ __('Other') }}</span>
+                                <span class="hidden print:inline-block text-xs">{{ __('Information') }}</span>
                             </td>
-                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $training->trainingInstitute?->name ?: $training->institute_name ?: 'অনির্ধারিত' }}</td>
-                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $training->duration_value ? $training->duration_value . ' ' . (['hours'=>'ঘণ্টা','days'=>'দিন','weeks'=>'সপ্তাহ','months'=>'মাস'][$training->duration_unit] ?? '') : '—' }}</td>
+                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $training->trainingInstitute?->name ?: $training->institute_name ?: __('Not specified') }}</td>
+                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $training->duration_value ? $training->duration_value . ' ' . (['hours'=>__('Hours'),'days'=>__('Days'),'weeks'=>__('Weeks'),'months'=>__('Months')][$training->duration_unit] ?? '') : '—' }}</td>
                             <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text text-center">{{ $training->training_year }}</td>
                         </tr>
                     @endforeach
@@ -248,14 +242,14 @@
         <div class="mt-16 flex justify-between items-end avoid-break px-4 pb-4">
             <div class="text-center">
                 <div class="w-40 sm:w-48 border-t border-zinc-400 dark:border-zinc-600 print-border pt-2 mx-auto">
-                    <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-200 print-text">শিক্ষকের স্বাক্ষর</p>
+                    <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-200 print-text">{{ __('Teacher information') }}</p>
                     <p class="text-xs text-zinc-500 dark:text-zinc-400 print-text mt-0.5">Teacher's Signature</p>
                 </div>
             </div>
 
             <div class="text-center">
                 <div class="w-40 sm:w-48 border-t border-zinc-400 dark:border-zinc-600 print-border pt-2 mx-auto">
-                    <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-200 print-text">অধ্যক্ষের স্বাক্ষর ও সিল</p>
+                    <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-200 print-text">{{ __('Information') }}</p>
                     <p class="text-xs text-zinc-500 dark:text-zinc-400 print-text mt-0.5">Principal's Signature</p>
                 </div>
             </div>

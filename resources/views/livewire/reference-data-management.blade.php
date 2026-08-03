@@ -11,16 +11,14 @@
                         <flux:icon.server-stack class="size-5" />
                     </div>
                     <div>
-                        <flux:heading size="lg" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">{{ $title }} ব্যবস্থাপনা</flux:heading>
-                        <flux:text class="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">মোট {{ $records->total() }}টি তথ্য যুক্ত আছে</flux:text>
+                        <flux:heading size="lg" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">{{ $title }} Management</flux:heading>
+                        <flux:text class="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">Total {{ $records->total() }}items records added</flux:text>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center w-full sm:w-auto">
-                    <flux:input wire:model.live.debounce.300ms="search" type="search" placeholder="খুঁজুন..." icon="magnifying-glass" class="w-full sm:w-64 shadow-sm" />
-                    <flux:button variant="primary" icon="plus" wire:click="openCreateModal" class="w-full sm:w-auto shadow-sm">
-                        নতুন যুক্ত করুন
-                    </flux:button>
+                    <flux:input wire:model.live.debounce.300ms="search" type="search" :placeholder="__('Search...')" icon="magnifying-glass" class="w-full sm:w-64 shadow-sm" />
+                    <flux:button variant="primary" icon="plus" wire:click="openCreateModal" class="w-full sm:w-auto shadow-sm">{{ __('Information') }}</flux:button>
                 </div>
             </div>
         </div>
@@ -30,12 +28,12 @@
             <flux:table>
                 <flux:table.columns>
                     @if ($isCollege)
-                        <flux:table.column>কোড</flux:table.column>
+                        <flux:table.column>{{ __('Information') }}</flux:table.column>
                     @endif
-                    <flux:table.column>নাম</flux:table.column>
-                    <flux:table.column>ব্যবহৃত</flux:table.column>
-                    <flux:table.column>অবস্থা</flux:table.column>
-                    <flux:table.column class="text-right">অ্যাকশন</flux:table.column>
+                    <flux:table.column>{{ __('Name') }}</flux:table.column>
+                    <flux:table.column>{{ __('Information') }}</flux:table.column>
+                    <flux:table.column>{{ __('Status') }}</flux:table.column>
+                    <flux:table.column class="text-right">{{ __('Action') }}</flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -55,20 +53,20 @@
                             <flux:table.cell>
                                 <div class="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
                                     <flux:icon.users variant="micro" class="text-zinc-400" />
-                                    <span>{{ $record->teachers_count }} জন শিক্ষক</span>
+                                    <span>{{ $record->teachers_count }} teachers</span>
                                 </div>
                             </flux:table.cell>
 
                             <flux:table.cell>
                                 <flux:badge size="sm" :color="$record->is_active ? 'emerald' : 'zinc'">
-                                    {{ $record->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}
+                                    {{ $record->is_active ? __('Active') : __('Inactive') }}
                                 </flux:badge>
                             </flux:table.cell>
 
                             <flux:table.cell>
                                 <div class="flex items-center justify-end gap-1">
-                                    <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="edit({{ $record->id }})" title="সম্পাদনা" class="text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400" />
-                                    <flux:button variant="ghost" size="sm" icon="trash" wire:click="confirmDelete({{ $record->id }})" title="মুছুন" class="text-zinc-500 hover:text-red-600 dark:hover:text-red-400" />
+                                    <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="edit({{ $record->id }})" :title="__('Edit')" class="text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400" />
+                                    <flux:button variant="ghost" size="sm" icon="trash" wire:click="confirmDelete({{ $record->id }})" :title="__('Delete')" class="text-zinc-500 hover:text-red-600 dark:hover:text-red-400" />
                                 </div>
                             </flux:table.cell>
 
@@ -80,8 +78,8 @@
                                     <div class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 mb-3">
                                         <flux:icon.document-text class="h-6 w-6 text-zinc-400" />
                                     </div>
-                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">কোনো তথ্য পাওয়া যায়নি</p>
-                                    <p class="text-sm mt-1">নতুন তথ্য যোগ করুন অথবা অন্য কি-ওয়ার্ড দিয়ে খুঁজুন।</p>
+                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">{{ __('Information') }}</p>
+                                    <p class="text-sm mt-1">{{ __('Information') }}</p>
                                 </div>
                             </flux:table.cell>
                         </flux:table.row>
@@ -108,7 +106,7 @@
                     <flux:icon.pencil-square class="size-4" />
                 </div>
                 <div>
-                    <flux:heading size="lg" class="font-semibold">{{ $editingId ? $title.' সম্পাদনা' : 'নতুন '.$title }}</flux:heading>
+                    <flux:heading size="lg" class="font-semibold">{{ $editingId ? $title.__('Edit') : __('Information').$title }}</flux:heading>
                 </div>
             </div>
 
@@ -116,26 +114,26 @@
             <div class="p-6 space-y-5 bg-white dark:bg-zinc-900">
                 @if ($isCollege)
                     <div class="space-y-1">
-                        <flux:input wire:model="code" label="কলেজ কোড" placeholder="যেমন: ১০১০" />
+                        <flux:input wire:model="code" :label="__('College Code')" :placeholder="__('Information')" />
                         @error('code') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
                     </div>
                 @endif
 
                 <div class="space-y-1">
-                    <flux:input wire:model="name" :label="$title.' নাম'" placeholder="সঠিক নাম লিখুন" required />
+                    <flux:input wire:model="name" :label="$title.__('Name')" :placeholder="__('Information')" required />
                     @error('name') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="pt-2">
-                    <flux:switch wire:model="isActive" label="সক্রিয় রাখুন" description="নিষ্ক্রিয় করলে এটি ডাটা এন্ট্রির সময় ড্রপডাউনে দেখাবে না।" />
+                    <flux:switch wire:model="isActive" :label="__('Keep active')" :description="__('Information')" />
                 </div>
             </div>
 
             <!-- Modal Footer -->
             <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <flux:button type="button" variant="ghost" wire:click="cancelEdit" class="w-full sm:w-auto">বাতিল করুন</flux:button>
+                <flux:button type="button" variant="ghost" wire:click="cancelEdit" class="w-full sm:w-auto">{{ __('Information') }}</flux:button>
                 <flux:button type="submit" variant="primary" icon="check-circle" wire:loading.attr="disabled" class="w-full sm:w-auto shadow-sm">
-                    {{ $editingId ? 'আপডেট করুন' : 'সংরক্ষণ করুন' }}
+                    {{ $editingId ? __('Update') : __('Save') }}
                 </flux:button>
             </div>
 
@@ -145,18 +143,16 @@
     <flux:modal name="confirm-reference-data-deletion" wire:model="showDeleteModal" @close="cancelDelete" focusable class="max-w-md">
         <div class="space-y-6">
             <div>
-                <flux:heading size="lg">{{ $title }} মুছে ফেলবেন?</flux:heading>
+                <flux:heading size="lg">{{ $title }} Delete?</flux:heading>
                 <flux:text class="mt-2">
-                    <span class="font-semibold text-zinc-900 dark:text-white">{{ $deletingName }}</span>
-                    মুছে গেলে এটি আর তালিকায় থাকবে না।
-                </flux:text>
+                    <span class="font-semibold text-zinc-900 dark:text-white">{{ $deletingName }}</span>{{ __('Delete information') }}</flux:text>
             </div>
 
             <div class="flex justify-end gap-2">
-                <flux:modal.close><flux:button type="button" wire:click="cancelDelete">বাতিল</flux:button></flux:modal.close>
+                <flux:modal.close><flux:button type="button" wire:click="cancelDelete">{{ __('Cancel') }}</flux:button></flux:modal.close>
                 <flux:button variant="danger" wire:click="deleteConfirmed" wire:loading.attr="disabled" wire:target="deleteConfirmed">
-                    <span wire:loading.remove wire:target="deleteConfirmed">মুছে ফেলুন</span>
-                    <span wire:loading wire:target="deleteConfirmed">মুছে ফেলা হচ্ছে...</span>
+                    <span wire:loading.remove wire:target="deleteConfirmed">{{ __('Delete information') }}</span>
+                    <span wire:loading wire:target="deleteConfirmed">{{ __('Delete information') }}</span>
                 </flux:button>
             </div>
         </div>

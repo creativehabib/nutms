@@ -127,22 +127,14 @@
                 </flux:sidebar.group>
 
                 @can('training-catalog.manage')
-                <flux:sidebar.item icon="presentation-chart-bar" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>
-                    ট্রেনিং ক্যাটালগ
-                </flux:sidebar.item>
+                <flux:sidebar.item icon="presentation-chart-bar" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>{{ __('Training Catalog') }}</flux:sidebar.item>
                 @endcan
                 @if(auth()->user()->isAdmin() && auth()->user()->can('colleges.view'))
-                <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>
-                    কলেজ ব্যবস্থাপনা
-                </flux:sidebar.item>
+                <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>{{ __('College Management') }}</flux:sidebar.item>
                 @endif
                 @can('roles.manage')
-                <flux:sidebar.item icon="shield-check" :href="route('roles-permissions.manage')" :current="request()->routeIs('roles-permissions.manage')" wire:navigate>
-                    রোলস ও পারমিশন
-                </flux:sidebar.item>
-                <flux:sidebar.item icon="cog-6-tooth" :href="route('system-settings.manage')" :current="request()->routeIs('system-settings.manage')" wire:navigate>
-                    সিস্টেম সেটিংস
-                </flux:sidebar.item>
+                <flux:sidebar.item icon="shield-check" :href="route('roles-permissions.manage')" :current="request()->routeIs('roles-permissions.manage')" wire:navigate>{{ __('Roles & Permissions') }}</flux:sidebar.item>
+                <flux:sidebar.item icon="cog-6-tooth" :href="route('system-settings.manage')" :current="request()->routeIs('system-settings.manage')" wire:navigate>{{ __('System Settings') }}</flux:sidebar.item>
                 @endcan
                 @if(auth()->user()->isAdmin() || (auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved()))
                 <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.*')" wire:navigate>
@@ -150,26 +142,24 @@
                 </flux:sidebar.item>
                 @php($principalTeacherId = auth()->user()->teacherProfile?->id)
                 @if(auth()->user()->role === \App\Enums\UserRole::Principal && $principalTeacherId)
-                    <flux:sidebar.item icon="identification" :href="route('teachers.show', $principalTeacherId)" :current="request()->routeIs('teachers.show') && (int) request()->route('teacher')?->id === $principalTeacherId" wire:navigate>
-                        আমার প্রোফাইল
-                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="identification" :href="route('teachers.show', $principalTeacherId)" :current="request()->routeIs('teachers.show') && (int) request()->route('teacher')?->id === $principalTeacherId" wire:navigate>{{ __('My Profile') }}</flux:sidebar.item>
                 @endif
                 @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
                     @if(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Approved)
-                        <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacherProfile)" :current="request()->routeIs('teachers.show')" wire:navigate>আমার প্রোফাইল</flux:sidebar.item>
+                        <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacherProfile)" :current="request()->routeIs('teachers.show')" wire:navigate>{{ __('My Profile') }}</flux:sidebar.item>
                     @elseif(auth()->user()->teacherProfile)
-                        <div class="px-3 py-2 text-sm text-amber-600">প্রোফাইল অনুমোদনের অপেক্ষায়</div>
+                        <div class="px-3 py-2 text-sm text-amber-600">{{ __('Profile information') }}</div>
                     @else
-                        <flux:sidebar.item icon="user-plus" :href="route('teachers.create')" :current="request()->routeIs('teachers.create')" wire:navigate>প্রোফাইল তৈরি</flux:sidebar.item>
+                        <flux:sidebar.item icon="user-plus" :href="route('teachers.create')" :current="request()->routeIs('teachers.create')" wire:navigate>{{ __('Create Profile') }}</flux:sidebar.item>
                     @endif
                 @endif
 
                 @can('reference-data.manage')
                 <flux:sidebar.group expandable icon="cog-8-tooth" :heading="__('Teacher Setting')" expandable :expanded="request()->routeIs('reference-data.manage')" class="grid">
-                    <flux:sidebar.item icon="book-open" :href="route('reference-data.manage', 'subjects')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'subjects'" wire:navigate>সাবজেক্ট</flux:sidebar.item>
-                    <flux:sidebar.item icon="briefcase" :href="route('reference-data.manage', 'designations')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'designations'" wire:navigate>পদবি</flux:sidebar.item>
-                    <flux:sidebar.item icon="academic-cap" :href="route('reference-data.manage', 'teacher-levels')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'teacher-levels'" wire:navigate>শিক্ষক স্তর</flux:sidebar.item>
-                    <flux:sidebar.item icon="identification" :href="route('reference-data.manage', 'employments')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'employments'" wire:navigate>চাকরির ধরন</flux:sidebar.item>
+                    <flux:sidebar.item icon="book-open" :href="route('reference-data.manage', 'subjects')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'subjects'" wire:navigate>{{ __('Subjects') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="briefcase" :href="route('reference-data.manage', 'designations')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'designations'" wire:navigate>{{ __('Designation') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="academic-cap" :href="route('reference-data.manage', 'teacher-levels')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'teacher-levels'" wire:navigate>{{ __('Teacher Level') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="identification" :href="route('reference-data.manage', 'employments')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'employments'" wire:navigate>{{ __('Employment Type') }}</flux:sidebar.item>
                 </flux:sidebar.group>
                 @endcan
 
@@ -187,9 +177,9 @@
                     <span>{{ __('Language Settings') }}</span>
                 </flux:sidebar.item>
                 @if(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())
-                    <flux:sidebar.item icon="building-library" :href="route('colleges.show', auth()->user()->college_id)" :current="request()->routeIs('colleges.show', 'colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>কলেজ প্রোফাইল</flux:sidebar.item>
+                    <flux:sidebar.item icon="building-library" :href="route('colleges.show', auth()->user()->college_id)" :current="request()->routeIs('colleges.show', 'colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>{{ __('College Profile') }}</flux:sidebar.item>
                 @elseif(auth()->user()->role === \App\Enums\UserRole::Principal)
-                    <div class="px-3 py-2 text-sm text-amber-600">Principal account অনুমোদনের অপেক্ষায়</div>
+                    <div class="px-3 py-2 text-sm text-amber-600">{{ __('Approval information') }}</div>
                 @endif
 
             </flux:sidebar.nav>
