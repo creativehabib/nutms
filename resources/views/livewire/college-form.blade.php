@@ -4,15 +4,11 @@
     <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                {{ $editingId ? 'কলেজ প্রোফাইল সম্পাদনা' : 'নতুন কলেজ তৈরি করুন' }}
+                {{ $editingId ? __('College information') : __('College information') }}
             </flux:heading>
-            <flux:subheading class="mt-1 text-zinc-500">
-                নিচের কার্ডগুলোতে ধাপে ধাপে কলেজের সঠিক তথ্যগুলো পূরণ করুন।
-            </flux:subheading>
+            <flux:subheading class="mt-1 text-zinc-500">{{ __('College information') }}</flux:subheading>
         </div>
-        <flux:button variant="subtle" :href="route('colleges.manage')" icon="arrow-left" wire:navigate class="shrink-0">
-            ফিরে যান
-        </flux:button>
+        <flux:button variant="subtle" :href="route('colleges.manage')" icon="arrow-left" wire:navigate class="shrink-0">{{ __('Information') }}</flux:button>
     </div>
 
     <!-- Main Form Wrapper -->
@@ -25,22 +21,22 @@
                     <div class="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">
                         <flux:icon.building-office-2 class="size-4" />
                     </div>
-                    <flux:heading size="lg" class="font-semibold">প্রাথমিক তথ্য</flux:heading>
+                    <flux:heading size="lg" class="font-semibold">{{ __('Basic Information') }}</flux:heading>
                 </div>
             </div>
 
             <div class="p-6">
                 <div class="grid gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="code" label="কলেজ কোড (EIIN/NU)" placeholder="যেমন: 1234" />
-                    <flux:input wire:model="name" label="কলেজের নাম" placeholder="কলেজের সম্পূর্ণ নাম লিখুন" required />
-                    <flux:input wire:model="principalName" label="অধ্যক্ষের নাম" placeholder="অধ্যক্ষের নাম লিখুন" required />
-                    <flux:input wire:model="collegeEmail" type="email" label="কলেজ ইমেইল" placeholder="যেমন: info@example.edu.bd" />
-                    <flux:input wire:model="collegeWebsite" type="url" label="কলেজ ওয়েবসাইট" placeholder="যেমন: https://example.edu.bd" />
-                    <flux:select wire:model="collegeType" label="কলেজের ধরন" required>
-                        <option value="">নির্বাচন করুন...</option>
-                        <option value="government">সরকারি</option>
-                        <option value="non_government">বেসরকারি</option>
-                        <option value="other">অন্যান্য</option>
+                    <flux:input wire:model="code" :label="__('College information')" :placeholder="__('Information')" />
+                    <flux:input wire:model="name" :label="__('College Name')" :placeholder="__('College information')" required />
+                    <flux:input wire:model="principalName" :label="__('Information')" :placeholder="__('Information')" required />
+                    <flux:input wire:model="collegeEmail" type="email" :label="__('College information')" :placeholder="__('Information')" />
+                    <flux:input wire:model="collegeWebsite" type="url" :label="__('College information')" :placeholder="__('Information')" />
+                    <flux:select wire:model="collegeType" :label="__('College information')" required>
+                        <option value="">{{ __('Select...') }}</option>
+                        <option value="government">{{ __('Government') }}</option>
+                        <option value="non_government">{{ __('Non-government') }}</option>
+                        <option value="other">{{ __('Other') }}</option>
                     </flux:select>
                 </div>
             </div>
@@ -53,27 +49,27 @@
                     <div class="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
                         <flux:icon.map-pin class="size-4" />
                     </div>
-                    <flux:heading size="lg" class="font-semibold">অবস্থান ও ঠিকানা</flux:heading>
+                    <flux:heading size="lg" class="font-semibold">{{ __('Information') }}</flux:heading>
                 </div>
             </div>
 
             <div class="p-6">
                 <div class="grid gap-6">
                     <div class="grid gap-6 sm:grid-cols-3">
-                        <flux:select wire:model.live="divisionId" label="বিভাগ" required>
-                            <option value="">নির্বাচন করুন</option>
+                        <flux:select wire:model.live="divisionId" :label="__('Division')" required>
+                            <option value="">{{ __('Select') }}</option>
                             @foreach($divisions as $division)
                                 <option value="{{ $division->id }}">{{ $division->name }}</option>
                             @endforeach
                         </flux:select>
-                        <flux:select wire:model.live="districtId" label="জেলা" required>
-                            <option value="">নির্বাচন করুন</option>
+                        <flux:select wire:model.live="districtId" :label="__('District')" required>
+                            <option value="">{{ __('Select') }}</option>
                             @foreach($districts as $district)
                                 <option value="{{ $district->id }}">{{ $district->name }}</option>
                             @endforeach
                         </flux:select>
-                        <flux:select wire:model="thanaId" label="উপজেলা / থানা" required>
-                            <option value="">নির্বাচন করুন</option>
+                        <flux:select wire:model="thanaId" :label="__('Information')" required>
+                            <option value="">{{ __('Select') }}</option>
                             @foreach($thanas as $thana)
                                 <option value="{{ $thana->id }}">{{ $thana->name }}</option>
                             @endforeach
@@ -86,7 +82,7 @@
                         @error('thanaId')<span class="text-xs text-red-600">{{ $message }}</span>@enderror
                     </div>
 
-                    <flux:textarea wire:model="address" label="পূর্ণ ঠিকানা" rows="2" placeholder="রাস্তা, এলাকা বা ল্যান্ডমার্কসহ ঠিকানা লিখুন..." required />
+                    <flux:textarea wire:model="address" :label="__('Full Address')" rows="2" :placeholder="__('Information')" required />
                 </div>
             </div>
         </flux:card>
@@ -98,11 +94,9 @@
                     <div class="flex h-8 w-8 items-center justify-center rounded-md bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
                         <flux:icon.academic-cap class="size-4" />
                     </div>
-                    <flux:heading size="lg" class="font-semibold">প্রোগ্রাম ও কোর্সসমূহ</flux:heading>
+                    <flux:heading size="lg" class="font-semibold">{{ __('Information') }}</flux:heading>
                 </div>
-                <flux:button type="button" size="sm" variant="subtle" icon="plus" wire:click="addProgram" class="text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10">
-                    নতুন লেভেল
-                </flux:button>
+                <flux:button type="button" size="sm" variant="subtle" icon="plus" wire:click="addProgram" class="text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10">{{ __('Information') }}</flux:button>
             </div>
 
             <div class="p-6 bg-zinc-50/30 dark:bg-zinc-900/20">
@@ -112,23 +106,23 @@
 
                             <!-- Remove Button -->
                             <div class="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                                <button type="button" wire:click="removeProgram({{ $index }})" class="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors" title="এই গ্রুপটি মুছে ফেলুন">
+                                <button type="button" wire:click="removeProgram({{ $index }})" class="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors" :title="__('Delete information')">
                                     <flux:icon.trash variant="micro" class="size-4" />
                                 </button>
                             </div>
 
                             <div class="grid gap-5 pr-8 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-start">
-                                <flux:select wire:model.live="programs.{{ $index }}.level" label="কলেজ লেভেল">
-                                    <option value="degree">ডিগ্রি</option>
-                                    <option value="honours">অনার্স</option>
-                                    <option value="masters">মাস্টার্স</option>
-                                    <option value="professional">প্রফেশনাল</option>
-                                    <option value="other">অন্যান্য</option>
+                                <flux:select wire:model.live="programs.{{ $index }}.level" :label="__('College information')">
+                                    <option value="degree">{{ __('Degree') }}</option>
+                                    <option value="honours">{{ __('Honours') }}</option>
+                                    <option value="masters">{{ __('Masters') }}</option>
+                                    <option value="professional">{{ __('Professional') }}</option>
+                                    <option value="other">{{ __('Other') }}</option>
                                 </flux:select>
 
                                 <div class="flex flex-col gap-1.5">
                                     <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                        {{ $program['level'] === 'degree' ? 'ডিগ্রি কোর্সের নাম' : 'পঠিত বিষয়ের নাম' }}
+                                        {{ $program['level'] === 'degree' ? __('Information') : __('Information') }}
                                     </label>
 
                                     <!-- Elevated Pillbox Input -->
@@ -136,7 +130,7 @@
                                         @foreach($program['names'] as $tagIndex => $programName)
                                             <span wire:key="program-tag-{{ $index }}-{{ $tagIndex }}" class="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-800 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700 shadow-sm">
                                                 {{ $programName }}
-                                                <button type="button" wire:click="removeProgramTag({{ $index }}, {{ $tagIndex }})" class="group -mr-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30" aria-label="বাদ দিন">
+                                                <button type="button" wire:click="removeProgramTag({{ $index }}, {{ $tagIndex }})" class="group -mr-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30" :aria-label="__('Information')">
                                                     <flux:icon.x-mark variant="micro" class="text-zinc-500 group-hover:text-red-500 dark:group-hover:text-red-400" />
                                                 </button>
                                             </span>
@@ -148,7 +142,7 @@
                                             wire:keydown.enter.prevent.stop="addProgramTag({{ $index }})"
                                             list="program-suggestions-{{ $index }}"
                                             autocomplete="off"
-                                            placeholder="{{ $program['names'] === [] ? 'নাম লিখে Enter চাপুন' : 'আরও যোগ করুন...' }}"
+                                            :placeholder="__('Information')"
                                         >
                                     </div>
                                     <datalist id="program-suggestions-{{ $index }}">
@@ -173,24 +167,24 @@
                     <div class="flex h-8 w-8 items-center justify-center rounded-md bg-cyan-100 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400">
                         <flux:icon.computer-desktop class="size-4" />
                     </div>
-                    <flux:heading size="lg" class="font-semibold">ল্যাব ও প্রযুক্তি</flux:heading>
+                    <flux:heading size="lg" class="font-semibold">{{ __('Lab information') }}</flux:heading>
                 </div>
             </div>
 
             <div class="p-6">
                 <div class="grid gap-6 sm:grid-cols-2">
-                    <flux:select wire:model.live="hasComputerLab" label="কম্পিউটার ল্যাব আছে?" required>
-                        <option value="">নির্বাচন করুন</option>
-                        <option value="1">হ্যাঁ, ল্যাব আছে</option>
-                        <option value="0">না, ল্যাব নেই</option>
+                    <flux:select wire:model.live="hasComputerLab" :label="__('Lab information')" required>
+                        <option value="">{{ __('Select') }}</option>
+                        <option value="1">{{ __('Lab information') }}</option>
+                        <option value="0">{{ __('Lab information') }}</option>
                     </flux:select>
 
                     @if ($hasComputerLab === '1')
-                        <flux:select wire:model.live="labEquipmentType" label="ল্যাবে কী ধরনের ডিভাইস আছে?" required>
-                            <option value="">নির্বাচন করুন</option>
-                            <option value="desktop">শুধু ডেস্কটপ</option>
-                            <option value="laptop">শুধু ল্যাপটপ</option>
-                            <option value="both">ডেস্কটপ ও ল্যাপটপ উভয়ই</option>
+                        <flux:select wire:model.live="labEquipmentType" :label="__('Lab information')" required>
+                            <option value="">{{ __('Select') }}</option>
+                            <option value="desktop">{{ __('Desktop only') }}</option>
+                            <option value="laptop">{{ __('Laptop only') }}</option>
+                            <option value="both">{{ __('Both desktop and laptop') }}</option>
                         </flux:select>
                     @endif
                 </div>
@@ -198,11 +192,11 @@
                 @if ($hasComputerLab === '1')
                     <div class="mt-6 grid gap-6 sm:grid-cols-2 rounded-xl border border-dashed border-cyan-200 bg-cyan-50/30 p-5 dark:border-cyan-900/30 dark:bg-cyan-900/10">
                         @if (in_array($labEquipmentType, ['desktop', 'both'], true))
-                            <flux:input wire:model="desktopCount" type="number" min="1" label="ডেস্কটপ কম্পিউটারের সংখ্যা" placeholder="যেমন: 20" required />
+                            <flux:input wire:model="desktopCount" type="number" min="1" :label="__('Information')" :placeholder="__('Information')" required />
                         @endif
 
                         @if (in_array($labEquipmentType, ['laptop', 'both'], true))
-                            <flux:input wire:model="laptopCount" type="number" min="1" label="ল্যাপটপের সংখ্যা" placeholder="যেমন: 10" required />
+                            <flux:input wire:model="laptopCount" type="number" min="1" :label="__('Information')" :placeholder="__('Information')" required />
                         @endif
                     </div>
                 @endif
@@ -213,15 +207,13 @@
         <div class="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200 bg-white/80 p-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
             <div class="mx-auto flex w-full max-w-4xl items-center justify-between">
                 <div class="flex items-center">
-                    <flux:switch wire:model="isActive" label="কলেজটি সক্রিয় রাখুন" />
+                    <flux:switch wire:model="isActive" :label="__('College information')" />
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <flux:button :href="route('colleges.manage')" wire:navigate class="hidden sm:flex">
-                        বাতিল
-                    </flux:button>
+                    <flux:button :href="route('colleges.manage')" wire:navigate class="hidden sm:flex">{{ __('Cancel') }}</flux:button>
                     <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm">
-                        {{ $editingId ? 'পরিবর্তন সেভ করুন' : 'কলেজ তৈরি করুন' }}
+                        {{ $editingId ? __('Information') : __('College information') }}
                     </flux:button>
                 </div>
             </div>

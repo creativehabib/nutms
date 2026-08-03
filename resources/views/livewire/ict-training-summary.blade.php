@@ -1,6 +1,6 @@
 <div class="py-8 sm:px-6 lg:px-8">
 
-    <!-- প্রিন্ট করার জন্য বিশেষ CSS -->
+    <!-- Special CSS for printing -->
     <style>
         @media print {
             body * { visibility: hidden; }
@@ -19,57 +19,57 @@
     <flux:card class="overflow-hidden !p-0">
         <div class="no-print flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50 px-4 py-4 dark:border-zinc-700 dark:bg-zinc-800/60 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
             <div class="flex flex-wrap gap-2">
-                <flux:button wire:click="showTab('with_ict')" :variant="$activeTab === 'with_ict' ? 'primary' : 'ghost'" icon="academic-cap">আইসিটি ট্রেনিং প্রাপ্ত শিক্ষক</flux:button>
-                <flux:button wire:click="showTab('without_ict')" :variant="$activeTab === 'without_ict' ? 'primary' : 'ghost'" icon="user-minus">আইসিটি ট্রেনিং বিহীন শিক্ষক</flux:button>
+                <flux:button wire:click="showTab('with_ict')" :variant="$activeTab === 'with_ict' ? 'primary' : 'ghost'" icon="academic-cap">{{ __('Training information') }}</flux:button>
+                <flux:button wire:click="showTab('without_ict')" :variant="$activeTab === 'without_ict' ? 'primary' : 'ghost'" icon="user-minus">{{ __('Training information') }}</flux:button>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <flux:button type="button" wire:click="export('{{ $activeTab }}')" wire:loading.attr="disabled" wire:target="export" variant="primary" icon="arrow-down-tray"><span wire:loading.remove wire:target="export">Excel Export</span><span wire:loading wire:target="export">Export হচ্ছে...</span></flux:button>
-                <flux:button type="button" onclick="window.print()" icon="printer">তালিকা প্রিন্ট করুন</flux:button>
+                <flux:button type="button" wire:click="export('{{ $activeTab }}')" wire:loading.attr="disabled" wire:target="export" variant="primary" icon="arrow-down-tray"><span wire:loading.remove wire:target="export">Excel Export</span><span wire:loading wire:target="export">{{ __('Information') }}</span></flux:button>
+                <flux:button type="button" onclick="window.print()" icon="printer">{{ __('Information') }}</flux:button>
             </div>
         </div>
 
-        <!-- প্রিন্ট এরিয়া -->
+        <!-- Print area -->
         <div id="print-section" class="p-6">
 
-            <!-- আইসিটি ট্রেনিং থাকা শিক্ষকদের তালিকা -->
+            <!-- List of teachers with ICT training -->
             @if ($activeTab === 'with_ict')
             <div>
-                <flux:heading size="xl" class="mb-4 text-center">আইসিটি (ICT) ট্রেনিং প্রাপ্ত শিক্ষকদের তালিকা</flux:heading>
+                <flux:heading size="xl" class="mb-4 text-center">{{ __('Training information') }}</flux:heading>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
                         <thead class="bg-gray-800 dark:bg-slate-950 text-white print:bg-gray-200 print:text-black">
                         <tr>
-                            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider border w-16">ক্র.নং</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border min-w-[200px]">শিক্ষকের নাম</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">আইসিটি ট্রেনিংয়ের নাম</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">অন্যান্য ট্রেনিংয়ের নাম</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">ট্রেনিং ইনস্টিটিউট</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider border w-16">{{ __('Information') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border min-w-[200px]">{{ __('Teacher information') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Training information') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Training information') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Training information') }}</th>
                         </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 text-sm">
-                        <!-- কলেজ অনুযায়ী গ্রুপ লুপ -->
+                        <!-- College group loop -->
                         @forelse ($teachersByCollege as $collegeCode => $collegeTeachers)
-                            <!-- কলেজ হেডার রো -->
+                            <!-- College header row -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
                                 <td colspan="5" class="px-4 py-2 font-bold text-indigo-800 dark:text-indigo-300 border text-center college-header text-base">
-                                    কলেজ কোড: {{ $collegeCode }} - {{ $collegeTeachers->first()->college_name ?? 'নাম উল্লেখ নেই' }}
+                                    College code: {{ $collegeCode }} - {{ $collegeTeachers->first()->college_name ?? __('Information') }}
                                 </td>
                             </tr>
 
-                            <!-- ওই কলেজের শিক্ষকদের লুপ -->
+                            <!-- Teacher loop for this college -->
                             @php($rowNumber = 1)
                             @foreach ($collegeTeachers as $teacher)
                                 <tr class="hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors">
                                     <td class="px-4 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
                                     <td class="px-4 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->display_name }}</td>
                                     <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $this->trainingDetails($teacher) }}</td>
-                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->other_training_name ?: 'উল্লেখ নেই' }}</td>
+                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->other_training_name ?: __('Not provided') }}</td>
                                     <td class="px-4 py-3 text-gray-600 dark:text-slate-400 border text-xs">{{ $this->trainingInstitutes($teacher) }}</td>
                                 </tr>
                             @endforeach
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-slate-400 font-medium border">কোনো ডেটা নেই</td>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-slate-400 font-medium border">{{ __('Information') }}</td>
                             </tr>
                         @endforelse
                         </tbody>
@@ -78,50 +78,48 @@
             </div>
             @else
 
-            <!-- আইসিটি ট্রেনিং না থাকা শিক্ষকদের তালিকা -->
+            <!-- List of teachers without ICT training -->
             <div>
-                <flux:heading size="xl" class="mb-4 text-center">আইসিটি (ICT) ট্রেনিং বিহীন শিক্ষকদের তালিকা</flux:heading>
+                <flux:heading size="xl" class="mb-4 text-center">{{ __('Training information') }}</flux:heading>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
                         <thead class="bg-gray-800 dark:bg-slate-950 text-white print:bg-gray-200 print:text-black">
                         <tr>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border w-16">ক্র.নং</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border min-w-[200px]">শিক্ষকের নাম</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">বিষয়</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">পদবি</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">শিক্ষক স্তর</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">চাকরির ধরন</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border">অবস্থা</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border w-16">{{ __('Information') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border min-w-[200px]">{{ __('Teacher information') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Information') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Designation') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Teacher Level') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Employment Type') }}</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border">{{ __('Status') }}</th>
                         </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 text-sm">
-                        <!-- কলেজ অনুযায়ী গ্রুপ লুপ -->
+                        <!-- College group loop -->
                         @forelse ($teachersByCollege as $collegeCode => $collegeTeachers)
-                            <!-- কলেজ হেডার রো -->
+                            <!-- College header row -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
                                 <td colspan="7" class="px-4 py-2 font-bold text-red-800 dark:text-red-300 border text-center college-header text-base">
-                                    কলেজ কোড: {{ $collegeCode }} - {{ $collegeTeachers->first()->college_name ?? 'নাম উল্লেখ নেই' }}
+                                    College code: {{ $collegeCode }} - {{ $collegeTeachers->first()->college_name ?? __('Information') }}
                                 </td>
                             </tr>
 
-                            <!-- ওই কলেজের শিক্ষকদের লুপ -->
+                            <!-- Teacher loop for this college -->
                             @php($rowNumber = 1)
                             @foreach ($collegeTeachers as $teacher)
                                 <tr class="hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
                                     <td class="px-6 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
                                     <td class="px-6 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->display_name }}</td>
-                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->subject ?: 'উল্লেখ নেই' }}</td>
-                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->designation ?: 'উল্লেখ নেই' }}</td>
-                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->teacher_level ?: 'উল্লেখ নেই' }}</td>
-                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->employment_type ?: 'উল্লেখ নেই' }}</td>
-                                    <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600">
-                                        ট্রেনিং নেই
-                                    </td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->subject ?: __('Not provided') }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->designation ?: __('Not provided') }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->teacher_level ?: __('Not provided') }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->employment_type ?: __('Not provided') }}</td>
+                                    <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600">{{ __('Training information') }}</td>
                                 </tr>
                             @endforeach
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-slate-400 font-medium border">কোনো ডেটা নেই</td>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-slate-400 font-medium border">{{ __('Information') }}</td>
                             </tr>
                         @endforelse
                         </tbody>
