@@ -144,7 +144,12 @@ it('restricts administrative pages by role', function () {
     $this->actingAs($teacher)->get(route('training-catalog.manage'))->assertForbidden();
     $this->actingAs($teacher)->get(route('teachers.manage'))->assertForbidden();
     $this->actingAs($teacher)->get(route('roles-permissions.manage'))->assertForbidden();
-    $this->actingAs(User::factory()->create(['role' => Role::Admin]))->get(route('roles-permissions.manage'))->assertSuccessful();
+    $this->actingAs(User::factory()->create(['role' => Role::Admin]))->get(route('roles-permissions.manage'))
+        ->assertSuccessful()
+        ->assertSee('Roles &amp; Permissions', false)
+        ->assertSee('Permission Matrix')
+        ->assertSee('Manage roles and permissions')
+        ->assertDontSee('রোল ও পারমিশন ব্যবস্থাপনা');
     $this->actingAs($principal)->get('/approvals')->assertNotFound();
 });
 
@@ -154,8 +159,8 @@ it('shows college management as a standalone admin navigation item', function ()
     $response = $this->actingAs($admin)->get(route('dashboard'));
 
     $response->assertSuccessful()
-        ->assertSeeInOrder(['কলেজ ব্যবস্থাপনা', 'রোলস ও পারমিশন', 'শিক্ষক সেটিংস']);
-    expect(substr_count($response->getContent(), 'কলেজ ব্যবস্থাপনা'))->toBe(1);
+        ->assertSeeInOrder(['College Management', 'Roles &amp; Permissions', 'System Settings'], false);
+    expect(substr_count($response->getContent(), 'College Management'))->toBe(1);
 });
 
 it('lets a teacher access only their approved profile', function () {

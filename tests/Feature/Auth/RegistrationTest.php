@@ -34,7 +34,7 @@ test('registration screen can be rendered', function () {
         ->assertSee('নতুন account শিক্ষক হিসেবে তৈরি হবে')
         ->assertSee('কলেজের নাম')
         ->assertSee('Selectable College')
-        ->assertDontSee('কলেজ প্রিন্সিপাল');
+        ->assertDontSee('College Principal');
 });
 
 test('new users can register', function () {
