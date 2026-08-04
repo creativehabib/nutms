@@ -18,12 +18,12 @@
     <flux:card class="overflow-hidden !p-0">
         <div class="no-print flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50 px-4 py-4 dark:border-zinc-700 dark:bg-zinc-800/60 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex flex-wrap gap-2">
-                <flux:button wire:click="showTab('with_lab')" :variant="$activeTab === 'with_lab' ? 'primary' : 'ghost'" icon="computer-desktop">{{ __('Computer Lab Status') }}</flux:button>
-                <flux:button wire:click="showTab('without_lab')" :variant="$activeTab === 'without_lab' ? 'primary' : 'ghost'" icon="x-circle">{{ __('Computer Lab Status') }}</flux:button>
+                <flux:button wire:click="showTab('with_lab')" :variant="$activeTab === 'with_lab' ? 'primary' : 'ghost'" icon="computer-desktop">{{ __('There is a computer lab.') }}</flux:button>
+                <flux:button wire:click="showTab('without_lab')" :variant="$activeTab === 'without_lab' ? 'primary' : 'ghost'" icon="x-circle">{{ __('There is no computer lab.') }}</flux:button>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <flux:button type="button" wire:click="export('{{ $activeTab }}')" wire:loading.attr="disabled" wire:target="export" variant="primary" icon="arrow-down-tray"><span wire:loading.remove wire:target="export">Excel Export</span><span wire:loading wire:target="export">{{ __('No colleges found for this report.') }}</span></flux:button>
-                <flux:button type="button" onclick="window.print()" icon="printer">{{ __('No colleges found for this report.') }}</flux:button>
+                <flux:button type="button" onclick="window.print()" icon="printer">{{ __('Print') }}</flux:button>
             </div>
         </div>
 
@@ -38,10 +38,10 @@
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
                         <thead class="bg-gray-800 dark:bg-slate-950 text-white print:bg-gray-200 print:text-black">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('No colleges found for this report.') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Sl. No.') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('College Code') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('College Name') }}</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border">{{ __('No colleges found for this report.') }}</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border">{{ __('Number of computers') }}</th>
                         </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 text-sm">
@@ -72,7 +72,7 @@
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
                         <thead class="bg-gray-800 dark:bg-slate-950 text-white print:bg-gray-200 print:text-black">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('No colleges found for this report.') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('SL. No.') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('College Code') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('College Name') }}</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border">{{ __('Status') }}</th>
@@ -84,7 +84,7 @@
                                 <td class="px-6 py-3 whitespace-nowrap text-gray-900 dark:text-slate-100 border">{{ $colleges->firstItem() + $loop->index }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap font-bold text-gray-900 dark:text-slate-100 border">{{ $college->code }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap text-gray-700 dark:text-slate-300 font-medium border">{{ $college->name }}</td>
-                                <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600 dark:text-red-300">{{ __('Computer Lab Status') }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600 dark:text-red-300">{{ __('There is no lab.') }}</td>
                             </tr>
                         @empty
                             <tr>

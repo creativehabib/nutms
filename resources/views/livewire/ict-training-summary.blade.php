@@ -19,12 +19,12 @@
     <flux:card class="overflow-hidden !p-0">
         <div class="no-print flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50 px-4 py-4 dark:border-zinc-700 dark:bg-zinc-800/60 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
             <div class="flex flex-wrap gap-2">
-                <flux:button wire:click="showTab('with_ict')" :variant="$activeTab === 'with_ict' ? 'primary' : 'ghost'" icon="academic-cap">{{ __('ICT Training Status') }}</flux:button>
-                <flux:button wire:click="showTab('without_ict')" :variant="$activeTab === 'without_ict' ? 'primary' : 'ghost'" icon="user-minus">{{ __('ICT Training Status') }}</flux:button>
+                <flux:button wire:click="showTab('with_ict')" :variant="$activeTab === 'with_ict' ? 'primary' : 'ghost'" icon="academic-cap">{{ __('ICT-trained teacher') }}</flux:button>
+                <flux:button wire:click="showTab('without_ict')" :variant="$activeTab === 'without_ict' ? 'primary' : 'ghost'" icon="user-minus">{{ __('Teachers without ICT training') }}</flux:button>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <flux:button type="button" wire:click="export('{{ $activeTab }}')" wire:loading.attr="disabled" wire:target="export" variant="primary" icon="arrow-down-tray"><span wire:loading.remove wire:target="export">Excel Export</span><span wire:loading wire:target="export">{{ __('No training summary records found.') }}</span></flux:button>
-                <flux:button type="button" onclick="window.print()" icon="printer">{{ __('No training summary records found.') }}</flux:button>
+                <flux:button type="button" onclick="window.print()" icon="printer">{{ __('Print') }}</flux:button>
             </div>
         </div>
 
@@ -34,16 +34,16 @@
             <!-- List of teachers with ICT training -->
             @if ($activeTab === 'with_ict')
             <div>
-                <flux:heading size="xl" class="mb-4 text-center">{{ __('ICT Training Status') }}</flux:heading>
+                <flux:heading size="xl" class="mb-4 text-center">{{ __('List of ICT-trained Teachers') }}</flux:heading>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
                         <thead class="bg-gray-800 dark:bg-slate-950 text-white print:bg-gray-200 print:text-black">
                         <tr>
-                            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider border w-16">{{ __('No training summary records found.') }}</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider border w-16">{{ __('SL. No.') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border min-w-[200px]">{{ __('Teacher Name') }}</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('ICT Training Status') }}</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('ICT Training Status') }}</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('ICT Training Status') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Name of the ICT training') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Names of other training programs') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Training Institute Name') }}</th>
                         </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 text-sm">
@@ -85,9 +85,9 @@
                     <table class="min-w-full divide-y divide-gray-200 print-table border border-gray-300 dark:border-slate-600">
                         <thead class="bg-gray-800 dark:bg-slate-950 text-white print:bg-gray-200 print:text-black">
                         <tr>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border w-16">{{ __('No training summary records found.') }}</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider border w-16">{{ __('SL. No.') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border min-w-[200px]">{{ __('Teacher Name') }}</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('No training summary records found.') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Subject Name') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Designation') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Teacher Level') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider border">{{ __('Employment Type') }}</th>
@@ -114,7 +114,7 @@
                                     <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->designation ?: __('Not provided') }}</td>
                                     <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->teacher_level ?: __('Not provided') }}</td>
                                     <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->employment_type ?: __('Not provided') }}</td>
-                                    <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600">{{ __('ICT Training Status') }}</td>
+                                    <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600">{{ __('No training') }}</td>
                                 </tr>
                             @endforeach
                         @empty
