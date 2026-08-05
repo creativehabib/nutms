@@ -1,473 +1,479 @@
-<div class="w-full mx-auto py-6 sm:px-6 lg:px-8"
-     x-data="{ showImportModal: false, showEditModal: false }"
+<div class="mx-auto w-full px-4 py-6 sm:px-6 lg:px-8"
+     x-data="{ showImportModal: false }"
      @close-modal.window="showImportModal = false"
-     @open-edit-modal.window="showEditModal = true"
-     @close-edit-modal.window="showEditModal = false"
      @teacher-selection-updated.window="$el.querySelectorAll('[data-teacher-checkbox]').forEach((checkbox) => checkbox.checked = $event.detail.selected)">
 
-    <div class="bg-white dark:bg-slate-900 shadow-md rounded-lg overflow-hidden">
+    <!-- ========================================== -->
+    <!-- Main Card Container -->
+    <!-- ========================================== -->
+    <flux:card class="p-0 overflow-hidden shadow-sm">
 
-        <!-- Topbar: Search, Filter  Import button -->
-        <div class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/80 p-4 sm:p-5">
-            <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <!-- Topbar: Header, Search, Filter & Actions -->
+        <div class="border-b border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700/50 dark:bg-zinc-900/40 sm:p-5">
+            <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ $isAdmin ? __('Teacher Management') : __('My College Teachers') }}</h2>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ $isAdmin ? __('Search, filter, approve, import, and manage teacher profiles.') : __('Review and manage teacher profiles for your college.') }}</p>
+                    <flux:heading size="xl" class="font-bold tracking-tight">{{ $isAdmin ? __('Teacher Management') : __('My College Teachers') }}</flux:heading>
+                    <flux:text class="mt-1 text-sm">{{ $isAdmin ? __('Search, filter, approve, import, and manage teacher profiles.') : __('Review and manage teacher profiles for your college.') }}</flux:text>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <flux:button variant="primary" icon="plus" :href="route('teachers.create')" wire:navigate>{{ __('Add Teacher') }}</flux:button>
-                    <span class="inline-flex w-fit items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400 shadow-sm">
-                        Total {{ $teachers->total() }} teachers
-                    </span>
-                    @if($isAdmin)<span class="inline-flex w-fit items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm">
-                        {{ trans_choice(':count college|:count colleges', $collegeCount) }}
-                    </span>@endif
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <flux:badge color="zinc" class="shadow-sm">Total {{ $teachers->total() }} teachers</flux:badge>
+                    @if($isAdmin)
+                        <flux:badge color="indigo" class="shadow-sm">{{ trans_choice(':count college|:count colleges', $collegeCount) }}</flux:badge>
+                    @endif
+                    <flux:button variant="primary" icon="plus" :href="route('teachers.create')" wire:navigate size="sm" class="shadow-sm">
+                        {{ __('Add Teacher') }}
+                    </flux:button>
                 </div>
             </div>
 
-            <div @class(['grid gap-3 lg:items-end', 'lg:grid-cols-[minmax(16rem,1.25fr)_repeat(2,minmax(10rem,0.75fr))_auto]' => $isAdmin, 'lg:grid-cols-[minmax(16rem,1.5fr)_minmax(12rem,1fr)]' => ! $isAdmin])>
+            <!-- Filters & Search Grid -->
+            <div @class(['grid gap-4 lg:items-end', 'lg:grid-cols-[1.5fr_1fr_1fr_auto]' => $isAdmin, 'lg:grid-cols-[2fr_1fr]' => ! $isAdmin])>
 
-                <!-- Search input -->
-                <div>
-                    <label for="teacher-search" class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('Teacher') }}</label>
-                    <div class="relative">
-                        <svg class="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"></path></svg>
-                        <input
-                            id="teacher-search"
-                            type="search"
-                            wire:model.live.debounce.300ms="search"
-                             :placeholder="__('Search by name, TMIS ID, email, or college')"
-                            class="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 py-2.5 pl-10 pr-3 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        >
-                    </div>
+                <!-- Search Input -->
+                <div class="w-full">
+                    <flux:input
+                        wire:model.live.debounce.300ms="search"
+                        type="search"
+                        label="{{ __('Teacher') }}"
+                        placeholder="{{ __('Search by name, TMIS ID, email, or college') }}"
+                        icon="magnifying-glass"
+                    />
                 </div>
 
-                <!-- Filter options -->
-                    <!-- Subject filter -->
-                    <div>
-                        <label for="subject-filter" class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('Subject') }}</label>
-                        <select id="subject-filter" wire:model.live="subjectFilter" class="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                            <option value="">{{ __('All Subjects') }}</option>
-                            @foreach($subjects as $subject)
-                                <option value="{{ $subject }}">{{ $subject }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <!-- Subject Filter -->
+                <div class="w-full">
+                    <flux:select wire:model.live="subjectFilter" label="{{ __('Subject') }}">
+                        <option value="">{{ __('All Subjects') }}</option>
+                        @foreach($subjects as $subject)
+                            <option value="{{ $subject }}">{{ $subject }}</option>
+                        @endforeach
+                    </flux:select>
+                </div>
 
-                    @if($isAdmin)
-                    <!-- College code filter -->
-                    <div>
-                        <label for="college-filter" class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('College Code') }}</label>
-                        <select id="college-filter" wire:model.live="collegeCodeFilter" class="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                @if($isAdmin)
+                    <!-- College Code Filter -->
+                    <div class="w-full">
+                        <flux:select wire:model.live="collegeCodeFilter" label="{{ __('College Code') }}">
                             <option value="">{{ __('All College Codes') }}</option>
                             @foreach($collegeCodes as $code)
                                 <option value="{{ $code }}">{{ $code }}</option>
                             @endforeach
-                        </select>
+                        </flux:select>
                     </div>
-                    @endif
 
-                <!-- Import button -->
-                @if($isAdmin)<div class="flex flex-col gap-2 sm:flex-row">
-                    <button
-                        type="button"
-                        wire:click="toggleTrashed"
-                        class="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm transition hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 lg:w-auto"
-                    >
-                        {{ $showTrashed ? __('Show Active Teachers') : __('View Trash') }}
-                    </button>
-                    <button
-                        @click="showImportModal = true"
-                        class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-transparent bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 lg:w-auto"
-                    >
-                        <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14"></path></svg>{{ __('Import Teachers') }}</button>
-                </div>@endif
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-2 w-full pt-6 lg:pt-0">
+                        <flux:button wire:click="toggleTrashed" variant="outline" class="w-full sm:w-auto">
+                            {{ $showTrashed ? __('Show Active') : __('View Trash') }}
+                        </flux:button>
+                        <flux:button @click="showImportModal = true" variant="primary" icon="arrow-down-tray" class="w-full sm:w-auto">
+                            {{ __('Import') }}
+                        </flux:button>
+                    </div>
+                @endif
             </div>
 
+            <!-- Filter Status Indicator -->
             @if(trim($search) !== '' || $subjectFilter !== '' || $collegeCodeFilter !== '')
-                <div class="mt-3 flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-indigo-50/70 px-3 py-2 dark:border-indigo-900 dark:bg-indigo-950/30">
-                    <p class="text-xs font-medium text-indigo-700 dark:text-indigo-300">{{ __('Showing results that match the active search or filters.') }}</p>
-                    <button type="button" wire:click="clearFilters" class="shrink-0 text-xs font-semibold text-indigo-700 underline decoration-indigo-300 underline-offset-4 transition hover:text-indigo-900 dark:text-indigo-300 dark:hover:text-indigo-100">{{ __('Clear Filters') }}</button>
+                <div class="mt-4 flex items-center justify-between rounded-lg border border-indigo-100 bg-indigo-50/70 px-4 py-2.5 dark:border-indigo-900/50 dark:bg-indigo-900/20">
+                    <flux:text class="text-xs font-medium text-indigo-700 dark:text-indigo-300">
+                        {{ __('Showing results that match the active search or filters.') }}
+                    </flux:text>
+                    <button type="button" wire:click="clearFilters" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline underline-offset-2 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                        {{ __('Clear Filters') }}
+                    </button>
                 </div>
             @endif
         </div>
 
-        <!-- Data table -->
+        <!-- Bulk Actions Bar -->
         @if ($isAdmin && count($selectedTeacherIds) > 0)
-            <div class="flex flex-col gap-3 border-b border-indigo-100 bg-indigo-50 px-4 py-3 dark:border-indigo-900 dark:bg-indigo-950/40 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                <p class="text-sm font-semibold text-indigo-900 dark:text-indigo-200">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-indigo-50/80 dark:bg-indigo-900/20 border-b border-indigo-100 dark:border-indigo-800/50 px-5 py-3">
+                <p class="text-sm font-semibold text-indigo-900 dark:text-indigo-300">
                     {{ count($selectedTeacherIds) }} teachers selected
                 </p>
-                @if ($showTrashed)
-                    <div class="flex flex-col gap-2 sm:flex-row">
+                <div class="flex flex-wrap gap-2">
+                    @if ($showTrashed)
                         <flux:button variant="primary" size="sm" wire:click="restoreSelectedTeachers">{{ __('Restore Selected') }}</flux:button>
-                        <flux:button variant="danger" size="sm" wire:click="confirmBulkPermanentDeletion">{{ __('Delete') }}</flux:button>
-                    </div>
-                @else
-                    <flux:button variant="danger" size="sm" wire:click="confirmBulkTeacherDeletion">{{ __('Delete') }}</flux:button>
-                @endif
+                        <flux:button variant="danger" size="sm" wire:click="confirmBulkPermanentDeletion">{{ __('Delete Permanently') }}</flux:button>
+                    @else
+                        <flux:button variant="danger" size="sm" wire:click="confirmBulkTeacherDeletion">{{ __('Move to Trash') }}</flux:button>
+                    @endif
+                </div>
             </div>
         @endif
 
+        <!-- Data Table -->
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-800 dark:bg-slate-950 text-white">
-                <tr>
-                    @if($isAdmin)<th class="w-12 px-4 py-3 text-center">
-                        <input
-                            type="checkbox"
-                            wire:click="toggleSelectAllOnPage"
-                            data-teacher-checkbox
-                            class="size-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
-                            :aria-label="__('Teacher')"
-                            @checked($selectAllOnPage)
-                        >
-                    </th>@endif
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">TMIS ID</th>
-                    @if($isAdmin)<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('College Code') }}</th>@endif
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('Teacher Name') }}</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('Designation & Subject') }}</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{{ __('Contact') }}</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">{{ __('Approve') }}</th>
-                    @can('teachers.assign-role')<th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">{{ __('Role') }}</th>@endcan
-                    <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">{{ __('Action') }}</th>
-                </tr>
-                </thead>
-                <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 text-sm">
-                @forelse ($teachers as $teacher)
-                    <tr wire:key="teacher-row-{{ $teacher->id }}" class="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
-                        @if($isAdmin)<td class="px-4 py-4 text-center">
-                            <input
-                                type="checkbox"
-                                wire:key="teacher-select-{{ $teacher->id }}"
-                                wire:click="toggleTeacherSelection({{ $teacher->id }})"
-                                value="{{ $teacher->id }}"
-                                data-teacher-checkbox
-                                class="size-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
-                                aria-label="{{ $teacher->display_name }} select"
-                                @checked(in_array((string) $teacher->id, $selectedTeacherIds, true))
-                            >
-                        </td>@endif
-                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-slate-100">
-                            {{ $teacher->tmis_id ?? 'N/A' }}
-                        </td>
-                        @if($isAdmin)<td class="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
-                            {{ $teacher->college_code ?? '-' }}
-                        </td>@endif
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-slate-100">
-                            {{ $teacher->display_name }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="block text-gray-800 dark:text-slate-200 font-semibold">{{ $teacher->designation }}</span>
-                            <span class="block text-gray-500 dark:text-slate-400 text-xs">{{ $teacher->subject }}</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="block text-gray-800 dark:text-slate-200">{{ $teacher->mobile_number ?? '-' }}</span>
-                            <span class="block text-blue-600 text-xs">{{ $teacher->email ?? '-' }}</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            @if($isAdmin && auth()->user()->can('teachers.approve') && ! $showTrashed)
-                                <div class="inline-flex flex-col items-center gap-1.5">
-                                    <flux:switch
-                                        :checked="$teacher->approval_status === \App\Enums\ApprovalStatus::Approved"
-                                        wire:click="toggleTeacherApproval({{ $teacher->id }})"
-                                        wire:loading.attr="disabled"
-                                        wire:target="toggleTeacherApproval({{ $teacher->id }})"
-                                        aria-label="{{ $teacher->display_name }}change approval"
-                                    />
-                                    <span @class([
-                                        'text-xs font-semibold',
-                                        'text-emerald-600 dark:text-emerald-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Approved,
-                                        'text-red-600 dark:text-red-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Rejected,
-                                        'text-amber-600 dark:text-amber-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Pending,
-                                    ])>
-                                        {{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => __('Approved'), \App\Enums\ApprovalStatus::Rejected => __('Rejected'), default => __('Pending') } }}
-                                    </span>
-                                </div>
-                            @else
-                                <flux:badge :color="match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'green', \App\Enums\ApprovalStatus::Rejected => 'red', default => 'amber' }">{{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => __('Approved'), \App\Enums\ApprovalStatus::Rejected => __('Rejected'), default => __('Pending') } }}</flux:badge>
-                            @endif
-                        </td>
-                        @can('teachers.assign-role')
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if($teacher->user)
-                                    <flux:select size="sm" wire:change="changeTeacherRole({{ $teacher->id }}, $event.target.value)" aria-label="{{ $teacher->display_name }}change role">
-                                        <option value="teacher" @selected($teacher->user->role === \App\Enums\UserRole::Teacher)>{{ __('Teacher') }}</option>
-                                        <option value="principal" @selected($teacher->user->role === \App\Enums\UserRole::Principal)>{{ __('College Principal') }}</option>
-                                    </flux:select>
-                                @else
-                                    <flux:badge color="zinc">{{ __('No linked account') }}</flux:badge>
-                                @endif
-                            </td>
-                        @endcan
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            @if ($showTrashed)
-                                <button wire:click="restoreTeacher({{ $teacher->id }})" class="mr-2 rounded bg-emerald-100 px-3 py-1 text-emerald-700 transition hover:bg-emerald-200 hover:text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900">Restore</button>
-                                <button wire:click="confirmPermanentTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-700 transition hover:bg-red-200 hover:text-red-900 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900">Permanent Delete</button>
-                            @else
-                                <flux:button size="sm" icon="eye" :href="route('teachers.show', $teacher)" wire:navigate>{{ __('View') }}</flux:button>
-                                @can('teachers.update')<flux:button size="sm" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate>{{ __('Edit') }}</flux:button>@endcan
-                                @can('teachers.approve')
-                                @if(! $isAdmin && $teacher->approval_status === \App\Enums\ApprovalStatus::Pending)
-                                    <flux:button size="sm" variant="primary" wire:click="approveTeacher({{ $teacher->id }})">{{ __('Approve') }}</flux:button>
-                                    <flux:button size="sm" variant="danger" wire:click="rejectTeacher({{ $teacher->id }})">{{ __('Reject') }}</flux:button>
-                                @endif
-                                @endcan
-                                @can('teachers.delete')<button wire:click="confirmTeacherDeletion({{ $teacher->id }})" class="rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200 hover:text-red-900 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900">Delete</button>@endcan
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ $isAdmin ? 9 : 6 }}" class="px-6 py-4 text-center text-gray-500 dark:text-slate-400">{{ __('No teachers found.') }}</td>
-                    </tr>
-                @endforelse
-                </tbody>
-            </table>
+            <flux:table class="px-4">
+                <flux:table.columns>
+                    @if($isAdmin)
+                        <flux:table.column class="w-12 px-4 py-3">
+                            <flux:checkbox wire:click="toggleSelectAllOnPage" data-teacher-checkbox :checked="$selectAllOnPage" />
+                        </flux:table.column>
+                        <flux:table.column>{{ __('College Code') }}</flux:table.column>
+                    @endif
+                    <flux:table.column>{{ __('Teacher Name') }}</flux:table.column>
+                    <flux:table.column>{{ __('Designation & Subject') }}</flux:table.column>
+                    <flux:table.column>{{ __('Contact') }}</flux:table.column>
+                    <flux:table.column class="text-center">{{ __('Approve') }}</flux:table.column>
+                    @can('teachers.assign-role')
+                        <flux:table.column class="text-center">{{ __('Role') }}</flux:table.column>
+                    @endcan
+                    <flux:table.column class="text-right">{{ __('Action') }}</flux:table.column>
+                </flux:table.columns>
 
-            <!-- Pagination -->
-            <div class="px-4 py-4 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 sm:px-6">
+                <flux:table.rows>
+                    @forelse ($teachers as $teacher)
+                        <flux:table.row wire:key="teacher-row-{{ $teacher->id }}" class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors">
+                            @if($isAdmin)
+                                <flux:table.cell class="px-4 py-3">
+                                    <flux:checkbox
+                                        wire:key="teacher-select-{{ $teacher->id }}"
+                                        wire:click="toggleTeacherSelection({{ $teacher->id }})"
+                                        data-teacher-checkbox
+                                        :checked="in_array((string) $teacher->id, $selectedTeacherIds, true)"
+                                    />
+                                </flux:table.cell>
+                                <flux:table.cell class="font-mono text-zinc-500">
+                                    {{ $teacher->college_code ?? '-' }}
+                                </flux:table.cell>
+                            @endif
+
+                            <flux:table.cell>
+                                <div class="flex flex-col">
+                                    <span class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                        {{ $teacher?->display_name ?: __('No teacher profile') }}
+                                    </span>
+                                    <div class="flex items-center gap-1.5 mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                        <flux:icon.building-library variant="micro" class="size-3.5" />
+                                        <span class="truncate max-w-[200px]">{{ $teacher?->college?->name ?: $user->college?->name ?: __('No college assigned') }}</span>
+                                    </div>
+                                </div>
+                            </flux:table.cell>
+
+                            <flux:table.cell>
+                                <span class="block font-medium text-zinc-800 dark:text-zinc-200">{{ $teacher->designation }}</span>
+                                <span class="block text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ $teacher->subject }}</span>
+                            </flux:table.cell>
+
+                            <flux:table.cell>
+                                <span class="block font-medium text-zinc-800 dark:text-zinc-200">{{ $teacher->mobile_number ?? '-' }}</span>
+                                <span class="block text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">{{ $teacher->email ?? '-' }}</span>
+                            </flux:table.cell>
+
+                            <flux:table.cell class="text-center">
+                                @if($isAdmin && auth()->user()->can('teachers.approve') && ! $showTrashed)
+                                    <div class="flex flex-col items-center gap-1">
+                                        <flux:switch
+                                            :checked="$teacher->approval_status === \App\Enums\ApprovalStatus::Approved"
+                                            wire:click="toggleTeacherApproval({{ $teacher->id }})"
+                                            wire:loading.attr="disabled"
+                                        />
+                                        <span @class([
+                                            'text-[10px] font-bold uppercase tracking-wider',
+                                            'text-emerald-600 dark:text-emerald-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Approved,
+                                            'text-red-600 dark:text-red-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Rejected,
+                                            'text-amber-600 dark:text-amber-400' => $teacher->approval_status === \App\Enums\ApprovalStatus::Pending,
+                                        ])>
+                                            {{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => __('Approved'), \App\Enums\ApprovalStatus::Rejected => __('Rejected'), default => __('Pending') } }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <flux:badge size="sm" :color="match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => 'green', \App\Enums\ApprovalStatus::Rejected => 'red', default => 'amber' }">
+                                        {{ match($teacher->approval_status) { \App\Enums\ApprovalStatus::Approved => __('Approved'), \App\Enums\ApprovalStatus::Rejected => __('Rejected'), default => __('Pending') } }}
+                                    </flux:badge>
+                                @endif
+                            </flux:table.cell>
+
+                            @can('teachers.assign-role')
+                                <flux:table.cell class="text-center">
+                                    @if($teacher->user)
+                                        <flux:select size="sm" wire:change="changeTeacherRole({{ $teacher->id }}, $event.target.value)" class="min-w-[120px]">
+                                            <option value="teacher" @selected($teacher->user->role === \App\Enums\UserRole::Teacher)>{{ __('Teacher') }}</option>
+                                            <option value="principal" @selected($teacher->user->role === \App\Enums\UserRole::Principal)>{{ __('Principal') }}</option>
+                                        </flux:select>
+                                    @else
+                                        <flux:badge color="zinc" size="sm">{{ __('No Account') }}</flux:badge>
+                                    @endif
+                                </flux:table.cell>
+                            @endcan
+
+                            <flux:table.cell class="text-right">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    @if ($showTrashed)
+                                        <flux:button size="sm" variant="outline" wire:click="restoreTeacher({{ $teacher->id }})">Restore</flux:button>
+                                        <flux:button size="sm" variant="danger" wire:click="confirmPermanentTeacherDeletion({{ $teacher->id }})">Delete</flux:button>
+                                    @else
+                                        <flux:dropdown align="end">
+                                            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" class="text-zinc-500" />
+                                            <flux:menu>
+                                                <flux:menu.item icon="eye" :href="route('teachers.show', $teacher)" wire:navigate>{{ __('View Profile') }}</flux:menu.item>
+                                                @can('teachers.update')
+                                                    <flux:menu.item icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate>{{ __('Edit Profile') }}</flux:menu.item>
+                                                @endcan
+
+                                                @can('teachers.approve')
+                                                    @if(! $isAdmin && $teacher->approval_status === \App\Enums\ApprovalStatus::Pending)
+                                                        <flux:menu.separator />
+                                                        <flux:menu.item icon="check-circle" wire:click="approveTeacher({{ $teacher->id }})" class="text-emerald-600 hover:text-emerald-700">{{ __('Approve') }}</flux:menu.item>
+                                                        <flux:menu.item icon="x-circle" wire:click="rejectTeacher({{ $teacher->id }})" class="text-red-600 hover:text-red-700">{{ __('Reject') }}</flux:menu.item>
+                                                    @endif
+                                                @endcan
+
+                                                @can('teachers.delete')
+                                                    <flux:menu.separator />
+                                                    <flux:menu.item icon="trash" wire:click="confirmTeacherDeletion({{ $teacher->id }})" class="text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10">{{ __('Move to Trash') }}</flux:menu.item>
+                                                @endcan
+                                            </flux:menu>
+                                        </flux:dropdown>
+                                    @endif
+                                </div>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @empty
+                        <flux:table.row>
+                            <flux:table.cell colspan="{{ $isAdmin ? 9 : 6 }}">
+                                <div class="flex flex-col items-center justify-center py-12 text-zinc-500">
+                                    <flux:icon.users class="size-10 text-zinc-300 dark:text-zinc-600 mb-3" />
+                                    <p class="text-base font-medium text-zinc-900 dark:text-zinc-100">{{ __('No teachers found.') }}</p>
+                                    <p class="text-sm mt-1">Try adjusting your search or filters.</p>
+                                </div>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforelse
+                </flux:table.rows>
+            </flux:table>
+        </div>
+
+        <!-- Pagination -->
+        @if($teachers->hasPages())
+            <div class="border-t border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700/50 dark:bg-zinc-800/20 sm:px-6">
                 {{ $teachers->links() }}
             </div>
-        </div>
-    </div>
+        @endif
+    </flux:card>
 
-        <!-- Import modal (Alpine.js) -->
-        <div
-            x-show="showImportModal"
-            style="display: none;"
-            class="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-6"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true"
-        >
-            <div class="flex min-h-full items-end justify-center sm:items-center">
-                <!-- Background overlay -->
-                <div
-                    x-show="showImportModal"
-                    x-transition:enter="ease-out duration-300"
-                    x-transition:enter-start="opacity-0"
-                    x-transition:enter-end="opacity-100"
-                    x-transition:leave="ease-in duration-200"
-                    x-transition:leave-start="opacity-100"
-                    x-transition:leave-end="opacity-0"
-                    class="fixed inset-0 bg-slate-950/55 backdrop-blur-sm"
-                    @click="showImportModal = false"
-                    aria-hidden="true"
-                ></div>
 
-                <!-- Modal panel -->
-                <div
-                    x-show="showImportModal"
-                    x-transition:enter="ease-out duration-300"
-                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                    x-transition:leave="ease-in duration-200"
-                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    class="relative w-full max-w-xl transform overflow-hidden rounded-2xl border border-white/60 bg-white dark:bg-slate-900 text-left shadow-2xl transition-all"
-                >
-                    <!-- Close Button -->
-                    <button type="button" @click="showImportModal = false" class="absolute right-4 top-4 z-10 inline-flex size-9 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 shadow-sm transition hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300"  :aria-label="__('Close modal')">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
+    <!-- ========================================== -->
+    <!-- Import Modal (Alpine + Livewire) -->
+    <!-- ========================================== -->
+    <div x-cloak x-show="showImportModal" class="relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div x-show="showImportModal" x-transition.opacity class="fixed inset-0 bg-zinc-950/50 backdrop-blur-sm transition-opacity"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div x-show="showImportModal"
+                     x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     @click.away="showImportModal = false"
+                     class="relative transform overflow-hidden rounded-xl bg-white dark:bg-zinc-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-zinc-200 dark:border-zinc-700">
 
-                    <div class="bg-white dark:bg-slate-900">
-                        <!-- Previously created import component is called here -->
+                    <div class="absolute right-4 top-4">
+                        <flux:button variant="ghost" size="sm" icon="x-mark" @click="showImportModal = false" class="text-zinc-400 hover:text-zinc-600" />
+                    </div>
+                    <div class="p-1">
                         <livewire:teacher-data-import />
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <flux:modal name="confirm-teacher-deletion" focusable class="max-w-lg">
-            <div class="space-y-6">
-                <div>
-                    <flux:heading size="lg">
-                        {{ $permanentDeletion ? __('Permanently Delete Teacher') : __('Move Teacher to Trash') }}
-                    </flux:heading>
-                    <flux:subheading class="mt-2">
-                        @if ($permanentDeletion)
-                            <strong>{{ $deletingTeacherName }}</strong>information will be permanently deleted. This action cannot be undone.
-                        @else
-                            <strong>{{ $deletingTeacherName }}</strong>information will be moved to trash and can be restored later.
-                        @endif
-                    </flux:subheading>
-                </div>
 
-                <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                    <flux:modal.close>
-                        <flux:button variant="filled" wire:click="cancelTeacherDeletion" class="w-full sm:w-auto">{{ __('Cancel') }}</flux:button>
-                    </flux:modal.close>
-
-                    <flux:button variant="danger" wire:click="deleteTeacher" wire:loading.attr="disabled" wire:target="deleteTeacher" class="w-full sm:w-auto">
-                        <span wire:loading.remove wire:target="deleteTeacher">{{ $permanentDeletion ? __('Delete Permanently') : __('Move to Trash') }}</span>
-                        <span wire:loading wire:target="deleteTeacher">{{ __('Delete') }}</span>
-                    </flux:button>
-                </div>
+    <!-- ========================================== -->
+    <!-- Delete Confirmation Modal (Flux) -->
+    <!-- ========================================== -->
+    <flux:modal name="confirm-teacher-deletion" class="max-w-md p-6">
+        <div class="text-center sm:text-left">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-500/20 sm:mx-0 sm:h-10 sm:w-10">
+                <flux:icon.exclamation-triangle class="size-6 text-red-600 dark:text-red-400" />
             </div>
-        </flux:modal>
-
-        <!-- Edit modal (Edit Modal) -->
-        <div x-show="showEditModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-6" aria-labelledby="modal-title" role="dialog" aria-modal="true" @keydown.escape.window="showEditModal = false">
-            <div class="flex min-h-full items-end justify-center sm:items-center">
-                <!-- Background Overlay -->
-                <div
-                    x-show="showEditModal"
-                    x-transition:enter="ease-out duration-300"
-                    x-transition:enter-start="opacity-0"
-                    x-transition:enter-end="opacity-100"
-                    x-transition:leave="ease-in duration-200"
-                    x-transition:leave-start="opacity-100"
-                    x-transition:leave-end="opacity-0"
-                    class="fixed inset-0 bg-slate-950/55 backdrop-blur-sm"
-                    @click="showEditModal = false"
-                    aria-hidden="true"
-                ></div>
-
-                <!-- Modal Panel -->
-                <div
-                    x-show="showEditModal"
-                    x-transition:enter="ease-out duration-300"
-                    x-transition:enter-start="translate-y-6 opacity-0 sm:translate-y-0 sm:scale-95"
-                    x-transition:enter-end="translate-y-0 opacity-100 sm:scale-100"
-                    x-transition:leave="ease-in duration-200"
-                    x-transition:leave-start="translate-y-0 opacity-100 sm:scale-100"
-                    x-transition:leave-end="translate-y-6 opacity-0 sm:translate-y-0 sm:scale-95"
-                    class="relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-5xl transform flex-col overflow-hidden rounded-2xl border border-white/60 bg-slate-50 dark:bg-slate-950 text-left shadow-2xl transition-all sm:max-h-[calc(100vh-3rem)]"
-                >
-
-                    <div class="relative border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-4 sm:px-7 sm:py-5">
-                        <!-- Close Button -->
-                        <button type="button" @click="showEditModal = false" class="absolute right-4 top-4 inline-flex size-9 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 shadow-sm transition hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"  :aria-label="__('Close modal')">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-
-                        <div class="pr-12">
-                            <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600">Teacher profile</p>
-                            <h3 class="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100 sm:text-2xl" id="modal-title">{{ __('Edit Teacher Profile') }}</h3>
-                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ __('Update teacher, college, training, and contact details.') }}</p>
-                        </div>
-                    </div>
-
-                        <!-- Edit form -->
-                        <form wire:submit.prevent="updateTeacher" class="flex min-h-0 flex-1 flex-col">
-                            <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-5 sm:px-7 sm:py-6">
-
-                            @if ($errors->any())
-                                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-200" role="alert">
-                                    <div class="flex items-start gap-3">
-                                        <svg class="mt-0.5 size-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.3 3.7 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"></path></svg>
-                                        <div>
-                                            <p class="text-sm font-semibold">{{ __('Unable to update teacher') }}</p>
-                                            <p class="mt-0.5 text-xs text-red-700 dark:text-red-300">{{ __('Please fix the highlighted fields and try again.') }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            <fieldset class="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
-                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('College') }}</legend>
-                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('College Code') }}</label>
-                                        <input type="text" wire:model="editForm.college_code" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                        @error('editForm.college_code') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div class="lg:col-span-3">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('College Name') }}</label>
-                                        <input type="text" wire:model="editForm.college_name" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                        @error('editForm.college_name') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">TMIS ID</label>
-                                        <input type="text" wire:model="editForm.tmis_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                        @error('editForm.tmis_id') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                </div>
-                            </fieldset>
-
-                            <fieldset class="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
-                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('Teacher') }}</legend>
-                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    <div class="lg:col-span-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Teacher') }}</label>
-                                        <input type="text" wire:model="editForm.name" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                        @error('editForm.name') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Designation') }}</label>
-                                        <select wire:model="editForm.designation" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">{{ __('Select') }}</option>@foreach($designations as $designation)<option value="{{ $designation }}">{{ $designation }}</option>@endforeach</select>
-                                        @error('editForm.designation') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Subject') }}</label>
-                                        <select wire:model="editForm.subject" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">{{ __('Select') }}</option>@foreach($subjects as $subject)<option value="{{ $subject }}">{{ $subject }}</option>@endforeach</select>
-                                        @error('editForm.subject') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Teacher Level') }}</label>
-                                        <select wire:model="editForm.teacher_level" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">{{ __('Select') }}</option>@foreach($teacherLevels as $level)<option value="{{ $level }}">{{ $level }}</option>@endforeach</select>
-                                        @error('editForm.teacher_level') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Employment Type') }}</label>
-                                        <select wire:model="editForm.employment_type" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm"><option value="">{{ __('Select') }}</option>@foreach($employments as $employment)<option value="{{ $employment }}">{{ $employment }}</option>@endforeach</select>
-                                        @error('editForm.employment_type') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                    </div>
-                                </div>
-                            </fieldset>
-
-                            <fieldset class="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
-                                <div class="flex items-center justify-between gap-3">
-                                    <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('Training History') }}</legend>
-                                    <flux:button type="button" size="sm" wire:click="addTrainingEntry">{{ __('Add Training') }}</flux:button>
-                                </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Keep ICT and professional development records current.') }}</p>
-                                <div class="grid gap-3">
-                                    @foreach ($trainingEntries as $index => $entry)
-                                        <div wire:key="teacher-training-{{ $index }}" class="grid gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700 sm:grid-cols-2 lg:grid-cols-4">
-                                            <div><label class="block text-sm font-medium">{{ __('Training Source') }}</label><select wire:model.live="trainingEntries.{{ $index }}.kind" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="catalog">{{ __('Catalog Training') }}</option><option value="other">{{ __('Custom Training') }}</option></select></div>
-                                            <div><label class="block text-sm font-medium">{{ __('Institute') }}</label><select wire:model.live="trainingEntries.{{ $index }}.training_institute_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="">{{ $entry['kind'] === 'other' ? __('No institute selected') : __('Select') }}</option>@foreach ($trainingInstitutes as $institute)<option value="{{ $institute->id }}">{{ $institute->name }}</option>@endforeach</select></div>
-                                            @if ($entry['kind'] === 'catalog')
-                                                <div><label class="block text-sm font-medium">{{ __('Training Type') }}</label><select wire:model="trainingEntries.{{ $index }}.training_type_id" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="">{{ __('Select') }}</option>@foreach ($trainingTypes->where('training_institute_id', (int) $entry['training_institute_id']) as $trainingType)<option value="{{ $trainingType->id }}">{{ $trainingType->name }} — {{ $trainingType->duration_value }} {{ ['hours' => __('Hours'), 'days' => __('Days'), 'weeks' => __('Weeks'), 'months' => __('Months')][$trainingType->duration_unit] ?? '' }}</option>@endforeach</select>@error("trainingEntries.$index.training_type_id")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
-                                            @else
-                                                <div><label class="block text-sm font-medium">{{ __('Training Name') }}</label><input type="text" wire:model="trainingEntries.{{ $index }}.name" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900">@error("trainingEntries.$index.name")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
-                                                @if (blank($entry['training_institute_id']))<div><label class="block text-sm font-medium">{{ __('Institute Name') }}</label><input type="text" wire:model="trainingEntries.{{ $index }}.institute_name" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"></div>@endif
-                                                <div class="grid grid-cols-2 gap-2"><div><label class="block text-sm font-medium">{{ __('Duration') }}</label><input type="number" min="1" wire:model="trainingEntries.{{ $index }}.duration_value" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"></div><div><label class="block text-sm font-medium">{{ __('Duration Unit') }}</label><select wire:model="trainingEntries.{{ $index }}.duration_unit" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="hours">{{ __('Hours') }}</option><option value="days">{{ __('Days') }}</option><option value="weeks">{{ __('Weeks') }}</option><option value="months">{{ __('Months') }}</option></select></div></div>
-                                            @endif
-                                            <div><label class="block text-sm font-medium">{{ __('Training Year') }}</label><input type="number" min="1950" max="{{ date('Y') + 1 }}" wire:model="trainingEntries.{{ $index }}.training_year" placeholder="{{ date('Y') }}" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900">@error("trainingEntries.$index.training_year")<span class="mt-1 block text-xs text-red-600">{{ $message }}</span>@enderror</div>
-                                            <div class="flex items-end"><flux:button type="button" size="sm" variant="danger" wire:click="removeTrainingEntry({{ $index }})">{{ __('Remove') }}</flux:button></div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </fieldset>
-
-                            <fieldset class="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
-                                <legend class="px-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ __('Contact Details') }}</legend>
-                                <div class="grid gap-4 sm:grid-cols-2">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Mobile Number') }}</label>
-                                    <input type="text" wire:model="editForm.mobile_number" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                    @error('editForm.mobile_number') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Email') }}</label>
-                                    <input type="email" wire:model="editForm.email" class="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                                    @error('editForm.email') <span class="mt-1.5 block text-xs font-medium text-red-600">{{ $message }}</span> @enderror
-                                </div>
-                                </div>
-                            </fieldset>
-
-                            </div>
-
-                            <div class="flex flex-col-reverse gap-3 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-4 sm:flex-row sm:justify-end sm:px-7">
-                                <button type="button" @click="showEditModal = false" class="inline-flex w-full justify-center rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 sm:w-auto">{{ __('Cancel') }}</button>
-                                <button type="submit" class="inline-flex w-full justify-center rounded-lg border border-transparent bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" wire:loading.attr="disabled" wire:target="updateTeacher">
-                                    <span wire:loading wire:target="updateTeacher" class="mr-2">{{ __('Updating...') }}</span>{{ __('Update') }}</button>
-                            </div>
-                        </form>
-                </div>
+            <div class="mt-3 sm:mt-4">
+                <flux:heading size="lg" class="font-bold text-zinc-900 dark:text-zinc-100">
+                    {{ $permanentDeletion ? __('Permanently Delete Teacher') : __('Move Teacher to Trash') }}
+                </flux:heading>
+                <flux:text class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    @if ($permanentDeletion)
+                        <strong>{{ $deletingTeacherName }}</strong>'s information will be permanently deleted. This action cannot be undone.
+                    @else
+                        <strong>{{ $deletingTeacherName }}</strong>'s information will be moved to trash and can be restored later.
+                    @endif
+                </flux:text>
             </div>
         </div>
+        <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <flux:modal.close>
+                <flux:button variant="outline" wire:click="cancelTeacherDeletion" class="w-full sm:w-auto">{{ __('Cancel') }}</flux:button>
+            </flux:modal.close>
+            <flux:button variant="danger" wire:click="deleteTeacher" wire:loading.attr="disabled" class="w-full sm:w-auto">
+                <span wire:loading.remove wire:target="deleteTeacher">{{ $permanentDeletion ? __('Delete Permanently') : __('Move to Trash') }}</span>
+                <span wire:loading wire:target="deleteTeacher">{{ __('Deleting...') }}</span>
+            </flux:button>
+        </div>
+    </flux:modal>
+
+
+    <!-- ========================================== -->
+    <!-- Edit Teacher Modal (Flux UI + Alpine) -->
+    <!-- ========================================== -->
+    <flux:modal wire:model="showEditModal" name="edit-teacher-modal" class="max-w-4xl p-0 overflow-hidden" @close="showEditModal = false">
+
+        <!-- Modal Header -->
+        <div class="border-b border-zinc-200 bg-zinc-50/50 px-6 py-4 dark:border-zinc-700/50 dark:bg-zinc-900/40">
+            <p class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Teacher Profile</p>
+            <flux:heading size="xl" class="mt-1 font-bold">{{ __('Edit Teacher Profile') }}</flux:heading>
+            <flux:text class="mt-1 text-sm">{{ __('Update teacher, college, training, and contact details.') }}</flux:text>
+        </div>
+
+        <!-- Form Body -->
+        <form wire:submit.prevent="updateTeacher" class="flex flex-col max-h-[70vh]">
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-zinc-900">
+
+                @if ($errors->any())
+                    <div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/20">
+                        <div class="flex items-start gap-3">
+                            <flux:icon.exclamation-circle class="size-5 text-red-600 dark:text-red-400 mt-0.5" />
+                            <div>
+                                <h3 class="text-sm font-semibold text-red-800 dark:text-red-300">{{ __('Unable to update teacher') }}</h3>
+                                <p class="mt-1 text-sm text-red-700 dark:text-red-400">{{ __('Please fix the highlighted fields below and try again.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- College Section -->
+                <flux:fieldset>
+                    <flux:legend>{{ __('College Details') }}</flux:legend>
+                    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 mt-4">
+                        <flux:input wire:model="editForm.college_code" label="{{ __('College Code') }}" />
+                        <div class="lg:col-span-2">
+                            <flux:input wire:model="editForm.college_name" label="{{ __('College Name') }}" />
+                        </div>
+                        <flux:input wire:model="editForm.tmis_id" label="TMIS ID" />
+                    </div>
+                </flux:fieldset>
+
+                <flux:separator variant="subtle" />
+
+                <!-- Teacher Section -->
+                <flux:fieldset>
+                    <flux:legend>{{ __('Professional Details') }}</flux:legend>
+                    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+                        <div class="lg:col-span-2">
+                            <flux:input wire:model="editForm.name" label="{{ __('Teacher Name') }}" />
+                        </div>
+                        <flux:select wire:model="editForm.designation" label="{{ __('Designation') }}" placeholder="{{ __('Select') }}">
+                            @foreach($designations as $designation)
+                                <option value="{{ $designation }}">{{ $designation }}</option>
+                            @endforeach
+                        </flux:select>
+                        <flux:select wire:model="editForm.subject" label="{{ __('Subject') }}" placeholder="{{ __('Select') }}">
+                            @foreach($subjects as $subject)
+                                <option value="{{ $subject }}">{{ $subject }}</option>
+                            @endforeach
+                        </flux:select>
+                        <flux:select wire:model="editForm.teacher_level" label="{{ __('Teacher Level') }}" placeholder="{{ __('Select') }}">
+                            @foreach($teacherLevels as $level)
+                                <option value="{{ $level }}">{{ $level }}</option>
+                            @endforeach
+                        </flux:select>
+                        <flux:select wire:model="editForm.employment_type" label="{{ __('Employment Type') }}" placeholder="{{ __('Select') }}">
+                            @foreach($employments as $employment)
+                                <option value="{{ $employment }}">{{ $employment }}</option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+                </flux:fieldset>
+
+                <flux:separator variant="subtle" />
+
+                <!-- Training History Section -->
+                <flux:fieldset>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <flux:legend>{{ __('Training History') }}</flux:legend>
+                            <flux:text class="text-xs mt-1">{{ __('Keep ICT and professional development records current.') }}</flux:text>
+                        </div>
+                        <flux:button size="sm" icon="plus" wire:click="addTrainingEntry">{{ __('Add Training') }}</flux:button>
+                    </div>
+
+                    <div class="space-y-4">
+                        @foreach ($trainingEntries as $index => $entry)
+                            <div wire:key="teacher-training-{{ $index }}" class="relative rounded-lg border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-800/30">
+
+                                <button type="button" wire:click="removeTrainingEntry({{ $index }})" class="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-white text-red-500 shadow-sm ring-1 ring-zinc-200 hover:bg-red-50 dark:bg-zinc-800 dark:ring-zinc-700 transition">
+                                    <flux:icon.x-mark variant="micro" />
+                                </button>
+
+                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                    <flux:select wire:model.live="trainingEntries.{{ $index }}.kind" label="{{ __('Training Source') }}">
+                                        <option value="catalog">{{ __('Catalog Training') }}</option>
+                                        <option value="other">{{ __('Custom Training') }}</option>
+                                    </flux:select>
+
+                                    <flux:select wire:model.live="trainingEntries.{{ $index }}.training_institute_id" label="{{ __('Institute') }}">
+                                        <option value="">{{ $entry['kind'] === 'other' ? __('No institute selected') : __('Select') }}</option>
+                                        @foreach ($trainingInstitutes as $institute)
+                                            <option value="{{ $institute->id }}">{{ $institute->name }}</option>
+                                        @endforeach
+                                    </flux:select>
+
+                                    @if ($entry['kind'] === 'catalog')
+                                        <flux:select wire:model="trainingEntries.{{ $index }}.training_type_id" label="{{ __('Training Type') }}">
+                                            <option value="">{{ __('Select') }}</option>
+                                            @foreach ($trainingTypes->where('training_institute_id', (int) $entry['training_institute_id']) as $trainingType)
+                                                <option value="{{ $trainingType->id }}">{{ $trainingType->name }} — {{ $trainingType->duration_value }} {{ ['hours' => __('Hours'), 'days' => __('Days'), 'weeks' => __('Weeks'), 'months' => __('Months')][$trainingType->duration_unit] ?? '' }}</option>
+                                            @endforeach
+                                        </flux:select>
+                                    @else
+                                        <flux:input wire:model="trainingEntries.{{ $index }}.name" label="{{ __('Training Name') }}" />
+
+                                        @if (blank($entry['training_institute_id']))
+                                            <flux:input wire:model="trainingEntries.{{ $index }}.institute_name" label="{{ __('Institute Name') }}" />
+                                        @endif
+
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <flux:input type="number" min="1" wire:model="trainingEntries.{{ $index }}.duration_value" label="{{ __('Duration') }}" />
+                                            <flux:select wire:model="trainingEntries.{{ $index }}.duration_unit" label="{{ __('Unit') }}">
+                                                <option value="hours">{{ __('Hours') }}</option>
+                                                <option value="days">{{ __('Days') }}</option>
+                                                <option value="weeks">{{ __('Weeks') }}</option>
+                                                <option value="months">{{ __('Months') }}</option>
+                                            </flux:select>
+                                        </div>
+                                    @endif
+
+                                    <flux:input type="number" min="1950" max="{{ date('Y') + 1 }}" wire:model="trainingEntries.{{ $index }}.training_year" placeholder="{{ date('Y') }}" label="{{ __('Training Year') }}" />
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </flux:fieldset>
+
+                <flux:separator variant="subtle" />
+
+                <!-- Contact Section -->
+                <flux:fieldset>
+                    <flux:legend>{{ __('Contact Details') }}</flux:legend>
+                    <div class="grid gap-5 sm:grid-cols-2 mt-4">
+                        <flux:input wire:model="editForm.mobile_number" label="{{ __('Mobile Number') }}" />
+                        <flux:input type="email" wire:model="editForm.email" label="{{ __('Email') }}" />
+                    </div>
+                </flux:fieldset>
+
+            </div>
+
+            <!-- Form Footer -->
+            <div class="flex flex-col-reverse gap-3 border-t border-zinc-200 bg-zinc-50/80 px-6 py-4 dark:border-zinc-700 dark:bg-zinc-900/50 sm:flex-row sm:justify-end">
+                <flux:button type="button" variant="ghost" @click="showEditModal = false" class="w-full sm:w-auto">
+                    {{ __('Cancel') }}
+                </flux:button>
+                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" class="w-full sm:w-auto">
+                    <span wire:loading wire:target="updateTeacher" class="mr-2">{{ __('Updating...') }}</span>
+                    <span wire:loading.remove wire:target="updateTeacher">{{ __('Update Profile') }}</span>
+                </flux:button>
+            </div>
+        </form>
+    </flux:modal>
 </div>
