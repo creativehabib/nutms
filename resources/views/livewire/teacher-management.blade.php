@@ -36,7 +36,7 @@
                         wire:model.live.debounce.300ms="search"
                         type="search"
                         label="{{ __('Teacher') }}"
-                        placeholder="{{ __('Search by name, TMIS ID, email, or college') }}"
+                        placeholder="{{ __('Search by name, email, or college') }}"
                         icon="magnifying-glass"
                     />
                 </div>
@@ -159,8 +159,8 @@
                             </flux:table.cell>
 
                             <flux:table.cell>
-                                <span class="block font-medium text-zinc-800 dark:text-zinc-200">{{ $teacher->mobile_number ?? '-' }}</span>
-                                <span class="block text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">{{ $teacher->email ?? '-' }}</span>
+                                <span class="block font-medium text-zinc-800 dark:text-zinc-200">{{ $teacher->user?->mobile_no ?? '-' }}</span>
+                                <span class="block text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">{{ $teacher->user?->email ?? '-' }}</span>
                             </flux:table.cell>
 
                             <flux:table.cell class="text-center">
@@ -350,7 +350,6 @@
                         <div class="lg:col-span-2">
                             <flux:input wire:model="editForm.college_name" label="{{ __('College Name') }}" />
                         </div>
-                        <flux:input wire:model="editForm.tmis_id" label="TMIS ID" />
                     </div>
                 </flux:fieldset>
 

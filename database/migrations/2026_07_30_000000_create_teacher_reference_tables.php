@@ -66,7 +66,6 @@ return new class extends Migration
             $table->foreignId('college_id')->nullable()->constrained()->nullOnDelete();
             $table->string('college_code')->nullable()->index();
             $table->string('college_name')->nullable();
-            $table->string('tmis_id')->nullable()->unique();
             $table->string('ttis_id')->nullable()->unique();
             $table->string('name')->nullable();
             $table->date('birth_date')->nullable()->index();
@@ -83,8 +82,6 @@ return new class extends Migration
             $table->foreignId('thana_id')->nullable()->constrained()->nullOnDelete();
             $table->text('present_address')->nullable();
             $table->text('permanent_address')->nullable();
-            $table->string('mobile_number')->nullable();
-            $table->string('email')->nullable();
             $table->string('bank_name')->nullable();
             $table->string('bank_branch_name')->nullable();
             $table->string('bank_account_number', 100)->nullable();

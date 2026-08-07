@@ -46,22 +46,10 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
             }
 
             // ডাইনামিক অফসেট (offset) দিয়ে ডেটা বের করা
-            $tmisId = $row[2 + $offset] ?? null;
             $name   = $row[4 + $offset] ?? null;
 
-            if (!$tmisId && !$name) {
+            if (!$name) {
                 continue; // ফাঁকা রো স্কিপ করে লুপের পরের লাইনে চলে যাবে
-            }
-
-            $contactInfo = $row[18 + $offset] ?? '';
-            $mobile = null;
-            $email = null;
-
-            if ($contactInfo) {
-                // ইমেইল এবং মোবাইল স্পেস বা লাইন-ব্রেক দিয়ে আলাদা করা
-                $parts = preg_split('/[\s\r\n]+/', $contactInfo);
-                $mobile = trim($parts[1] ?? (preg_match('/[0-9]{11}/', $parts[0]) ? $parts[0] : ''));
-                $email = trim($parts[0] ?? (str_contains($parts[1] ?? '', '@') ? $parts[1] : ''));
             }
 
             // কম্পিউটার কাউন্টে স্ট্রিং (Text) থাকলে সেটি যেন ডেটাবেস ক্র্যাশ না করে
@@ -86,8 +74,6 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
                 'training_institute'      => $row[14 + $offset] ?? null,
                 'has_computer_lab'        => $row[16 + $offset] ?? null,
                 'computer_count'          => $computerCount,
-                'mobile_number'           => $mobile,
-                'email'                   => $email,
             ];
 
             $teacherData = collect($data)->except([
@@ -96,18 +82,15 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
             ])->all();
 
             // ডেটা সেভ বা আপডেট করা
-            if ($tmisId) {
-                $teacher = Teacher::updateOrCreate(['tmis_id' => $tmisId], $teacherData);
-            } else {
-                $teacher = Teacher::updateOrCreate(
-                    [
-                        'name' => $name,
-                        'subject' => $data['subject'],
-                        'college_name' => $this->collegeName,
-                    ],
-                    $teacherData
-                );
-            }
+            $teacherIdentity = filled($data['ttis_id'])
+                ? ['ttis_id' => $data['ttis_id']]
+                : [
+                    'name' => $name,
+                    'subject' => $data['subject'],
+                    'college_name' => $this->collegeName,
+                ];
+
+            $teacher = Teacher::updateOrCreate($teacherIdentity, $teacherData);
 
             $data['training_year'] = $row[15 + $offset] ?? null;
             $this->synchronizeTraining($teacher, $data);

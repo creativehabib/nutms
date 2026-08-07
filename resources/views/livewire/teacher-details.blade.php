@@ -90,12 +90,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">TMIS ID</th>
-                    <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-mono font-medium">
-                        {{ $teacher->tmis_id ?: 'N/A' }}
-                    </td>
                     <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">TTIS ID</th>
-                    <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-mono font-medium">
+                    <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-mono font-medium">
                         {{ $teacher->ttis_id ?: 'N/A' }}
                     </td>
                 </tr>
@@ -119,11 +115,11 @@
                 <tr>
                     <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Mobile Number') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-medium">
-                        {{ $teacher->mobile_number ?: __('Not specified') }}
+                        {{ $teacher->user?->mobile_no ?: __('Not specified') }}
                     </td>
                     <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Email Address') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-indigo-600 dark:text-indigo-400 print-text font-medium">
-                        {{ $teacher->email ?: __('Not specified') }}
+                        {{ $teacher->user?->email ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>

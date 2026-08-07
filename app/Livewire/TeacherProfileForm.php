@@ -21,19 +21,20 @@ use App\Models\User;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class TeacherProfileForm extends Component
 {
-    use PasswordValidationRules;
+    use PasswordValidationRules, WithFileUploads;
 
     #[Locked]
     public ?int $editingId = null;
     public string $collegeId = '';
-    public string $tmisId = '';
     public string $ttisId = '';
     public string $name = '';
     public string $birthDate = '';
@@ -52,6 +53,10 @@ class TeacherProfileForm extends Component
     public string $bankBranchName = '';
     public string $bankAccountNumber = '';
     public string $bankRoutingNumber = '';
+    public $profileImage;
+    public $digitalSignature;
+    public ?string $currentProfileImage = null;
+    public ?string $currentDigitalSignature = null;
     public string $accountEmail = '';
     public string $accountPassword = '';
     public string $accountPassword_confirmation = '';
@@ -78,7 +83,6 @@ class TeacherProfileForm extends Component
         if ($teacher !== null && $teacher->exists) {
             $this->editingId = $teacher->id;
             $this->collegeId = (string) ($teacher->college_id ?? '');
-            $this->tmisId = (string) ($teacher->tmis_id ?? '');
             $this->ttisId = (string) ($teacher->ttis_id ?? '');
             $this->name = $teacher->display_name;
             $this->birthDate = $teacher->birth_date?->format('Y-m-d') ?? '';
@@ -91,9 +95,9 @@ class TeacherProfileForm extends Component
             $this->thanaId = (string) ($teacher->thana_id ?? '');
             $this->presentAddress = (string) ($teacher->present_address ?? '');
             $this->permanentAddress = (string) ($teacher->permanent_address ?? '');
-            $this->mobileNumber = (string) ($teacher->mobile_number ?? '');
-            $this->email = (string) ($teacher->email ?? '');
-            $this->accountEmail = (string) ($teacher->user?->email ?? $teacher->email ?? '');
+            $this->mobileNumber = (string) ($teacher->user?->mobile_no ?? '');
+            $this->email = (string) ($teacher->user?->email ?? '');
+            $this->accountEmail = (string) ($teacher->user?->email ?? '');
             $this->bankName = (string) ($teacher->bank_name ?? '');
             $this->bankBranchName = (string) ($teacher->bank_branch_name ?? '');
             $this->bankAccountNumber = (string) ($teacher->bank_account_number ?? '');
@@ -114,6 +118,12 @@ class TeacherProfileForm extends Component
         if ($user->role === Role::Teacher) {
             $this->email = $user->email;
             $this->accountEmail = $user->email;
+            $this->mobileNumber = (string) ($user->mobile_no ?? $this->mobileNumber);
+            $this->currentProfileImage = $user->picture;
+            $this->currentDigitalSignature = $user->digital_signature;
+        } elseif ($teacher?->user !== null) {
+            $this->currentProfileImage = $teacher->user->picture;
+            $this->currentDigitalSignature = $teacher->user->digital_signature;
         }
 
         if ($this->trainingEntries === []) {
@@ -159,10 +169,10 @@ class TeacherProfileForm extends Component
         $isStaffCreatingTeacherAccount = $this->editingId === null && auth()->user()->role !== Role::Teacher;
         $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
         $profileUserId = Teacher::query()->whereKey($this->editingId)->value('user_id') ?? auth()->id();
+        $emailRequiredRule = $profileUserId !== null && ! $isStaffCreatingTeacherAccount ? 'required' : 'nullable';
 
         $validated = $this->validate([
             'collegeId' => ['required', Rule::exists('colleges', 'id')->where('is_active', true)],
-            'tmisId' => ['nullable', 'string', 'max:255', Rule::unique('teacher_profiles', 'tmis_id')->ignore($this->editingId)],
             'name' => ['required', 'string', 'max:255'],
             'birthDate' => ['nullable', 'date', 'before:today'],
             'designation' => ['nullable', 'string', 'max:255'],
@@ -175,13 +185,15 @@ class TeacherProfileForm extends Component
             'presentAddress' => [$profileRequiredRule, 'string', 'max:2000'],
             'permanentAddress' => [$profileRequiredRule, 'string', 'max:2000'],
             'mobileNumber' => ['required', 'string', 'max:50', Rule::unique('users', 'mobile_no')->ignore($profileUserId)],
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($profileUserId)],
+            'email' => [$emailRequiredRule, 'email', 'max:255', Rule::unique('users', 'email')->ignore($profileUserId)],
             'accountEmail' => [$isStaffCreatingTeacherAccount ? 'required' : 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($profileUserId)],
             'accountPassword' => $isStaffCreatingTeacherAccount ? $this->passwordRules() : ['nullable'],
             'bankName' => ['nullable', 'string', 'max:255'],
             'bankBranchName' => ['nullable', 'string', 'max:255'],
             'bankAccountNumber' => ['nullable', 'string', 'max:100'],
             'bankRoutingNumber' => ['nullable', 'string', 'max:30'],
+            'profileImage' => ['nullable', 'image', 'max:2048'],
+            'digitalSignature' => ['nullable', 'image', 'max:2048'],
             'trainingEntries' => ['array'],
             'trainingEntries.*.kind' => ['required', Rule::in(['catalog', 'other'])],
             'trainingEntries.*.training_institute_id' => ['nullable', Rule::exists('training_institutes', 'id')],
@@ -250,13 +262,11 @@ class TeacherProfileForm extends Component
 
             $teacher = Teacher::query()->updateOrCreate(['id' => $this->editingId], [
                 'college_id' => $college->id, 'college_code' => $college->code, 'college_name' => $college->name,
-                'tmis_id' => $validated['tmisId'] ?: null,
                 'name' => $validated['name'], 'birth_date' => $validated['birthDate'] ?: null, 'designation' => $validated['designation'] ?: null,
                 'subject' => $validated['subject'] ?: null, 'teacher_level' => $validated['teacherLevel'] ?: null,
                 'employment_type' => $validated['employmentType'] ?: null,
                 'division_id' => $validated['divisionId'] ?: null, 'district_id' => $validated['districtId'] ?: null, 'thana_id' => $validated['thanaId'] ?: null,
                 'present_address' => $validated['presentAddress'] ?: null, 'permanent_address' => $validated['permanentAddress'] ?: null,
-                'mobile_number' => $validated['mobileNumber'] ?: null, 'email' => ($isStaffCreatingTeacherAccount ? $validated['accountEmail'] : $validated['email']) ?: null,
                 'bank_name' => $validated['bankName'] ?: null, 'bank_branch_name' => $validated['bankBranchName'] ?: null,
                 'bank_account_number' => $validated['bankAccountNumber'] ?: null,
                 'bank_routing_number' => $validated['bankRoutingNumber'] ?: null,
@@ -265,12 +275,31 @@ class TeacherProfileForm extends Component
                 'approved_by' => $user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_by') : $user->id,
                 'approved_at' => $user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_at') : now(),
             ]);
-            if ($user->role === Role::Teacher) {
-                $user->update([
-                    'email' => $validated['email'],
+            $linkedUser = $teacherAccount ?? ($teacher->user_id !== null ? User::query()->find($teacher->user_id) : null);
+            if ($linkedUser !== null) {
+                $linkedUserUpdates = [
+                    'email' => $isStaffCreatingTeacherAccount ? $validated['accountEmail'] : $validated['email'],
                     'mobile_no' => $validated['mobileNumber'],
                     'college_id' => $college->id,
-                ]);
+                ];
+
+                if ($this->profileImage) {
+                    if ($linkedUser->picture && Storage::disk('public')->exists($linkedUser->picture)) {
+                        Storage::disk('public')->delete($linkedUser->picture);
+                    }
+
+                    $linkedUserUpdates['picture'] = $this->profileImage->store('profile-images', 'public');
+                }
+
+                if ($this->digitalSignature) {
+                    if ($linkedUser->digital_signature && Storage::disk('public')->exists($linkedUser->digital_signature)) {
+                        Storage::disk('public')->delete($linkedUser->digital_signature);
+                    }
+
+                    $linkedUserUpdates['digital_signature'] = $this->digitalSignature->store('signatures', 'public');
+                }
+
+                $linkedUser->update($linkedUserUpdates);
             }
             $teacher->trainingTypes()->detach();
             $teacher->otherTrainings()->delete();

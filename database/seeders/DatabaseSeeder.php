@@ -134,8 +134,6 @@ class DatabaseSeeder extends Seeder
             'thana_id' => $thana->id,
             'present_address' => 'Dhanmondi, Dhaka',
             'permanent_address' => 'Dhanmondi, Dhaka',
-            'mobile_number' => $user->role === UserRole::Principal ? '01700000001' : '01700000002',
-            'email' => $user->email,
             'bank_name' => 'Demo Bank',
             'bank_branch_name' => 'Dhaka Branch',
             'bank_account_number' => $user->role === UserRole::Principal ? '100000000001' : '100000000002',

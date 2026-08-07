@@ -139,7 +139,7 @@
                                     <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 3 7.5 7.5M21 3l-7.5 7.5M3 21l7.5-7.5M21 21l-7.5-7.5"></path></svg>
                                 </span>
                                 <h3 class="mt-5 text-lg font-bold text-white">{{ __('Fast search and filters') }}</h3>
-                                <p class="mt-2 text-sm leading-6 text-slate-400">{{ __('Find the information you need by name, TMIS ID, subject, college, and lab facility.') }}</p>
+                                <p class="mt-2 text-sm leading-6 text-slate-400">{{ __('Find the information you need by name, subject, college, and lab facility.') }}</p>
                             </article>
                             <article class="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
                                 <span class="flex size-11 items-center justify-center rounded-xl bg-blue-400/10 text-blue-300">
