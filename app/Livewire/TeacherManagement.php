@@ -57,7 +57,6 @@ class TeacherManagement extends Component
     public $editForm = [
         'college_code' => '',
         'college_name' => '',
-        'tmis_id' => '',
         'name' => '',
         'designation' => '',
         'subject' => '',
@@ -391,7 +390,6 @@ class TeacherManagement extends Component
         $this->editForm = [
             'college_code' => $teacher->college_code,
             'college_name' => $teacher->college_name,
-            'tmis_id' => $teacher->tmis_id,
             'name' => $teacher->display_name,
             'designation' => $teacher->designation,
             'subject' => $teacher->subject,
@@ -400,8 +398,8 @@ class TeacherManagement extends Component
             'ict_training_name' => $teacher->ict_training_name,
             'other_training_name' => $teacher->other_training_name,
             'training_institute' => $teacher->training_institute,
-            'mobile_number' => $teacher->mobile_number,
-            'email' => $teacher->email,
+            'mobile_number' => $teacher->user?->mobile_no,
+            'email' => $teacher->user?->email,
         ];
 
         $this->trainingEntries = $teacher->trainingTypes->map(fn (TrainingType $trainingType): array => [
@@ -441,7 +439,6 @@ class TeacherManagement extends Component
             $validated = $this->validate([
                 'editForm.college_code' => ['nullable', 'string', 'max:255'],
                 'editForm.college_name' => ['nullable', 'string', 'max:255'],
-                'editForm.tmis_id' => ['nullable', 'string', 'max:255', Rule::unique('teacher_profiles', 'tmis_id')->ignore($this->editingId)],
                 'editForm.name' => 'required|string|max:255',
                 'editForm.designation' => 'nullable|string|max:255',
                 'editForm.subject' => 'nullable|string|max:255',
@@ -450,8 +447,8 @@ class TeacherManagement extends Component
                 'editForm.ict_training_name' => ['nullable', 'string'],
                 'editForm.other_training_name' => ['nullable', 'string'],
                 'editForm.training_institute' => ['nullable', 'string'],
-                'editForm.mobile_number' => 'nullable|string|max:50',
-                'editForm.email' => 'nullable|email|max:255',
+                'editForm.mobile_number' => ['nullable', 'string', 'max:50', Rule::unique('users', 'mobile_no')->ignore($this->accessibleTeachersQuery()->whereKey($this->editingId)->value('user_id'))],
+                'editForm.email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->accessibleTeachersQuery()->whereKey($this->editingId)->value('user_id'))],
                 'trainingEntries' => ['array'],
                 'trainingEntries.*.kind' => ['required', Rule::in(['catalog', 'other'])],
                 'trainingEntries.*.training_institute_id' => ['nullable', Rule::exists('training_institutes', 'id')],
@@ -463,7 +460,6 @@ class TeacherManagement extends Component
                 'trainingEntries.*.training_year' => ['nullable', 'integer', 'min:1950', 'max:'.((int) date('Y') + 1)],
             ], [
                 'editForm.name.required' => 'শিক্ষকের নাম অবশ্যই দিতে হবে।',
-                'editForm.tmis_id.unique' => 'এই TMIS ID ইতোমধ্যে অন্য একজন শিক্ষকের জন্য ব্যবহার করা হয়েছে।',
                 'editForm.email.email' => 'সঠিক ইমেইল ঠিকানা লিখুন।',
                 'editForm.*.max' => 'এই তথ্যটি অনুমোদিত দৈর্ঘ্যের চেয়ে বড় হয়েছে।',
                 'trainingEntries.*.training_year.integer' => 'ট্রেনিং বছর চার সংখ্যার হতে হবে।',
@@ -510,7 +506,7 @@ class TeacherManagement extends Component
         if ($this->editingId) {
             DB::transaction(function () use ($validated): void {
                 $teacher = $this->accessibleTeachersQuery()->findOrFail($this->editingId);
-                $teacherData = $validated['editForm'];
+                $teacherData = collect($validated['editForm'])->except(['mobile_number', 'email'])->all();
                 $teacherData['subject_id'] = Subject::query()->where('name', $teacherData['subject'])->value('id');
                 $teacherData['designation_id'] = Designation::query()->where('name', $teacherData['designation'])->value('id');
                 $teacherData['teacher_level_id'] = TeacherLevel::query()->where('name', $teacherData['teacher_level'])->value('id');
@@ -518,6 +514,13 @@ class TeacherManagement extends Component
                 $teacherData['college_id'] = College::query()->where('code', $teacherData['college_code'])
                     ->orWhere('name', $teacherData['college_name'])->value('id');
                 $teacher->update($teacherData);
+
+                if ($teacher->user_id !== null) {
+                    User::query()->whereKey($teacher->user_id)->update([
+                        'email' => $validated['editForm']['email'],
+                        'mobile_no' => $validated['editForm']['mobile_number'],
+                    ]);
+                }
 
                 $teacher->trainingTypes()->detach();
                 $teacher->otherTrainings()->delete();
@@ -554,7 +557,7 @@ class TeacherManagement extends Component
             : $this->accessibleTeachersQuery()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->orderBy('subject')->pluck('subject');
 
         return view('livewire.teacher-management', [
-            'teachers' => $query->with('user:id,name,role')->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
+            'teachers' => $query->with('user:id,name,email,mobile_no,role')->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
             'isAdmin' => $isAdmin,
             'collegeCount' => $isAdmin ? (clone $query)->whereNotNull('college_id')->distinct()->count('college_id') : null,
             'subjects' => $subjects,
@@ -612,10 +615,10 @@ class TeacherManagement extends Component
             $query->where(function (Builder $query) use ($searchPattern): void {
                 $query->where('name', 'like', $searchPattern)
                     ->orWhereHas('user', fn (Builder $userQuery): Builder => $userQuery->where('name', 'like', $searchPattern))
-                    ->orWhere('tmis_id', 'like', $searchPattern)
                     ->orWhere('ttis_id', 'like', $searchPattern)
-                    ->orWhere('mobile_number', 'like', $searchPattern)
-                    ->orWhere('email', 'like', $searchPattern)
+                    ->orWhereHas('user', fn (Builder $userQuery): Builder => $userQuery
+                        ->where('email', 'like', $searchPattern)
+                        ->orWhere('mobile_no', 'like', $searchPattern))
                     ->orWhere('college_code', 'like', $searchPattern)
                     ->orWhere('college_name', 'like', $searchPattern)
                     ->orWhereHas('college', fn (Builder $collegeQuery): Builder => $collegeQuery

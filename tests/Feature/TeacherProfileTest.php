@@ -10,6 +10,8 @@ use App\Models\Thana;
 use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use App\Enums\UserRole as Role;
 use App\Enums\ApprovalStatus;
 use Livewire\Livewire;
@@ -28,11 +30,16 @@ it('creates a teacher linked to a college with contact and bank information', fu
     $institute = TrainingInstitute::query()->create(['name' => 'Profile Training Institute']);
     $training = TrainingType::query()->create(['training_institute_id' => $institute->id, 'name' => 'Profile ICT Training', 'duration_value' => 7, 'duration_unit' => 'days']);
 
+    Storage::fake('public');
+
     Livewire::actingAs(User::factory()->create(['role' => Role::Admin]))->test(TeacherProfileForm::class)
-        ->set('collegeId', (string) $college->id)->set('name', 'New Teacher')->set('tmisId', 'TMIS-PROFILE')
+        ->set('collegeId', (string) $college->id)->set('name', 'New Teacher')
+        ->set('accountEmail', 'new-teacher-account@example.com')->set('accountPassword', 'password')->set('accountPassword_confirmation', 'password')
         ->set('divisionId', (string) $division->id)->set('districtId', (string) $district->id)->set('thanaId', (string) $thana->id)
         ->set('presentAddress', 'Present Address')->set('permanentAddress', 'Permanent Address')
         ->set('mobileNumber', '01700000000')->set('email', 'profile@example.com')
+        ->set('profileImage', UploadedFile::fake()->image('profile.jpg'))
+        ->set('digitalSignature', UploadedFile::fake()->image('signature.png'))
         ->set('bankName', 'Sonali Bank')->set('bankBranchName', 'Main Branch')->set('bankAccountNumber', '1234567890123')->set('bankRoutingNumber', '123456789')
         ->set('trainingEntries', [[
             'kind' => 'catalog', 'training_institute_id' => (string) $institute->id, 'institute_name' => '',
@@ -41,7 +48,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
         ]])
         ->call('save')->assertHasNoErrors()->assertRedirect(route('teachers.manage'));
 
-    $teacher = Teacher::query()->where('tmis_id', 'TMIS-PROFILE')->firstOrFail();
+    $teacher = Teacher::query()->where('name', 'New Teacher')->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
         ->and($teacher->college_name)->toBe('Teacher College')
         ->and($teacher->ttis_id)->toMatch('/^\d{6}$/')
@@ -50,7 +57,11 @@ it('creates a teacher linked to a college with contact and bank information', fu
         ->and($teacher->bank_account_number)->toBe('1234567890123')
         ->and($teacher->bank_routing_number)->toBe('123456789')
         ->and($teacher->trainingTypes)->toHaveCount(1)
-        ->and($teacher->trainingTypes->first()->pivot->training_year)->toBe(2026);
+        ->and($teacher->trainingTypes->first()->pivot->training_year)->toBe(2026)
+        ->and($teacher->user?->email)->toBe('new-teacher-account@example.com')
+        ->and($teacher->user?->mobile_no)->toBe('01700000000')
+        ->and($teacher->user?->picture)->toStartWith('profile-images/')
+        ->and($teacher->user?->digital_signature)->toStartWith('signatures/');
 });
 
 
@@ -94,7 +105,7 @@ it('submits a teacher profile under the selected college for principal approval'
     $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
-    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com']);
+    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com', 'mobile_no' => '01799999999']);
 
     Livewire::actingAs($user)->test(TeacherProfileForm::class)
         ->set('collegeId', (string) $college->id)
@@ -112,9 +123,10 @@ it('submits a teacher profile under the selected college for principal approval'
     $teacher = Teacher::query()->where('user_id', $user->id)->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
         ->and($teacher->approval_status)->toBe(ApprovalStatus::Pending)
-        ->and($teacher->email)->toBe('registered-teacher@example.com')
+        ->and($teacher->user?->email)->toBe('registered-teacher@example.com')
         ->and($user->refresh()->teacherProfile?->is($teacher))->toBeTrue()
-        ->and($user->name)->toBe($teacher->name);
+        ->and($user->name)->toBe($teacher->name)
+        ->and($user->refresh()->mobile_no)->toBe('01700000001');
 });
 
 it('updates profile fields without changing existing institutional training history', function () {
@@ -139,7 +151,8 @@ it('updates profile fields without changing existing institutional training hist
 });
 
 it('shows all teacher profile sections on a dedicated details page', function () {
-    $teacher = Teacher::query()->create(['name' => 'Details Teacher', 'present_address' => 'Teacher Present', 'permanent_address' => 'Teacher Permanent', 'mobile_number' => '01900000000', 'bank_name' => 'Agrani Bank', 'bank_branch_name' => 'Town Branch', 'bank_account_number' => '9876543210123', 'bank_routing_number' => '987654321']);
+    $user = User::factory()->create(['email' => 'details-teacher@example.com', 'mobile_no' => '01900000000']);
+    $teacher = Teacher::query()->create(['name' => 'Details Teacher', 'user_id' => $user->id, 'present_address' => 'Teacher Present', 'permanent_address' => 'Teacher Permanent', 'bank_name' => 'Agrani Bank', 'bank_branch_name' => 'Town Branch', 'bank_account_number' => '9876543210123', 'bank_routing_number' => '987654321']);
 
     Livewire::actingAs(User::factory()->create(['role' => Role::Admin]))->test(TeacherDetails::class, ['teacher' => $teacher])
         ->assertSee('Details Teacher')->assertSee('Teacher Present')->assertSee('Teacher Permanent')
@@ -167,7 +180,7 @@ it('allows a teacher to view and update their profile after principal approval',
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
     $principal = User::factory()->create(['role' => Role::Principal, 'college_id' => $college->id]);
-    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com']);
+    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com', 'mobile_no' => '01799999999']);
     $teacher = Teacher::query()->create([
         'name' => 'Approved Self Service Teacher',
         'user_id' => $user->id,
@@ -177,8 +190,7 @@ it('allows a teacher to view and update their profile after principal approval',
         'thana_id' => $thana->id,
         'present_address' => 'Old Present Address',
         'permanent_address' => 'Permanent Address',
-        'mobile_number' => '01700000002',
-        'approval_status' => ApprovalStatus::Approved,
+                'approval_status' => ApprovalStatus::Approved,
         'approved_by' => $principal->id,
         'approved_at' => now(),
     ]);
@@ -200,7 +212,7 @@ it('allows a teacher to view and update their profile after principal approval',
         ->assertRedirect(route('dashboard'));
 
     expect($teacher->refresh()->present_address)->toBe('Updated Present Address')
-        ->and($teacher->email)->toBe('registered-teacher@example.com')
+        ->and($teacher->user?->email)->toBe('registered-teacher@example.com')
         ->and($teacher->approval_status)->toBe(ApprovalStatus::Approved)
         ->and($teacher->approved_by)->toBe($principal->id)
         ->and($teacher->approved_at)->not->toBeNull();

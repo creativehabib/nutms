@@ -72,6 +72,7 @@ it('lets staff create a teacher login account without completing the full profil
         ->set('collegeId', (string) $college->id)
         ->set('name', 'New Account Teacher')
         ->set('accountEmail', 'new.teacher@example.com')
+        ->set('mobileNumber', '01722222222')
         ->set('accountPassword', 'password')
         ->set('accountPassword_confirmation', 'password')
         ->call('save')
@@ -86,7 +87,7 @@ it('lets staff create a teacher login account without completing the full profil
         ->and($user->approval_status)->toBe(ApprovalStatus::Approved)
         ->and($teacher)->not->toBeNull()
         ->and($teacher->name)->toBe('New Account Teacher')
-        ->and($teacher->email)->toBe('new.teacher@example.com')
+        ->and($user->mobile_no)->toBe('01722222222')
         ->and($teacher->college_id)->toBe($college->id)
         ->and($teacher->approval_status)->toBe(ApprovalStatus::Approved)
         ->and($teacher->present_address)->toBeNull();
@@ -125,16 +126,13 @@ it('searches teachers by profile, account, and college identifiers', function (s
         'name' => 'Searchable College',
         'approval_status' => ApprovalStatus::Approved,
     ]);
-    $account = User::factory()->create(['name' => 'Account Search Name']);
+    $account = User::factory()->create(['name' => 'Account Search Name', 'email' => 'searchable@example.com', 'mobile_no' => '01711111111']);
 
     Teacher::query()->create([
         'user_id' => $account->id,
         'college_id' => $college->id,
         'name' => 'Profile Search Name',
-        'tmis_id' => 'TMIS-SEARCH-01',
         'ttis_id' => 'TTIS-SEARCH-01',
-        'mobile_number' => '01711111111',
-        'email' => 'searchable@example.com',
     ]);
     $account->update(['name' => 'Account Search Name']);
     Teacher::query()->create(['name' => 'Teacher Hidden From Search']);
@@ -146,7 +144,6 @@ it('searches teachers by profile, account, and college identifiers', function (s
 })->with([
     'profile name' => 'Profile Search',
     'linked account name' => 'Account Search',
-    'TMIS ID' => 'TMIS-SEARCH',
     'TTIS ID' => 'TTIS-SEARCH',
     'mobile number' => '01711111111',
     'email address' => 'searchable@example.com',
@@ -227,17 +224,17 @@ it('uses the same explicit multi-select behavior in active and trash tables', fu
 });
 
 it('allows every teacher data field to be updated', function () {
+    $user = User::factory()->create(['email' => 'old-teacher@example.com', 'mobile_no' => '01799999991']);
     $teacher = Teacher::query()->create([
+        'user_id' => $user->id,
         'college_code' => '100',
         'college_name' => 'Old College',
-        'tmis_id' => 'TMIS-OLD',
         'name' => 'Old Name',
     ]);
 
     $updatedData = [
         'college_code' => '200',
         'college_name' => 'Updated College',
-        'tmis_id' => 'TMIS-NEW',
         'name' => 'Updated Teacher',
         'designation' => 'Assistant Professor',
         'subject' => 'Physics',
@@ -257,34 +254,27 @@ it('allows every teacher data field to be updated', function () {
         ->assertHasNoErrors()
         ->assertDispatched('close-edit-modal');
 
-    expect($teacher->refresh()->only(array_keys($updatedData)))->toBe($updatedData);
+    expect($teacher->refresh()->only(array_keys(collect($updatedData)->except(['mobile_number', 'email'])->all())))->toBe(collect($updatedData)->except(['mobile_number', 'email'])->all())
+        ->and($user->refresh()->mobile_no)->toBe('01700000000')
+        ->and($user->email)->toBe('teacher@example.com');
 });
 
 it('shows user friendly validation errors while editing teacher data', function () {
     $teacher = Teacher::query()->create([
-        'tmis_id' => 'TMIS-ONE',
         'name' => 'Existing Teacher',
-    ]);
-
-    Teacher::query()->create([
-        'tmis_id' => 'TMIS-TWO',
-        'name' => 'Another Teacher',
     ]);
 
     Livewire::test(TeacherManagement::class)
         ->call('editTeacher', $teacher->id)
         ->set('editForm.name', '')
-        ->set('editForm.tmis_id', 'TMIS-TWO')
         ->set('editForm.email', 'invalid-email')
         ->call('updateTeacher')
         ->assertHasErrors([
             'editForm.name' => 'required',
-            'editForm.tmis_id' => 'unique',
             'editForm.email' => 'email',
         ])
         ->assertSee('তথ্য আপডেট করা যায়নি')
         ->assertSee('শিক্ষকের নাম অবশ্যই দিতে হবে।')
-        ->assertSee('এই TMIS ID ইতোমধ্যে অন্য একজন শিক্ষকের জন্য ব্যবহার করা হয়েছে।')
         ->assertSee('সঠিক ইমেইল ঠিকানা লিখুন।')
         ->assertNotDispatched('close-edit-modal');
 });

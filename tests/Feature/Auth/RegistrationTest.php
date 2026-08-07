@@ -15,6 +15,7 @@ test('public registration always creates a teacher account', function () {
     $this->post(route('register.store'), [
         'name' => 'New Teacher',
         'email' => 'new-teacher@example.com',
+        'mobile_no' => '01700000010',
         'password' => 'password',
         'password_confirmation' => 'password',
         'role' => 'principal',
@@ -23,7 +24,8 @@ test('public registration always creates a teacher account', function () {
 
     $user = User::query()->where('email', 'new-teacher@example.com')->firstOrFail();
     expect($user->role->value)->toBe('teacher')
-        ->and($user->college_id)->toBe($college->id);
+        ->and($user->college_id)->toBe($college->id)
+        ->and($user->mobile_no)->toBe('01700000010');
 });
 
 test('registration screen can be rendered', function () {
@@ -42,6 +44,7 @@ test('new users can register', function () {
     $response = $this->post(route('register.store'), [
         'name' => 'John Doe',
         'email' => 'test@example.com',
+        'mobile_no' => '01700000011',
         'password' => 'password',
         'password_confirmation' => 'password',
         'role' => 'teacher',
@@ -53,13 +56,15 @@ test('new users can register', function () {
 
     $this->assertAuthenticated();
     expect(auth()->user()->role->value)->toBe('teacher')
-        ->and(auth()->user()->college_id)->toBe($college->id);
+        ->and(auth()->user()->college_id)->toBe($college->id)
+        ->and(auth()->user()->mobile_no)->toBe('01700000011');
 });
 
 test('a college is required when a teacher registers', function () {
     $this->post(route('register.store'), [
         'name' => 'Teacher Without College',
         'email' => 'without-college@example.com',
+        'mobile_no' => '01700000012',
         'password' => 'password',
         'password_confirmation' => 'password',
     ])->assertSessionHasErrors('college_id');

@@ -71,13 +71,44 @@
                     <flux:input wire:model="name"  :label="__('Teacher Name')" :placeholder="__('Enter teacher name')" required />
 
                     <flux:input wire:model="birthDate" type="date"  :label="__('Date of Birth')" />
-                    <flux:input wire:model="tmisId" label="TMIS ID" :placeholder="__('Enter TMIS ID')" />
 
                     <flux:field class="sm:col-span-2">
                         <flux:label>TTIS ID</flux:label>
                         <flux:input wire:model="ttisId" readonly :placeholder="__('Generated after saving')" class="bg-zinc-50 text-zinc-500 dark:bg-zinc-900/50" />
                         <flux:description>{{ __('TTIS ID is generated automatically by the system.') }}</flux:description>
                     </flux:field>
+
+                    <div class="sm:col-span-2 grid gap-6 sm:grid-cols-2">
+                        <flux:field>
+                            <flux:label>{{ __('Profile Image') }}</flux:label>
+                            <div class="mb-3 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
+                                @if($profileImage)
+                                    <img src="{{ $profileImage->temporaryUrl() }}" alt="{{ __('New Profile Image Preview') }}" class="h-full w-full object-cover" />
+                                @elseif($currentProfileImage)
+                                    <img src="{{ asset('storage/' . $currentProfileImage) }}" alt="{{ __('Current Profile Image') }}" class="h-full w-full object-cover" />
+                                @else
+                                    <span class="text-2xl font-semibold text-zinc-500">{{ auth()->user()->initials() }}</span>
+                                @endif
+                            </div>
+                            <flux:input wire:model="profileImage" type="file" accept="image/*" />
+                            <flux:error name="profileImage" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('Digital Signature') }}</flux:label>
+                            @if($digitalSignature)
+                                <div class="mb-3 inline-block rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700">
+                                    <img src="{{ $digitalSignature->temporaryUrl() }}" alt="{{ __('New Signature Preview') }}" class="h-16 object-contain" />
+                                </div>
+                            @elseif($currentDigitalSignature)
+                                <div class="mb-3 inline-block rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700">
+                                    <img src="{{ asset('storage/' . $currentDigitalSignature) }}" alt="{{ __('Current Signature') }}" class="h-16 object-contain" />
+                                </div>
+                            @endif
+                            <flux:input wire:model="digitalSignature" type="file" accept="image/*" />
+                            <flux:error name="digitalSignature" />
+                        </flux:field>
+                    </div>
                 </div>
 
                 @if(! $editingId && auth()->user()->role !== \App\Enums\UserRole::Teacher)
@@ -286,8 +317,8 @@
                     <flux:button type="button" variant="outline" icon-trailing="chevron-right" @click="goToNext()" x-show="activeTab !== 'bank'">{{ __('Next') }}</flux:button>
                 </div>
 
-                <!-- Save Button (Always visible) -->
-                <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm">
+                <!-- Save Button (Only visible on the final step) -->
+                <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm" x-show="activeTab === 'bank'">
                     {{ $editingId ? __('Update Profile') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Submit Profile') : __('Create Teacher')) }}
                 </flux:button>
             </div>
