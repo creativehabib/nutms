@@ -158,6 +158,7 @@ class TeacherProfileForm extends Component
     {
         $isStaffCreatingTeacherAccount = $this->editingId === null && auth()->user()->role !== Role::Teacher;
         $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
+        $profileUserId = Teacher::query()->whereKey($this->editingId)->value('user_id') ?? auth()->id();
 
         $validated = $this->validate([
             'collegeId' => ['required', Rule::exists('colleges', 'id')->where('is_active', true)],
@@ -173,9 +174,9 @@ class TeacherProfileForm extends Component
             'thanaId' => [$profileRequiredRule, Rule::exists('thanas', 'id')],
             'presentAddress' => [$profileRequiredRule, 'string', 'max:2000'],
             'permanentAddress' => [$profileRequiredRule, 'string', 'max:2000'],
-            'mobileNumber' => [$profileRequiredRule, 'string', 'max:50'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'accountEmail' => [$isStaffCreatingTeacherAccount ? 'required' : 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore(Teacher::query()->whereKey($this->editingId)->value('user_id'))],
+            'mobileNumber' => ['required', 'string', 'max:50', Rule::unique('users', 'mobile_no')->ignore($profileUserId)],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($profileUserId)],
+            'accountEmail' => [$isStaffCreatingTeacherAccount ? 'required' : 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($profileUserId)],
             'accountPassword' => $isStaffCreatingTeacherAccount ? $this->passwordRules() : ['nullable'],
             'bankName' => ['nullable', 'string', 'max:255'],
             'bankBranchName' => ['nullable', 'string', 'max:255'],
@@ -238,6 +239,7 @@ class TeacherProfileForm extends Component
                     'name' => $validated['name'],
                     'email' => $validated['accountEmail'],
                     'password' => $validated['accountPassword'],
+                    'mobile_no' => $validated['mobileNumber'],
                     'role' => Role::Teacher,
                     'college_id' => $college->id,
                     'approval_status' => ApprovalStatus::Approved,
@@ -264,7 +266,11 @@ class TeacherProfileForm extends Component
                 'approved_at' => $user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_at') : now(),
             ]);
             if ($user->role === Role::Teacher) {
-                $user->update(['college_id' => $college->id]);
+                $user->update([
+                    'email' => $validated['email'],
+                    'mobile_no' => $validated['mobileNumber'],
+                    'college_id' => $college->id,
+                ]);
             }
             $teacher->trainingTypes()->detach();
             $teacher->otherTrainings()->delete();

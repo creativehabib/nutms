@@ -286,8 +286,8 @@
                     <flux:button type="button" variant="outline" icon-trailing="chevron-right" @click="goToNext()" x-show="activeTab !== 'bank'">{{ __('Next') }}</flux:button>
                 </div>
 
-                <!-- Save Button (Always visible) -->
-                <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm">
+                <!-- Save Button (Only visible on the final step) -->
+                <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm" x-show="activeTab === 'bank'">
                     {{ $editingId ? __('Update Profile') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Submit Profile') : __('Create Teacher')) }}
                 </flux:button>
             </div>

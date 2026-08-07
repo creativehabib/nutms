@@ -30,6 +30,16 @@
                 placeholder="email@example.com"
             />
 
+            <flux:input
+                name="mobile_no"
+                :label="__('Mobile Number')"
+                :value="old('mobile_no')"
+                type="text"
+                required
+                autocomplete="tel"
+                placeholder="017XXXXXXXX"
+            />
+
             <flux:callout variant="info" :heading="__('Teacher account')">{{ __('A new account will be created as a teacher. If needed, an admin can assign the principal role to an approved teacher for their college.') }}</flux:callout>
 
             <flux:select name="college_id" :label="__('College Name')" required>
