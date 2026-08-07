@@ -112,6 +112,7 @@ class RolePermissionManagement extends Component
 
         return view('livewire.role-permission-management', [
             'users' => User::query()->with(['teacherProfile.college', 'college'])
+                ->whereIn('role', [Role::Admin->value, Role::Principal->value])
                 ->when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query->where('name', 'like', "%{$this->search}%")->orWhere('email', 'like', "%{$this->search}%")))
                 ->orderBy('name')->paginate(12),
             'roles' => Role::cases(),

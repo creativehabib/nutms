@@ -126,20 +126,14 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
-                @can('training-catalog.manage')
-                <flux:sidebar.item icon="presentation-chart-bar" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>{{ __('Training Catalog') }}</flux:sidebar.item>
-                @endcan
                 @if(auth()->user()->isAdmin() && auth()->user()->can('colleges.view'))
-                <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>{{ __('College Management') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>{{ __('College Management') }}</flux:sidebar.item>
                 @endif
-                @can('roles.manage')
-                <flux:sidebar.item icon="shield-check" :href="route('roles-permissions.manage')" :current="request()->routeIs('roles-permissions.manage')" wire:navigate>{{ __('Roles & Permissions') }}</flux:sidebar.item>
-                <flux:sidebar.item icon="cog-6-tooth" :href="route('system-settings.manage')" :current="request()->routeIs('system-settings.manage')" wire:navigate>{{ __('System Settings') }}</flux:sidebar.item>
-                @endcan
+
                 @if(auth()->user()->isAdmin() || (auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved()))
-                <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.*')" wire:navigate>
-                    {{ __('Teacher Management') }}
-                </flux:sidebar.item>
+                    <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.*')" wire:navigate>
+                        {{ __('Teacher Management') }}
+                    </flux:sidebar.item>
                 @php($principalTeacherId = auth()->user()->teacherProfile?->id)
                 @if(auth()->user()->role === \App\Enums\UserRole::Principal && $principalTeacherId)
                     <flux:sidebar.item icon="identification" :href="route('teachers.show', $principalTeacherId)" :current="request()->routeIs('teachers.show') && (int) request()->route('teacher')?->id === $principalTeacherId" wire:navigate>{{ __('My Profile') }}</flux:sidebar.item>
@@ -162,7 +156,13 @@
                     <flux:sidebar.item icon="identification" :href="route('reference-data.manage', 'employments')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'employments'" wire:navigate>{{ __('Employment Type') }}</flux:sidebar.item>
                 </flux:sidebar.group>
                 @endcan
-
+                @can('training-catalog.manage')
+                    <flux:sidebar.item icon="presentation-chart-bar" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>{{ __('Training Catalog') }}</flux:sidebar.item>
+                @endcan
+                @can('roles.manage')
+                    <flux:sidebar.item icon="shield-check" :href="route('roles-permissions.manage')" :current="request()->routeIs('roles-permissions.manage')" wire:navigate>{{ __('Roles & Permissions') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="cog-6-tooth" :href="route('system-settings.manage')" :current="request()->routeIs('system-settings.manage')" wire:navigate>{{ __('System Settings') }}</flux:sidebar.item>
+                @endcan
                 @can('reports.view')
                 <flux:sidebar.item icon="computer-desktop" :href="route('lab.summary')" :current="request()->routeIs('lab.summary')" wire:navigate>
                     {{ __('Lab Summary') }}
