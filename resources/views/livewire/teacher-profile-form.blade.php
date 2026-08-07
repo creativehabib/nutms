@@ -72,10 +72,9 @@
 
                     <flux:input wire:model="birthDate" type="date"  :label="__('Date of Birth')" />
 
-                    <flux:field class="sm:col-span-2">
+                    <flux:field >
                         <flux:label>TTIS ID</flux:label>
                         <flux:input wire:model="ttisId" readonly :placeholder="__('Generated after saving')" class="bg-zinc-50 text-zinc-500 dark:bg-zinc-900/50" />
-                        <flux:description>{{ __('TTIS ID is generated automatically by the system.') }}</flux:description>
                     </flux:field>
 
                     <div class="sm:col-span-2 grid gap-6 sm:grid-cols-2">
