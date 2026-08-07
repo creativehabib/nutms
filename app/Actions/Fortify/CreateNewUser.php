@@ -25,12 +25,14 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
+            'mobile_no' => ['required', 'string', 'regex:/^(?:\+88|88)?(01[3-9]\d{8})$/', Rule::unique('users', 'mobile_no')],
             'college_id' => ['required', Rule::exists('colleges', 'id')->where(fn ($query) => $query->where('is_active', true)->where('approval_status', 'approved'))],
         ])->validate();
 
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
+            'mobile_no' => $input['mobile_no'],
             'password' => $input['password'],
             'role' => Role::Teacher,
             'college_id' => $input['college_id'],

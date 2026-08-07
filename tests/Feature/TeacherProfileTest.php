@@ -30,6 +30,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
 
     Livewire::actingAs(User::factory()->create(['role' => Role::Admin]))->test(TeacherProfileForm::class)
         ->set('collegeId', (string) $college->id)->set('name', 'New Teacher')->set('tmisId', 'TMIS-PROFILE')
+        ->set('accountEmail', 'new-teacher-account@example.com')->set('accountPassword', 'password')->set('accountPassword_confirmation', 'password')
         ->set('divisionId', (string) $division->id)->set('districtId', (string) $district->id)->set('thanaId', (string) $thana->id)
         ->set('presentAddress', 'Present Address')->set('permanentAddress', 'Permanent Address')
         ->set('mobileNumber', '01700000000')->set('email', 'profile@example.com')
@@ -50,7 +51,9 @@ it('creates a teacher linked to a college with contact and bank information', fu
         ->and($teacher->bank_account_number)->toBe('1234567890123')
         ->and($teacher->bank_routing_number)->toBe('123456789')
         ->and($teacher->trainingTypes)->toHaveCount(1)
-        ->and($teacher->trainingTypes->first()->pivot->training_year)->toBe(2026);
+        ->and($teacher->trainingTypes->first()->pivot->training_year)->toBe(2026)
+        ->and($teacher->user?->email)->toBe('new-teacher-account@example.com')
+        ->and($teacher->user?->mobile_no)->toBe('01700000000');
 });
 
 
@@ -94,7 +97,7 @@ it('submits a teacher profile under the selected college for principal approval'
     $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
-    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com']);
+    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com', 'mobile_no' => '01799999999']);
 
     Livewire::actingAs($user)->test(TeacherProfileForm::class)
         ->set('collegeId', (string) $college->id)
@@ -114,7 +117,8 @@ it('submits a teacher profile under the selected college for principal approval'
         ->and($teacher->approval_status)->toBe(ApprovalStatus::Pending)
         ->and($teacher->email)->toBe('registered-teacher@example.com')
         ->and($user->refresh()->teacherProfile?->is($teacher))->toBeTrue()
-        ->and($user->name)->toBe($teacher->name);
+        ->and($user->name)->toBe($teacher->name)
+        ->and($user->refresh()->mobile_no)->toBe('01700000001');
 });
 
 it('updates profile fields without changing existing institutional training history', function () {
@@ -167,7 +171,7 @@ it('allows a teacher to view and update their profile after principal approval',
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
     $principal = User::factory()->create(['role' => Role::Principal, 'college_id' => $college->id]);
-    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com']);
+    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com', 'mobile_no' => '01799999999']);
     $teacher = Teacher::query()->create([
         'name' => 'Approved Self Service Teacher',
         'user_id' => $user->id,
