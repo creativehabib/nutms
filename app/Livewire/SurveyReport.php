@@ -57,6 +57,6 @@ class SurveyReport extends Component
     public function render()
     {
         // ভিউ ফাইলের নতুন নাম
-        return view('livewire.survey-report')->layout('layouts.app');
+        return view('livewire.survey-report')->layout('layouts.app', ['title' => 'Survey Report']);
     }
 }

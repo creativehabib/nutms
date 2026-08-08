@@ -56,6 +56,6 @@ class StudentSurveyForm extends Component
 
     public function render()
     {
-        return view('livewire.student-survey-form')->layout('layouts.app');
+        return view('livewire.student-survey-form')->layout('layouts.frontend');
     }
 }

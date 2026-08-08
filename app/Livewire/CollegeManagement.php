@@ -200,7 +200,7 @@ class CollegeManagement extends Component
                 ->withCount('teachers')
                 ->orderBy('name')
                 ->paginate(10),
-        ]);
+        ])->layout('layouts.app', ['title' => 'College Management']);
     }
 
     private function filteredCollegesQuery(): Builder

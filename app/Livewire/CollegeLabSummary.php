@@ -66,7 +66,7 @@ class CollegeLabSummary extends Component
 
         return view('livewire.college-lab-summary', [
             'colleges' => $colleges,
-        ]);
+        ])->layout('layouts.app', ['title' => 'Lab Summary']);
     }
 
     private function collegesQuery(bool $hasLab): Builder

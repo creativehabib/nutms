@@ -118,6 +118,6 @@ class RolePermissionManagement extends Component
             'roles' => Role::cases(),
             'permissions' => Permission::query()->orderBy('name')->get(),
             'permissionLabels' => config('role-permissions.permissions'),
-        ]);
+        ])->layout('layouts.app', ['title' => 'Role Management']);
     }
 }

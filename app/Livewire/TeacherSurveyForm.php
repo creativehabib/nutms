@@ -58,6 +58,6 @@ class TeacherSurveyForm extends Component
 
     public function render()
     {
-        return view('livewire.teacher-survey-form')->layout('layouts.app');
+        return view('livewire.teacher-survey-form')->layout('layouts.frontend');
     }
 }

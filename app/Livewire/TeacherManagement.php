@@ -617,7 +617,7 @@ class TeacherManagement extends Component
             'employments' => Employment::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'trainingInstitutes' => TrainingInstitute::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'trainingTypes' => TrainingType::query()->where('is_active', true)->orderBy('name')->get(['id', 'training_institute_id', 'name', 'duration_value', 'duration_unit']),
-        ]);
+        ])->layout('layouts.app', ['title' => 'Teacher Management']);
     }
 
     public function addTrainingEntry(): void

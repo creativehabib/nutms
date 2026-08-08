@@ -32,6 +32,6 @@ class SystemSettings extends Component
 
     public function render(): View
     {
-        return view('livewire.system-settings');
+        return view('livewire.system-settings')->layout('layouts.app', ['title' => 'System Settings']);
     }
 }
