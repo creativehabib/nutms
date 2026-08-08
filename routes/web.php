@@ -9,10 +9,13 @@ use App\Livewire\CollegeManagement;
 use App\Livewire\IctTrainingSummary;
 use App\Livewire\ReferenceDataManagement;
 use App\Livewire\RolePermissionManagement;
+use App\Livewire\StudentSurveyForm;
+use App\Livewire\SurveyReport;
 use App\Livewire\SystemSettings;
 use App\Livewire\TeacherDetails;
 use App\Livewire\TeacherManagement;
 use App\Livewire\TeacherProfileForm;
+use App\Livewire\TeacherSurveyForm;
 use App\Livewire\TrainingCatalogManagement;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +41,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/training-catalog', TrainingCatalogManagement::class)->middleware(['role:admin', 'permission:training-catalog.manage'])->name('training-catalog.manage');
     Route::get('/lab-summary', CollegeLabSummary::class)->middleware(['role:admin', 'permission:reports.view'])->name('lab.summary');
     Route::get('/ict-training-summary', IctTrainingSummary::class)->middleware(['role:admin', 'permission:reports.view'])->name('ict.summary');
+    Route::get('admin/survey/report', SurveyReport::class)->name('admin.survey.report');
 });
+
+//Survey Route
+Route::get('/survey/teacher', TeacherSurveyForm::class)->name('survey.teacher');
+Route::get('/survey/student', StudentSurveyForm::class)->name('survey.student');
 
 require __DIR__.'/settings.php';
