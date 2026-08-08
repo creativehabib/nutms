@@ -1,10 +1,24 @@
 <div x-data="{
         activeTab: 'basic',
         tabs: ['basic', 'professional', 'contact', 'training', 'bank'],
-        goToNext() {
-            let currentIndex = this.tabs.indexOf(this.activeTab);
-            if (currentIndex < this.tabs.length - 1) this.activeTab = this.tabs[currentIndex + 1];
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        isValidating: false,
+        async goToNext() {
+            this.isValidating = true;
+            try {
+                // Next-এ যাওয়ার আগে বর্তমান ট্যাবের ডেটা ভ্যালিডেট করা হচ্ছে
+                await $wire.validateStep(this.activeTab);
+
+                let currentIndex = this.tabs.indexOf(this.activeTab);
+                if (currentIndex < this.tabs.length - 1) {
+                    this.activeTab = this.tabs[currentIndex + 1];
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            } catch (error) {
+                // Validation error হলে স্ক্রিন এখানেই থাকবে এবং এরর দেখাবে
+                console.log('Validation failed on step: ' + this.activeTab);
+            } finally {
+                this.isValidating = false;
+            }
         },
         goToPrev() {
             let currentIndex = this.tabs.indexOf(this.activeTab);
@@ -29,23 +43,18 @@
     <!-- Tab Navigation (Horizontal) -->
     <div class="border-b border-zinc-200 dark:border-zinc-800">
         <nav class="-mb-px flex space-x-6 overflow-x-auto scrollbar-hide" aria-label="Tabs">
-            <!-- Basic Info Tab -->
             <button @click="activeTab = 'basic'" :class="activeTab === 'basic' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
                 <flux:icon.building-office-2 class="size-4" />{{ __('Basic Details') }}</button>
 
-            <!-- Professional Tab -->
             <button @click="activeTab = 'professional'" :class="activeTab === 'professional' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
                 <flux:icon.briefcase class="size-4" />{{ __('Professional Details') }}</button>
 
-            <!-- Contact Tab -->
             <button @click="activeTab = 'contact'" :class="activeTab === 'contact' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
                 <flux:icon.map-pin class="size-4" />{{ __('Contact & Address') }}</button>
 
-            <!-- Training Tab -->
             <button @click="activeTab = 'training'" :class="activeTab === 'training' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
                 <flux:icon.academic-cap class="size-4" />{{ __('Training History') }}</button>
 
-            <!-- Bank Tab -->
             <button @click="activeTab = 'bank'" :class="activeTab === 'bank' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
                 <flux:icon.banknotes class="size-4" />{{ __('Bank Details') }}</button>
         </nav>
@@ -195,11 +204,20 @@
                     <div class="grid gap-6 sm:grid-cols-2">
                         <flux:textarea wire:model="presentAddress" :label="__('Present Address')" rows="2" :placeholder="__('Enter present address')" required />
                         <flux:textarea wire:model="permanentAddress" :label="__('Permanent Address')" rows="2" :placeholder="__('Enter permanent address')" required />
-                        <flux:input wire:model="mobileNumber" :label="__('Mobile Number')" :placeholder="__('Enter mobile number')" required />
+
+                        <flux:field>
+                            <flux:label>{{ __('Mobile Number') }}</flux:label>
+                            <flux:input wire:model="mobileNumber" :placeholder="__('Enter mobile number')" required
+                                        :readonly="auth()->user()->role === \App\Enums\UserRole::Teacher"
+                                        :class="auth()->user()->role === \App\Enums\UserRole::Teacher ? 'opacity-70 cursor-not-allowed' : ''" />
+                            <flux:error name="mobileNumber" />
+                        </flux:field>
 
                         <flux:field>
                             <flux:label>{{ __('Email Address') }}</flux:label>
-                            <flux:input wire:model="email" type="email" placeholder="example@gmail.com" :readonly="auth()->user()->role === \App\Enums\UserRole::Teacher" />
+                            <flux:input wire:model="email" type="email" placeholder="example@gmail.com"
+                                        :readonly="auth()->user()->role === \App\Enums\UserRole::Teacher"
+                                        :class="auth()->user()->role === \App\Enums\UserRole::Teacher ? 'opacity-70 cursor-not-allowed' : ''" />
                             <flux:error name="email" />
                         </flux:field>
                     </div>
@@ -313,7 +331,12 @@
                 <!-- Prev/Next Navigation (Handled by Alpine.js) -->
                 <div class="flex items-center gap-2">
                     <flux:button type="button" variant="outline" icon="chevron-left" @click="goToPrev()" x-show="activeTab !== 'basic'">{{ __('Previous') }}</flux:button>
-                    <flux:button type="button" variant="outline" icon-trailing="chevron-right" @click="goToNext()" x-show="activeTab !== 'bank'">{{ __('Next') }}</flux:button>
+
+                    <!-- Updated Next Button with Loading State -->
+                    <flux:button type="button" variant="outline" @click="goToNext()" x-show="activeTab !== 'bank'" x-bind:disabled="isValidating">
+                        <span x-show="!isValidating" class="flex items-center gap-2">{{ __('Next') }} <flux:icon.chevron-right class="size-4" /></span>
+                        <span x-show="isValidating" class="flex items-center gap-2">{{ __('Checking...') }} <svg class="animate-spin size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></span>
+                    </flux:button>
                 </div>
 
                 <!-- Save Button (Only visible on the final step) -->

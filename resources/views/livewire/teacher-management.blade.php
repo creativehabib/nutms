@@ -112,7 +112,6 @@
                         <flux:table.column class="w-12 px-4 py-3">
                             <flux:checkbox wire:click="toggleSelectAllOnPage" data-teacher-checkbox :checked="$selectAllOnPage" />
                         </flux:table.column>
-                        <flux:table.column>{{ __('College Code') }}</flux:table.column>
                     @endif
                     <flux:table.column>{{ __('Teacher Name') }}</flux:table.column>
                     <flux:table.column>{{ __('Designation & Subject') }}</flux:table.column>
@@ -136,22 +135,35 @@
                                         :checked="in_array((string) $teacher->id, $selectedTeacherIds, true)"
                                     />
                                 </flux:table.cell>
-                                <flux:table.cell class="font-mono text-zinc-500">
-                                    {{ $teacher->college_code ?? '-' }}
-                                </flux:table.cell>
                             @endif
 
-                            <flux:table.cell>
-                                <div class="flex flex-col">
-                                    <span class="font-semibold text-zinc-900 dark:text-zinc-100">
-                                        {{ $teacher?->display_name ?: __('No teacher profile') }}
-                                    </span>
-                                    <div class="flex items-center gap-1.5 mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                        <flux:icon.building-library variant="micro" class="size-3.5" />
-                                        <span class="truncate max-w-[200px]">{{ $teacher?->college?->name ?: $user->college?->name ?: __('No college assigned') }}</span>
+                                <flux:table.cell>
+                                    <div class="flex items-center gap-3">
+
+                                        <!-- Profile Image Avatar -->
+                                        <div class="shrink-0 flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
+                                            @if($teacher?->user?->picture)
+                                                <img src="{{ asset('storage/' . $teacher->user->picture) }}" alt="{{ $teacher->display_name }}" class="h-full w-full object-cover" />
+                                            @else
+                                                <span class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase">
+                                                    {{ mb_substr($teacher?->display_name ?: 'U', 0, 1) }}
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        <!-- Teacher Name & College -->
+                                        <div class="flex flex-col">
+                                            <span class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                                {{ $teacher?->display_name ?: __('No teacher profile') }}
+                                            </span>
+                                            <div class="flex items-center gap-1.5 mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                                <flux:icon.building-library variant="micro" class="size-3.5" />
+                                                <span class="truncate max-w-[200px]">{{ $teacher?->college?->name ?: $user->college?->name ?: __('No college assigned') }}</span>
+                                            </div>
+                                        </div>
+
                                     </div>
-                                </div>
-                            </flux:table.cell>
+                                </flux:table.cell>
 
                             <flux:table.cell>
                                 <span class="block font-medium text-zinc-800 dark:text-zinc-200">{{ $teacher->designation }}</span>

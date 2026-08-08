@@ -18,6 +18,7 @@ use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
@@ -320,17 +321,63 @@ class TeacherManagement extends Component
         }
 
         $isPermanentDeletion = $this->permanentDeletion;
-        $deletedTeacherCount = $isPermanentDeletion
-            ? $this->accessibleTeachersQuery(true)->whereKey($this->deletingTeacherIds)->forceDelete()
-            : $this->accessibleTeachersQuery()->whereKey($this->deletingTeacherIds)->delete();
+        $deletedTeacherCount = 0;
+
+        // Transaction ব্যবহার করা হচ্ছে যেন Teacher এবং User একসাথে ডিলিট হয়
+        DB::transaction(function () use ($isPermanentDeletion, &$deletedTeacherCount): void {
+            if ($isPermanentDeletion) {
+
+                // ১. ডিলিট করার আগেই সংশ্লিষ্ট User ID গুলো বের করে নেওয়া হচ্ছে
+                $userIds = $this->accessibleTeachersQuery(true)
+                    ->whereKey($this->deletingTeacherIds)
+                    ->whereNotNull('user_id')
+                    ->pluck('user_id')
+                    ->all();
+
+                // ২. শিক্ষকের তথ্য স্থায়ীভাবে ডিলিট
+                $deletedTeacherCount = $this->accessibleTeachersQuery(true)
+                    ->whereKey($this->deletingTeacherIds)
+                    ->forceDelete();
+
+                // ৩. সংশ্লিষ্ট ইউজার অ্যাকাউন্ট এবং স্টোরেজ থেকে তাদের ছবি/সিগনেচার ডিলিট করা
+                if (! empty($userIds)) {
+                    $users = User::query()->whereKey($userIds)->get(['id', 'picture', 'digital_signature']);
+
+                    foreach ($users as $userToDelete) {
+                        // স্টোরেজ থেকে প্রোফাইল ছবি ডিলিট
+                        if ($userToDelete->picture && Storage::disk('public')->exists($userToDelete->picture)) {
+                            Storage::disk('public')->delete($userToDelete->picture);
+                        }
+                        // স্টোরেজ থেকে সিগনেচার ডিলিট
+                        if ($userToDelete->digital_signature && Storage::disk('public')->exists($userToDelete->digital_signature)) {
+                            Storage::disk('public')->delete($userToDelete->digital_signature);
+                        }
+                    }
+
+                    // ইউজার অ্যাকাউন্ট স্থায়ীভাবে ডিলিট
+                    $userQuery = User::query()->whereKey($userIds);
+                    if (method_exists($userQuery, 'forceDelete')) {
+                        $userQuery->forceDelete(); // যদি User মডেলে SoftDeletes থাকে
+                    } else {
+                        $userQuery->delete();
+                    }
+                }
+            } else {
+                // সাধারণ ডিলিট (Soft Delete - এক্ষেত্রে ইউজার অ্যাকাউন্ট ডিলিট হবে না)
+                $deletedTeacherCount = $this->accessibleTeachersQuery()
+                    ->whereKey($this->deletingTeacherIds)
+                    ->delete();
+            }
+        });
 
         $this->reset('deletingTeacherIds', 'deletingTeacherName', 'permanentDeletion');
         $this->resetSelection();
         Flux::modal('confirm-teacher-deletion')->close();
+
         Flux::toast(
             variant: 'success',
             text: $isPermanentDeletion
-                ? "{$deletedTeacherCount} জন শিক্ষকের তথ্য স্থায়ীভাবে মুছে ফেলা হয়েছে।"
+                ? "{$deletedTeacherCount} জন শিক্ষকের তথ্য ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলা হয়েছে।"
                 : "{$deletedTeacherCount} জন শিক্ষকের তথ্য সফলভাবে ট্র্যাশে পাঠানো হয়েছে।",
         );
     }
@@ -557,7 +604,7 @@ class TeacherManagement extends Component
             : $this->accessibleTeachersQuery()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->orderBy('subject')->pluck('subject');
 
         return view('livewire.teacher-management', [
-            'teachers' => $query->with('user:id,name,email,mobile_no,role')->latest()->paginate(8), // পেজিনেশন লিমিট ৮ রাখা হলো (আপনার দেওয়া কোড অনুযায়ী)
+            'teachers' => $query->with('user:id,name,email,mobile_no,role,picture')->latest()->paginate(10),
             'isAdmin' => $isAdmin,
             'collegeCount' => $isAdmin ? (clone $query)->whereNotNull('college_id')->distinct()->count('college_id') : null,
             'subjects' => $subjects,

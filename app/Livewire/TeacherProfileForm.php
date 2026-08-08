@@ -164,11 +164,104 @@ class TeacherProfileForm extends Component
         }
     }
 
+    // নতুন মেথড: প্রতিটি ট্যাবের ডেটা আলাদাভাবে ভ্যালিডেট করার জন্য
+    public function validateStep(string $step): void
+    {
+        $isStaffCreatingTeacherAccount = $this->editingId === null && auth()->user()->role !== Role::Teacher;
+        $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
+
+        $profileUserId = null;
+        if ($this->editingId !== null) {
+            $profileUserId = Teacher::query()->whereKey($this->editingId)->value('user_id');
+        }
+        if ($profileUserId === null && auth()->user()->role === Role::Teacher) {
+            $profileUserId = auth()->id();
+        }
+
+        $emailRequiredRule = $profileUserId !== null && ! $isStaffCreatingTeacherAccount ? 'required' : 'nullable';
+
+        if ($step === 'basic') {
+            $this->validate([
+                'collegeId' => ['required', Rule::exists('colleges', 'id')->where('is_active', true)],
+                'name' => ['required', 'string', 'max:255'],
+                'birthDate' => ['nullable', 'date', 'before:today'],
+                'profileImage' => ['nullable', 'image', 'max:2048'],
+                'digitalSignature' => ['nullable', 'image', 'max:2048'],
+                'accountEmail' => [$isStaffCreatingTeacherAccount ? 'required' : 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($profileUserId)],
+                'accountPassword' => $isStaffCreatingTeacherAccount ? $this->passwordRules() : ['nullable'],
+            ]);
+        } elseif ($step === 'professional') {
+            $this->validate([
+                'designation' => ['nullable', 'string', 'max:255'],
+                'subject' => ['nullable', 'string', 'max:255'],
+                'teacherLevel' => ['nullable', 'string', 'max:255'],
+                'employmentType' => ['nullable', 'string', 'max:255'],
+            ]);
+        } elseif ($step === 'contact') {
+            $this->validate([
+                'divisionId' => [$profileRequiredRule, Rule::exists('divisions', 'id')],
+                'districtId' => [$profileRequiredRule, Rule::exists('districts', 'id')],
+                'thanaId' => [$profileRequiredRule, Rule::exists('thanas', 'id')],
+                'presentAddress' => [$profileRequiredRule, 'string', 'max:2000'],
+                'permanentAddress' => [$profileRequiredRule, 'string', 'max:2000'],
+                'mobileNumber' => ['required', 'string', 'max:50', Rule::unique('users', 'mobile_no')->ignore($profileUserId)],
+                'email' => [$emailRequiredRule, 'email', 'max:255', Rule::unique('users', 'email')->ignore($profileUserId)],
+            ]);
+
+            if (filled($this->districtId) && ! District::query()->whereKey($this->districtId)->where('division_id', $this->divisionId)->exists()) {
+                throw ValidationException::withMessages(['districtId' => 'নির্বাচিত জেলা এই বিভাগের অন্তর্ভুক্ত নয়।']);
+            }
+            if (filled($this->thanaId) && ! Thana::query()->whereKey($this->thanaId)->where('district_id', $this->districtId)->exists()) {
+                throw ValidationException::withMessages(['thanaId' => 'নির্বাচিত থানা এই জেলার অন্তর্ভুক্ত নয়।']);
+            }
+        } elseif ($step === 'training') {
+            $this->validate([
+                'trainingEntries' => ['array'],
+                'trainingEntries.*.kind' => ['required', Rule::in(['catalog', 'other'])],
+                'trainingEntries.*.training_institute_id' => ['nullable', Rule::exists('training_institutes', 'id')],
+                'trainingEntries.*.institute_name' => ['nullable', 'string', 'max:255'],
+                'trainingEntries.*.training_type_id' => ['nullable', Rule::exists('training_types', 'id')],
+                'trainingEntries.*.name' => ['nullable', 'string', 'max:255'],
+                'trainingEntries.*.duration_value' => ['nullable', 'integer', 'min:1', 'max:999'],
+                'trainingEntries.*.duration_unit' => ['nullable', Rule::in(['hours', 'days', 'weeks', 'months'])],
+                'trainingEntries.*.training_year' => ['nullable', 'integer', 'min:1950', 'max:'.((int) date('Y') + 1)],
+            ]);
+
+            foreach ($this->trainingEntries as $index => $entry) {
+                $hasValue = filled($entry['training_institute_id'] ?? null) || filled($entry['training_type_id'] ?? null) || filled($entry['name'] ?? null) || filled($entry['training_year'] ?? null);
+                if (! $hasValue) {
+                    continue;
+                }
+                if ($entry['kind'] === 'catalog' && (! filled($entry['training_type_id'] ?? null) || ! filled($entry['training_year'] ?? null) || ! TrainingType::query()->whereKey($entry['training_type_id'])->where('training_institute_id', $entry['training_institute_id'])->exists())) {
+                    throw ValidationException::withMessages(["trainingEntries.{$index}.training_type_id" => 'প্রতিষ্ঠান, ট্রেনিং এবং বছর সঠিকভাবে নির্বাচন করুন।']);
+                }
+                if ($entry['kind'] === 'other' && (! filled($entry['name'] ?? null) || ! filled($entry['training_year'] ?? null))) {
+                    throw ValidationException::withMessages(["trainingEntries.{$index}.name" => 'অন্যান্য ট্রেনিংয়ের নাম ও বছর দিন।']);
+                }
+            }
+        } elseif ($step === 'bank') {
+            $this->validate([
+                'bankName' => ['nullable', 'string', 'max:255'],
+                'bankBranchName' => ['nullable', 'string', 'max:255'],
+                'bankAccountNumber' => ['nullable', 'string', 'max:100'],
+                'bankRoutingNumber' => ['nullable', 'string', 'max:30'],
+            ]);
+        }
+    }
+
     public function save(): void
     {
         $isStaffCreatingTeacherAccount = $this->editingId === null && auth()->user()->role !== Role::Teacher;
         $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
-        $profileUserId = Teacher::query()->whereKey($this->editingId)->value('user_id') ?? auth()->id();
+
+        $profileUserId = null;
+        if ($this->editingId !== null) {
+            $profileUserId = Teacher::query()->whereKey($this->editingId)->value('user_id');
+        }
+        if ($profileUserId === null && auth()->user()->role === Role::Teacher) {
+            $profileUserId = auth()->id();
+        }
+
         $emailRequiredRule = $profileUserId !== null && ! $isStaffCreatingTeacherAccount ? 'required' : 'nullable';
 
         $validated = $this->validate([
@@ -221,22 +314,27 @@ class TeacherProfileForm extends Component
                 throw ValidationException::withMessages(["trainingEntries.{$index}.training_type_id" => 'প্রতিষ্ঠান, ট্রেনিং এবং বছর সঠিকভাবে নির্বাচন করুন।']);
             }
             if ($entry['kind'] === 'other' && (! filled($entry['name'] ?? null) || ! filled($entry['training_year'] ?? null))) {
-                throw ValidationException::withMessages(["trainingEntries.{$index}.name" => 'অন্যান্য ট্রেনিংয়ের নাম ও বছর দিন।']);
+                throw ValidationException::withMessages(["trainingEntries.{$index}.name" => 'অন্যান্য ট্রেনিংয়ের নাম ও বছর দিন।']);
             }
         }
 
+        // সিকিউরিটি: যদি লগইন করা ইউজার শিক্ষক (Teacher) হন, তবে তার ইমেইল এবং মোবাইল নম্বর
+        // জোরপূর্বক তার বর্তমান User অ্যাকাউন্ট থেকেই নেওয়া হবে, ফর্ম থেকে নয়।
         if (auth()->user()->role === Role::Teacher) {
             $validated['email'] = auth()->user()->email;
+            $validated['mobileNumber'] = auth()->user()->mobile_no;
         }
 
         DB::transaction(function () use ($validated, $isStaffCreatingTeacherAccount): void {
             $user = auth()->user();
             $college = College::query()->findOrFail($validated['collegeId']);
+
             if ($user->role === Role::Teacher) {
                 abort_unless($college->id === $user->college_id && $college->approval_status === ApprovalStatus::Approved, 403);
             } elseif ($user->role === Role::Principal) {
                 abort_unless($college->id === $user->college_id && $college->approval_status === ApprovalStatus::Approved, 403);
             }
+
             $isApprovedTeacherEditingOwnProfile = $user->role === Role::Teacher
                 && $this->editingId !== null
                 && Teacher::query()
@@ -275,7 +373,9 @@ class TeacherProfileForm extends Component
                 'approved_by' => $user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_by') : $user->id,
                 'approved_at' => $user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_at') : now(),
             ]);
+
             $linkedUser = $teacherAccount ?? ($teacher->user_id !== null ? User::query()->find($teacher->user_id) : null);
+
             if ($linkedUser !== null) {
                 $linkedUserUpdates = [
                     'email' => $isStaffCreatingTeacherAccount ? $validated['accountEmail'] : $validated['email'],
@@ -287,7 +387,6 @@ class TeacherProfileForm extends Component
                     if ($linkedUser->picture && Storage::disk('public')->exists($linkedUser->picture)) {
                         Storage::disk('public')->delete($linkedUser->picture);
                     }
-
                     $linkedUserUpdates['picture'] = $this->profileImage->store('profile-images', 'public');
                 }
 
@@ -295,14 +394,15 @@ class TeacherProfileForm extends Component
                     if ($linkedUser->digital_signature && Storage::disk('public')->exists($linkedUser->digital_signature)) {
                         Storage::disk('public')->delete($linkedUser->digital_signature);
                     }
-
                     $linkedUserUpdates['digital_signature'] = $this->digitalSignature->store('signatures', 'public');
                 }
 
                 $linkedUser->update($linkedUserUpdates);
             }
+
             $teacher->trainingTypes()->detach();
             $teacher->otherTrainings()->delete();
+
             foreach ($validated['trainingEntries'] as $entry) {
                 if ($entry['kind'] === 'catalog' && filled($entry['training_type_id'] ?? null) && filled($entry['training_year'] ?? null)) {
                     $teacher->trainingTypes()->attach((int) $entry['training_type_id'], ['training_year' => (int) $entry['training_year']]);
