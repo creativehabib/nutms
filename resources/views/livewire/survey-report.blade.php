@@ -7,6 +7,10 @@
             <p class="text-slate-500 mt-1">জাতীয় বিশ্ববিদ্যালয়ের প্রথম বর্ষের আইসিটি কোর্স বিষয়ক ডেটা</p>
         </div>
         <div class="flex space-x-3">
+            <a href="{{ route('survey.report.print') }}" target="_blank" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition flex items-center shadow-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                রিপোর্ট PDF করুন
+            </a>
             <a href="{{ route('survey.teacher') }}" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-100 transition">শিক্ষক ফর্ম দেখুন</a>
             <a href="{{ route('survey.student') }}" class="bg-teal-50 text-teal-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-100 transition">শিক্ষার্থী ফর্ম দেখুন</a>
         </div>
@@ -89,15 +93,21 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    document.addEventListener('livewire:initialized', () => {
+    // চার্টের ইনস্ট্যান্সগুলো গ্লোবালি ডিক্লেয়ার করা হলো যেন পরে ডেস্ট্রয় করা যায়
+    let teacherChartInstance = null;
+    let studentConfChartInstance = null;
+    let studentFutureChartInstance = null;
 
-        // কালার প্যালেট
+    function renderCharts() {
         const colors = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444'];
-        const barColors = ['#0d9488', '#14b8a6', '#2dd4bf', '#5eead4', '#ccfbf1'];
 
         // 1. Teacher Satisfaction (Pie Chart)
-        if(document.getElementById('teacherChart')) {
-            new Chart(document.getElementById('teacherChart'), {
+        const tcElement = document.getElementById('teacherChart');
+        if (tcElement) {
+            // আগের চার্ট থাকলে সেটি ডেস্ট্রয় করে নিতে হবে
+            if (teacherChartInstance) teacherChartInstance.destroy();
+
+            teacherChartInstance = new Chart(tcElement, {
                 type: 'doughnut',
                 data: {
                     labels: @json($tSatisfactionLabels),
@@ -117,8 +127,11 @@
         }
 
         // 2. Student Confidence (Bar Chart)
-        if(document.getElementById('studentConfidenceChart')) {
-            new Chart(document.getElementById('studentConfidenceChart'), {
+        const scElement = document.getElementById('studentConfidenceChart');
+        if (scElement) {
+            if (studentConfChartInstance) studentConfChartInstance.destroy();
+
+            studentConfChartInstance = new Chart(scElement, {
                 type: 'bar',
                 data: {
                     labels: @json($sConfidenceLabels),
@@ -139,8 +152,11 @@
         }
 
         // 3. Student Future Career (Bar Chart - Horizontal)
-        if(document.getElementById('studentFutureChart')) {
-            new Chart(document.getElementById('studentFutureChart'), {
+        const sfElement = document.getElementById('studentFutureChart');
+        if (sfElement) {
+            if (studentFutureChartInstance) studentFutureChartInstance.destroy();
+
+            studentFutureChartInstance = new Chart(sfElement, {
                 type: 'bar',
                 data: {
                     labels: @json($sFutureCareerLabels),
@@ -152,7 +168,7 @@
                     }]
                 },
                 options: {
-                    indexAxis: 'y', // এটা বার চার্টকে হরিজন্টাল করবে
+                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
@@ -160,5 +176,18 @@
                 }
             });
         }
+    }
+
+    // Livewire 3: এক পেজ থেকে অন্য পেজে নেভিগেট করার সময় চার্ট রেন্ডার করবে
+    document.addEventListener('livewire:navigated', renderCharts);
+
+    // Livewire 3: কম্পোনেন্ট ডম (DOM) আপডেট হওয়ার সময় (যেমন ফিল্টার করলে) চার্ট রেন্ডার করবে
+    document.addEventListener('livewire:initialized', () => {
+        Livewire.hook('morph.updated', ({ el, component }) => {
+            // শুধুমাত্র ড্যাশবোর্ডে থাকলেই রেন্ডার করবে
+            if(document.getElementById('teacherChart')) {
+                renderCharts();
+            }
+        });
     });
 </script>

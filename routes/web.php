@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReportExportController;
 use App\Livewire\Admin\LanguageManager;
 use App\Livewire\CollegeDetails;
 use App\Livewire\CollegeForm;
@@ -47,5 +48,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 //Survey Route
 Route::get('/survey/teacher', TeacherSurveyForm::class)->name('survey.teacher');
 Route::get('/survey/student', StudentSurveyForm::class)->name('survey.student');
+Route::get('/survey/report/print', [ReportExportController::class, 'printReport'])->name('survey.report.print');
 
 require __DIR__.'/settings.php';
