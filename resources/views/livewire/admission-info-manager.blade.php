@@ -5,7 +5,9 @@
         <!-- Header Section -->
         <!-- ========================================== -->
         <div class="border-b border-zinc-200 bg-zinc-50/50 px-6 py-6 dark:border-zinc-700 dark:bg-zinc-800/30">
-            <div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+
+                <!-- Title Area -->
                 <div class="flex items-start gap-4">
                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white border border-zinc-200 text-indigo-600 shadow-sm dark:bg-zinc-800 dark:border-zinc-700 dark:text-indigo-400">
                         <flux:icon.table-cells class="size-6" />
@@ -16,7 +18,6 @@
                                 {{ __('Manage Admission Data') }}
                             </flux:heading>
                             <flux:badge color="indigo" size="sm" class="font-medium shadow-sm">
-                                <!-- এখানে $records এর বদলে $colleges দেওয়া হয়েছে -->
                                 {{ $colleges->total() }} {{ __('Colleges') }}
                             </flux:badge>
                         </div>
@@ -26,14 +27,49 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="flex w-full sm:w-auto items-center gap-3">
-                    <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Search records...') }}" class="w-full sm:w-64" />
+                <!-- Action Buttons & Filters (Updated) -->
+                <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full xl:w-auto shrink-0">
+
+                    <!-- Category Filter -->
+                    <div class="w-full sm:w-36">
+                        <flux:select wire:model.live="category" placeholder="{{ __('Category') }}" size="sm">
+                            <flux:select.option value="">{{ __('All Types') }}</flux:select.option>
+                            @foreach($categories as $cat)
+                                <flux:select.option value="{{ $cat }}">{{ $cat }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+
+                    <!-- Division Filter -->
+                    <div class="w-full sm:w-36">
+                        <flux:select wire:model.live="division" placeholder="{{ __('Division') }}" size="sm">
+                            <flux:select.option value="">{{ __('All Divisions') }}</flux:select.option>
+                            @foreach($divisions as $div)
+                                <flux:select.option value="{{ $div }}">{{ $div }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+
+                    <!-- District Filter -->
+                    <div class="w-full sm:w-36">
+                        <flux:select wire:model.live="district" placeholder="{{ __('District') }}" size="sm" :disabled="empty($districts)">
+                            <flux:select.option value="">{{ __('All Districts') }}</flux:select.option>
+                            @foreach($districts as $dist)
+                                <flux:select.option value="{{ $dist }}">{{ $dist }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+
+                    <!-- Search Box -->
+                    <flux:input wire:model.live.debounce.300ms="search" size="sm" icon="magnifying-glass" placeholder="{{ __('Search records...') }}" class="w-full sm:w-48" />
+
+                    <!-- Import Button -->
                     <flux:modal.trigger name="import-admission-modal">
-                        <flux:button variant="primary" icon="cloud-arrow-up" class="shrink-0 shadow-sm">
+                        <flux:button variant="primary" size="sm" icon="cloud-arrow-up" class="shrink-0 shadow-sm w-full sm:w-auto">
                             {{ __('Import') }}
                         </flux:button>
                     </flux:modal.trigger>
+
                 </div>
             </div>
         </div>

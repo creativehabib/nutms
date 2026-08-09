@@ -30,6 +30,7 @@ class AdmissionInfoImport implements ToCollection, WithChunkReading, WithHeading
                     'division' => $row['division'],
                     'district' => $row['district'],
                     'college_name' => $row['college_name'],
+                    'category' => $row['category'] ?? null,
                     'subject_name' => $row['subject_name'],
                     'sess_21_22_total_admited' => $row['sess_21_22_total_admited'] ?? 0,
                     'sess_22_23_total_admited' => $row['sess_22_23_total_admited'] ?? 0,

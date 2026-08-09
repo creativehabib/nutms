@@ -77,6 +77,6 @@ class AdmissionSummary extends Component
             $totalStudents = $summaryData->sum('sess_24_25_total_admited');
         }
 
-        return view('livewire.admission-summary', compact('colleges', 'summaryData', 'totalStudents', 'totalColleges'));
+        return view('livewire.admission-summary', compact('colleges', 'summaryData', 'totalStudents', 'totalColleges'))->layout('layouts.app',['title'=> 'Admission Summary']);
     }
 }

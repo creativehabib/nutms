@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('division')->nullable();
             $table->string('district')->nullable();
             $table->string('college_name');
+            $table->string('category')->nullable();
             $table->string('subject_id');
             $table->string('subject_name');
             $table->integer('sess_21_22_total_admited')->nullable();

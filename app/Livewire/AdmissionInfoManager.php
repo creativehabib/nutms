@@ -16,6 +16,11 @@ class AdmissionInfoManager extends Component
 
     public $search = '';
 
+    // ফিল্টার প্রোপার্টি
+    public $division = '';
+    public $district = '';
+    public $category = ''; // নতুন ক্যাটাগরি ফিল্টার
+
     // File Upload properties
     public $file;
     public $duplicateMessage = '';
@@ -28,10 +33,11 @@ class AdmissionInfoManager extends Component
     // Delete property
     public $deletingId = null;
 
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
+    // ফিল্টার চেঞ্জ হলে পেজ ১ এ চলে যাবে
+    public function updatingSearch() { $this->resetPage(); }
+    public function updatingDivision() { $this->resetPage(); $this->district = ''; }
+    public function updatingDistrict() { $this->resetPage(); }
+    public function updatingCategory() { $this->resetPage(); } // ক্যাটাগরি পাল্টানো হলেও পেজ রিসেট হবে
 
     // ==========================================
     // Import Logic
@@ -81,7 +87,6 @@ class AdmissionInfoManager extends Component
         $this->sess_23_24 = $record->sess_23_24_total_admited;
         $this->sess_24_25 = $record->sess_24_25_total_admited;
 
-        // মডাল ওপেন করার সঠিক Flux মেথড
         Flux::modal('edit-admission-modal')->show();
     }
 
@@ -147,6 +152,18 @@ class AdmissionInfoManager extends Component
 
     public function render()
     {
+        // ড্রপডাউনের জন্য ইউনিক Division, District এবং Category ডেটা আনা
+        $divisions = AdmissionInfo::select('division')->whereNotNull('division')->where('division', '!=', '')->distinct()->orderBy('division')->pluck('division');
+
+        $districts = AdmissionInfo::select('district')
+            ->whereNotNull('district')->where('district', '!=', '')
+            ->when($this->division, function($q) {
+                $q->where('division', $this->division);
+            })
+            ->distinct()->orderBy('district')->pluck('district');
+
+        $categories = AdmissionInfo::select('category')->whereNotNull('category')->where('category', '!=', '')->distinct()->orderBy('category')->pluck('category');
+
         // ১. সার্চ এবং গ্রুপিং লজিক
         $collegesQuery = AdmissionInfo::query()
             ->select('college_code', 'college_name')
@@ -155,6 +172,9 @@ class AdmissionInfoManager extends Component
             ->selectRaw('SUM(sess_22_23_total_admited) as sum_22_23')
             ->selectRaw('SUM(sess_23_24_total_admited) as sum_23_24')
             ->selectRaw('SUM(sess_24_25_total_admited) as sum_24_25')
+            ->when($this->division, fn($q) => $q->where('division', $this->division))
+            ->when($this->district, fn($q) => $q->where('district', $this->district))
+            ->when($this->category, fn($q) => $q->where('category', $this->category)) // ক্যাটাগরি ফিল্টার যুক্ত
             ->groupBy('college_code', 'college_name');
 
         if ($this->search) {
@@ -165,13 +185,17 @@ class AdmissionInfoManager extends Component
             });
         }
 
-        // পেজিনেশন (প্রতি পেজে ১০টি কলেজ)
+        // পেজিনেশন
         $colleges = $collegesQuery->orderBy('college_name')->paginate(10);
 
-        // ২. শুধুমাত্র বর্তমান পেজের কলেজগুলোর সাবজেক্ট ডেটা নিয়ে আসা
+        // ২. শুধুমাত্র বর্তমান পেজের কলেজগুলোর সাবজেক্ট ডেটা নিয়ে আসা
         $collegeCodes = $colleges->pluck('college_code');
 
-        $subjectsQuery = AdmissionInfo::whereIn('college_code', $collegeCodes);
+        $subjectsQuery = AdmissionInfo::whereIn('college_code', $collegeCodes)
+            ->when($this->division, fn($q) => $q->where('division', $this->division))
+            ->when($this->district, fn($q) => $q->where('district', $this->district))
+            ->when($this->category, fn($q) => $q->where('category', $this->category)); // ক্যাটাগরি ফিল্টার যুক্ত
+
         if ($this->search) {
             $subjectsQuery->where(function ($q) {
                 $q->where('college_name', 'like', '%' . $this->search . '%')
@@ -182,6 +206,6 @@ class AdmissionInfoManager extends Component
 
         $subjects = $subjectsQuery->get()->groupBy('college_code');
 
-        return view('livewire.admission-info-manager', compact('colleges', 'subjects'));
+        return view('livewire.admission-info-manager', compact('colleges', 'subjects', 'divisions', 'districts', 'categories'))->layout('layouts.app',['title'=> 'Admission Info Manager']);
     }
 }
