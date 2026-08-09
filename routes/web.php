@@ -3,6 +3,8 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportExportController;
 use App\Livewire\Admin\LanguageManager;
+use App\Livewire\AdmissionInfoManager;
+use App\Livewire\AdmissionSummary;
 use App\Livewire\CollegeDetails;
 use App\Livewire\CollegeForm;
 use App\Livewire\CollegeLabSummary;
@@ -18,6 +20,7 @@ use App\Livewire\TeacherManagement;
 use App\Livewire\TeacherProfileForm;
 use App\Livewire\TeacherSurveyForm;
 use App\Livewire\TrainingCatalogManagement;
+use App\Models\AdmissionInfo;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -49,5 +52,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/survey/teacher', TeacherSurveyForm::class)->name('survey.teacher');
 Route::get('/survey/student', StudentSurveyForm::class)->name('survey.student');
 Route::get('/survey/report/print', [ReportExportController::class, 'printReport'])->name('survey.report.print');
+
+Route::get('/admission-manage', AdmissionInfoManager::class)->name('admission.manage');
+Route::get('/admission/summary', AdmissionSummary::class)->name('admission.summary');
+// প্রিন্ট করার রাউট
+Route::get('/admission/print/{college_code}', function ($college_code) {
+    $records = AdmissionInfo::where('college_code', $college_code)
+        ->orderBy('subject_name')
+        ->get();
+
+    if ($records->isEmpty()) {
+        abort(404, 'No data found for this college.');
+    }
+
+    $collegeInfo = $records->first();
+    $totalStudents = $records->sum('sess_24_25_total_admited');
+
+    return view('pages.admission-print', compact('records', 'collegeInfo', 'totalStudents'));
+})->name('admission.print');
 
 require __DIR__.'/settings.php';

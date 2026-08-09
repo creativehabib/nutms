@@ -179,6 +179,10 @@
                     <flux:sidebar.item icon="language" :href="route('admin.survey.report')" :current="request()->routeIs('admin.survey.report')" wire:navigate>
                         <span>{{ __('Survey Report') }}</span>
                     </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="identification" :href="route('admission.summary')" :current="request()->routeIs('admission.summary')" wire:navigate>
+                        <span>{{ __('Admission Summary') }}</span>
+                    </flux:sidebar.item>
                 @endif
                 @if(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())
                     <flux:sidebar.item icon="building-library" :href="route('colleges.show', auth()->user()->college_id)" :current="request()->routeIs('colleges.show', 'colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>{{ __('College Profile') }}</flux:sidebar.item>

@@ -71,4 +71,9 @@ class College extends Model
     {
         return $this->belongsTo(User::class, 'submitted_by');
     }
+
+    public function admissionInfos()
+    {
+        return $this->hasMany(AdmissionInfo::class, 'college_code', 'code');
+    }
 }
