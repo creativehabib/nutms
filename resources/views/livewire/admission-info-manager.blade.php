@@ -52,7 +52,7 @@
 
                     <!-- District Filter -->
                     <div class="w-full sm:w-36">
-                        <flux:select wire:model.live="district" placeholder="{{ __('District') }}" size="sm" :disabled="empty($districts)">
+                        <flux:select wire:model.live="district" placeholder="{{ __('District') }}" size="sm" :disabled="!$division">
                             <flux:select.option value="">{{ __('All Districts') }}</flux:select.option>
                             @foreach($districts as $dist)
                                 <flux:select.option value="{{ $dist }}">{{ $dist }}</flux:select.option>
