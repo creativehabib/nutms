@@ -88,6 +88,7 @@ class TeacherProfileForm extends Component
         }
         if ((! $teacher?->exists) && $user->role === Role::Teacher && $user->teacherProfile !== null) {
             $teacher = $user->teacherProfile;
+            abort_unless($user->can('teachers.update'), 403);
             abort_if($teacher?->approval_status === ApprovalStatus::Pending, 403, 'প্রোফাইলটি অনুমোদনের অপেক্ষায় আছে।');
         }
         if ($teacher?->exists) {
