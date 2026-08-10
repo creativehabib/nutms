@@ -20,6 +20,13 @@ class AdmissionSummary extends Component
     // ডুপ্লিকেট মেসেজ শো করার জন্য নতুন প্রোপার্টি
     public $duplicateMessage = '';
 
+    public function updatedSelectedCollege(mixed $value): void
+    {
+        $selectedCollege = is_array($value) ? reset($value) : $value;
+
+        $this->selectedCollege = is_scalar($selectedCollege) ? (string) $selectedCollege : '';
+    }
+
     public function importData()
     {
         $this->validate([
