@@ -62,7 +62,7 @@
             </div>
             <div class="text-center">
                 <div class="w-40 border-b border-zinc-400 mb-2"></div>
-                <p class="text-sm text-zinc-600">Principal Signature</p>
+                <p class="text-sm text-zinc-600">Authority Signature</p>
             </div>
         </div>
 
