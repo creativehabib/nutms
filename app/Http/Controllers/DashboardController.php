@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserRole as Role;
 use App\Models\College;
 use App\Models\SystemSetting;
 use App\Models\Teacher;
@@ -18,8 +17,8 @@ class DashboardController extends Controller
     {
         $collegeReport = College::query()
             ->where('is_active', true)
-            ->when(auth()->user()->role === Role::Principal, fn ($query) => $query->whereKey(auth()->user()->college_id))
-            ->when(auth()->user()->role === Role::Teacher, fn ($query) => $query->whereKey(auth()->user()->college_id))
+            ->when(auth()->user()->hasRole('principal'), fn ($query) => $query->whereKey(auth()->user()->college_id))
+            ->when(auth()->user()->hasRole('teacher'), fn ($query) => $query->whereKey(auth()->user()->college_id))
             ->selectRaw('COUNT(*) as total')
             ->selectRaw('SUM(CASE WHEN has_computer_lab = 1 THEN 1 ELSE 0 END) as with_lab')
             ->selectRaw('SUM(CASE WHEN has_computer_lab = 0 OR has_computer_lab IS NULL THEN 1 ELSE 0 END) as without_lab')
@@ -27,8 +26,8 @@ class DashboardController extends Controller
             ->first();
 
         $teacherQuery = Teacher::query()
-            ->when(auth()->user()->role === Role::Principal, fn ($query) => $query->where('college_id', auth()->user()->college_id))
-            ->when(auth()->user()->role === Role::Teacher, fn ($query) => $query->where('user_id', auth()->id()));
+            ->when(auth()->user()->hasRole('principal'), fn ($query) => $query->where('college_id', auth()->user()->college_id))
+            ->when(auth()->user()->hasRole('teacher'), fn ($query) => $query->where('user_id', auth()->id()));
 
         $totalTeachers = (clone $teacherQuery)->count();
         $teachersWithIctTraining = (clone $teacherQuery)->where(function ($query): void {
@@ -56,8 +55,8 @@ class DashboardController extends Controller
                     ? Carbon::parse($lastUpdatedAt)->format('d M Y, h:i A')
                     : null,
             ],
-            'principalStats' => auth()->user()->role === Role::Principal ? $this->principalStats() : null,
-            'teacherStats' => auth()->user()->role === Role::Teacher ? $this->teacherStats() : null,
+            'principalStats' => auth()->user()->hasRole('principal') ? $this->principalStats() : null,
+            'teacherStats' => auth()->user()->hasRole('teacher') ? $this->teacherStats() : null,
         ]);
     }
 

@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole;
 use App\Models\College;
 use App\Models\SystemSetting;
 use App\Models\Teacher;
@@ -86,8 +85,7 @@ test('dashboard shows college lab and ICT training report totals', function () {
 
 test('principal dashboard links to their full profiles and college teachers', function () {
     $college = College::query()->create(['name' => 'Dashboard Principal College', 'approval_status' => ApprovalStatus::Approved]);
-    $principal = User::factory()->create([
-        'role' => UserRole::Principal,
+    $principal = User::factory()->withRole('principal')->create([
         'college_id' => $college->id,
         'approval_status' => ApprovalStatus::Approved,
     ]);
@@ -118,7 +116,7 @@ test('principal dashboard links to their full profiles and college teachers', fu
 test('principal dashboard summarizes subjects trainings and retirement dates', function () {
     SystemSetting::query()->updateOrCreate(['key' => SystemSetting::RETIREMENT_AGE], ['value' => '59']);
     $college = College::query()->create(['name' => 'Analytics College', 'approval_status' => ApprovalStatus::Approved]);
-    $principal = User::factory()->create(['role' => UserRole::Principal, 'college_id' => $college->id, 'approval_status' => ApprovalStatus::Approved]);
+    $principal = User::factory()->withRole('principal')->create(['college_id' => $college->id, 'approval_status' => ApprovalStatus::Approved]);
     $retired = Teacher::query()->create(['college_id' => $college->id, 'name' => 'Retired Teacher', 'subject' => 'Physics', 'birth_date' => now()->subYears(60), 'approval_status' => ApprovalStatus::Approved]);
     $upcoming = Teacher::query()->create(['college_id' => $college->id, 'name' => 'Upcoming Teacher', 'subject' => 'Physics', 'birth_date' => now()->subYears(58)->subMonths(6), 'approval_status' => ApprovalStatus::Approved]);
     Teacher::query()->create(['college_id' => $college->id, 'name' => 'No Birth Date Teacher', 'subject' => 'Chemistry', 'approval_status' => ApprovalStatus::Approved]);
@@ -140,7 +138,7 @@ test('principal dashboard summarizes subjects trainings and retirement dates', f
 });
 
 test('teacher dashboard shows only their profile workflow', function () {
-    $teacher = User::factory()->create(['role' => UserRole::Teacher]);
+    $teacher = User::factory()->withRole('teacher')->create();
 
     $this->actingAs($teacher)->get(route('dashboard'))
         ->assertSuccessful()
@@ -151,14 +149,14 @@ test('teacher dashboard shows only their profile workflow', function () {
 });
 
 test('teacher dashboard warns when submitted profiles cannot be edited', function () {
-    $user = User::factory()->create(['role' => UserRole::Teacher]);
+    $user = User::factory()->withRole('teacher')->create();
     Teacher::query()->create([
         'user_id' => $user->id,
         'name' => 'Restricted Dashboard Teacher',
         'approval_status' => ApprovalStatus::Approved,
     ]);
 
-    PermissionRole::findByName(UserRole::Teacher->value)->revokePermissionTo('teachers.update');
+    PermissionRole::findByName('teacher')->revokePermissionTo('teachers.update');
 
     $this->actingAs($user)->get(route('dashboard'))
         ->assertSuccessful()
@@ -167,9 +165,9 @@ test('teacher dashboard warns when submitted profiles cannot be edited', functio
 });
 
 test('teacher dashboard warns before one-time profile submission', function () {
-    $user = User::factory()->create(['role' => UserRole::Teacher]);
+    $user = User::factory()->withRole('teacher')->create();
 
-    PermissionRole::findByName(UserRole::Teacher->value)->revokePermissionTo('teachers.update');
+    PermissionRole::findByName('teacher')->revokePermissionTo('teachers.update');
 
     $this->actingAs($user)->get(route('dashboard'))
         ->assertSuccessful()
@@ -180,7 +178,7 @@ test('teacher dashboard warns before one-time profile submission', function () {
 test('teacher dashboard shows personal retirement training and update information', function () {
     SystemSetting::query()->updateOrCreate(['key' => SystemSetting::RETIREMENT_AGE], ['value' => '59']);
     $college = College::query()->create(['name' => 'Teacher Dashboard College']);
-    $user = User::factory()->create(['role' => UserRole::Teacher, 'college_id' => $college->id]);
+    $user = User::factory()->withRole('teacher')->create(['college_id' => $college->id]);
     $profile = Teacher::query()->create([
         'user_id' => $user->id,
         'college_id' => $college->id,

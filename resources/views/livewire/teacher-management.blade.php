@@ -205,8 +205,8 @@
                                 <flux:table.cell class="text-center">
                                     @if($teacher->user)
                                         <flux:select size="sm" wire:change="changeTeacherRole({{ $teacher->id }}, $event.target.value)" class="min-w-[120px]">
-                                            <option value="teacher" @selected($teacher->user->role === \App\Enums\UserRole::Teacher)>{{ __('Teacher') }}</option>
-                                            <option value="principal" @selected($teacher->user->role === \App\Enums\UserRole::Principal)>{{ __('Principal') }}</option>
+                                            <option value="teacher" @selected($teacher->user->hasRole('teacher'))>{{ __('Teacher') }}</option>
+                                            <option value="principal" @selected($teacher->user->hasRole('principal'))>{{ __('Principal') }}</option>
                                         </flux:select>
                                     @else
                                         <flux:badge color="zinc" size="sm">{{ __('No Account') }}</flux:badge>

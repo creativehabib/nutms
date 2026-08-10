@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole as Role;
 use App\Livewire\TeacherDetails;
 use App\Livewire\TeacherProfileForm;
 use App\Models\College;
@@ -33,7 +32,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
 
     Storage::fake('public');
 
-    Livewire::actingAs(User::factory()->create(['role' => Role::Admin]))->test(TeacherProfileForm::class)
+    Livewire::actingAs(User::factory()->withRole('admin')->create())->test(TeacherProfileForm::class)
         ->set('collegeId', (string) $college->id)->set('name', 'New Teacher')
         ->set('accountEmail', 'new-teacher-account@example.com')->set('accountPassword', 'password')->set('accountPassword_confirmation', 'password')
         ->set('divisionId', (string) $division->id)->set('districtId', (string) $district->id)->set('thanaId', (string) $thana->id)
@@ -106,7 +105,7 @@ it('submits a teacher profile under the selected college for principal approval'
     $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
-    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com', 'mobile_no' => '01799999999']);
+    $user = User::factory()->withRole('teacher')->create(['college_id' => $college->id, 'email' => 'registered-teacher@example.com', 'mobile_no' => '01799999999']);
 
     Livewire::actingAs($user)->test(TeacherProfileForm::class)
         ->set('collegeId', (string) $college->id)
@@ -140,7 +139,7 @@ it('updates profile fields without changing existing institutional training hist
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
 
-    Livewire::actingAs(User::factory()->create(['role' => Role::Admin]))->test(TeacherProfileForm::class, ['teacher' => $teacher])
+    Livewire::actingAs(User::factory()->withRole('admin')->create())->test(TeacherProfileForm::class, ['teacher' => $teacher])
         ->assertSet('trainingEntries.0.training_type_id', (string) $training->id)
         ->assertSee('প্রতিষ্ঠানভিত্তিক ট্রেনিং ইতিহাস')
         ->set('divisionId', (string) $division->id)->set('districtId', (string) $district->id)->set('thanaId', (string) $thana->id)
@@ -155,7 +154,7 @@ it('shows all teacher profile sections on a dedicated details page', function ()
     $user = User::factory()->create(['email' => 'details-teacher@example.com', 'mobile_no' => '01900000000']);
     $teacher = Teacher::query()->create(['name' => 'Details Teacher', 'user_id' => $user->id, 'present_address' => 'Teacher Present', 'permanent_address' => 'Teacher Permanent', 'bank_name' => 'Agrani Bank', 'bank_branch_name' => 'Town Branch', 'bank_account_number' => '9876543210123', 'bank_routing_number' => '987654321']);
 
-    Livewire::actingAs(User::factory()->create(['role' => Role::Admin]))->test(TeacherDetails::class, ['teacher' => $teacher])
+    Livewire::actingAs(User::factory()->withRole('admin')->create())->test(TeacherDetails::class, ['teacher' => $teacher])
         ->assertSee('Details Teacher')->assertSee('Teacher Present')->assertSee('Teacher Permanent')
         ->assertSee('01900000000')->assertSee('Agrani Bank')->assertSee('Town Branch')->assertSee('9876543210123')->assertSee('987654321')
         ->assertSee('প্রতিষ্ঠানভিত্তিক ট্রেনিং ইতিহাস')
@@ -180,8 +179,8 @@ it('allows a teacher to view and update their profile after principal approval',
     $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
-    $principal = User::factory()->create(['role' => Role::Principal, 'college_id' => $college->id]);
-    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id, 'email' => 'registered-teacher@example.com', 'mobile_no' => '01799999999']);
+    $principal = User::factory()->withRole('principal')->create(['college_id' => $college->id]);
+    $user = User::factory()->withRole('teacher')->create(['college_id' => $college->id, 'email' => 'registered-teacher@example.com', 'mobile_no' => '01799999999']);
     $teacher = Teacher::query()->create([
         'name' => 'Approved Self Service Teacher',
         'user_id' => $user->id,
@@ -220,7 +219,7 @@ it('allows a teacher to view and update their profile after principal approval',
 });
 
 it('does not allow a teacher to edit a profile before it is approved', function (ApprovalStatus $status) {
-    $user = User::factory()->create(['role' => Role::Teacher]);
+    $user = User::factory()->withRole('teacher')->create();
     $teacher = Teacher::query()->create([
         'name' => 'Unapproved Teacher',
         'user_id' => $user->id,
@@ -234,14 +233,14 @@ it('does not allow a teacher to edit a profile before it is approved', function 
 ]);
 
 it('enforces teacher profile permissions on routes and components', function () {
-    $user = User::factory()->create(['role' => Role::Teacher]);
+    $user = User::factory()->withRole('teacher')->create();
     $teacher = Teacher::query()->create([
         'name' => 'Permission Restricted Teacher',
         'user_id' => $user->id,
         'approval_status' => ApprovalStatus::Approved,
     ]);
 
-    PermissionRole::findByName(Role::Teacher->value)->revokePermissionTo('teachers.update');
+    PermissionRole::findByName('teacher')->revokePermissionTo('teachers.update');
 
     $this->actingAs($user)->get(route('teachers.edit', $teacher))->assertForbidden();
 
@@ -254,7 +253,7 @@ it('enforces teacher profile permissions on routes and components', function () 
 });
 
 it('reports required fields when an incomplete teacher profile is submitted', function () {
-    $user = User::factory()->create(['role' => Role::Teacher]);
+    $user = User::factory()->withRole('teacher')->create();
 
     Livewire::actingAs($user)->test(TeacherProfileForm::class)
         ->call('submit')
@@ -274,7 +273,7 @@ it('reports required fields when an incomplete teacher profile is submitted', fu
 });
 
 it('renders and navigates every teacher profile form step', function () {
-    $user = User::factory()->create(['role' => Role::Teacher]);
+    $user = User::factory()->withRole('teacher')->create();
 
     Livewire::actingAs($user)->test(TeacherProfileForm::class)
         ->assertSet('activeStep', 'basic')
@@ -298,8 +297,8 @@ it('allows a teacher to correct and resubmit a rejected profile', function () {
     $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
-    $admin = User::factory()->create(['role' => Role::Admin]);
-    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
+    $admin = User::factory()->withRole('admin')->create();
+    $user = User::factory()->withRole('teacher')->create(['college_id' => $college->id]);
     $teacher = Teacher::query()->create([
         'user_id' => $user->id,
         'college_id' => $college->id,
@@ -314,7 +313,7 @@ it('allows a teacher to correct and resubmit a rejected profile', function () {
         'approved_at' => now(),
     ]);
 
-    PermissionRole::findByName(Role::Teacher->value)->revokePermissionTo('teachers.update');
+    PermissionRole::findByName('teacher')->revokePermissionTo('teachers.update');
 
     $this->actingAs($user)->get(route('dashboard'))
         ->assertSuccessful()

@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole;
 use App\Models\College;
 use App\Models\Teacher;
 use App\Models\User;
@@ -20,7 +19,7 @@ class ApprovalManagement extends Component
 
         DB::transaction(function () use ($userId): void {
             $principal = User::query()
-                ->where('role', UserRole::Principal->value)
+                ->role('principal')
                 ->where('approval_status', ApprovalStatus::Pending)
                 ->findOrFail($userId);
             abort_if($principal->college_id === null, 422, 'Principal-এর কলেজ নির্বাচন করা নেই।');
@@ -35,7 +34,7 @@ class ApprovalManagement extends Component
     {
         abort_unless(auth()->user()->isAdmin(), 403);
         User::query()
-            ->where('role', UserRole::Principal->value)
+            ->role('principal')
             ->where('approval_status', ApprovalStatus::Pending)
             ->findOrFail($userId)
             ->update(['approval_status' => ApprovalStatus::Rejected, 'approved_by' => auth()->id(), 'approved_at' => now()]);
@@ -57,7 +56,7 @@ class ApprovalManagement extends Component
     {
         $user = auth()->user();
         $teacher = Teacher::query()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
-        abort_unless($user->isAdmin() || ($user->role === UserRole::Principal && $teacher->college_id === $user->college_id), 403);
+        abort_unless($user->isAdmin() || ($user->isPrincipal() && $teacher->college_id === $user->college_id), 403);
 
         DB::transaction(function () use ($teacher, $user): void {
             $teacher->update(['approval_status' => ApprovalStatus::Approved, 'approved_by' => $user->id, 'approved_at' => now()]);
@@ -77,7 +76,7 @@ class ApprovalManagement extends Component
     {
         $user = auth()->user();
         $teacher = Teacher::query()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
-        abort_unless($user->isAdmin() || ($user->role === UserRole::Principal && $teacher->college_id === $user->college_id), 403);
+        abort_unless($user->isAdmin() || ($user->isPrincipal() && $teacher->college_id === $user->college_id), 403);
         $teacher->update(['approval_status' => ApprovalStatus::Rejected, 'approved_by' => $user->id, 'approved_at' => now()]);
     }
 
@@ -86,10 +85,10 @@ class ApprovalManagement extends Component
         $user = auth()->user();
 
         return view('livewire.approval-management', [
-            'principals' => $user->isAdmin() ? User::query()->where('role', UserRole::Principal->value)->where('approval_status', ApprovalStatus::Pending)->with('college')->latest()->get() : collect(),
+            'principals' => $user->isAdmin() ? User::query()->role('principal')->where('approval_status', ApprovalStatus::Pending)->with('college')->latest()->get() : collect(),
             'colleges' => $user->isAdmin() ? College::query()->where('approval_status', ApprovalStatus::Pending)->with('submitter')->latest()->get() : collect(),
             'teachers' => Teacher::query()->where('approval_status', ApprovalStatus::Pending)
-                ->when($user->role === UserRole::Principal, fn ($query) => $query->where('college_id', $user->college_id))
+                ->when($user->isPrincipal(), fn ($query) => $query->where('college_id', $user->college_id))
                 ->with(['college', 'user'])->latest()->get(),
         ]);
     }

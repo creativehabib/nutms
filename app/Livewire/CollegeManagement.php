@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole as Role;
 use App\Models\College;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
@@ -208,7 +207,7 @@ class CollegeManagement extends Component
         $query = $this->showTrashed ? College::onlyTrashed() : College::query();
         $searchTerm = trim($this->search);
 
-        $query->when(auth()->user()->role === Role::Principal, fn (Builder $query): Builder => $query->whereKey(auth()->user()->college_id));
+        $query->when(auth()->user()->hasRole('principal'), fn (Builder $query): Builder => $query->whereKey(auth()->user()->college_id));
 
         if ($searchTerm !== '') {
             $searchPattern = "%{$searchTerm}%";

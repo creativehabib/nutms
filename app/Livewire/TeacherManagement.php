@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole as Role;
 use App\Models\College;
 use App\Models\Designation;
 use App\Models\Employment;
@@ -86,7 +85,7 @@ class TeacherManagement extends Component
 
     public function updatedCollegeCodeFilter(): void
     {
-        if (auth()->user()->role === Role::Principal) {
+        if (auth()->user()->hasRole('principal')) {
             $this->collegeCodeFilter = '';
         }
 
@@ -138,7 +137,7 @@ class TeacherManagement extends Component
         abort_unless(auth()->user()->can('teachers.assign-role'), 403);
 
         $validated = validator(['role' => $role], [
-            'role' => ['required', Rule::in([Role::Teacher->value, Role::Principal->value])],
+            'role' => ['required', Rule::in(['teacher', 'principal'])],
         ])->validate();
 
         DB::transaction(function () use ($teacherId, $validated): void {
@@ -149,35 +148,33 @@ class TeacherManagement extends Component
                 throw ValidationException::withMessages(['role' => 'এই শিক্ষকের সঙ্গে কোনো user account সংযুক্ত নেই।']);
             }
 
-            $newRole = Role::from($validated['role']);
-            if ($newRole === Role::Principal) {
+            $newRole = $validated['role'];
+            if ($newRole === 'principal') {
                 if ($teacher->college_id === null || $teacher->approval_status !== ApprovalStatus::Approved) {
                     throw ValidationException::withMessages(['role' => 'শুধু অনুমোদিত শিক্ষককে তার কলেজের Principal করা যাবে।']);
                 }
 
                 $existingPrincipals = User::query()->whereKeyNot($user->id)
-                    ->where('role', Role::Principal->value)
+                    ->role('principal')
                     ->where('college_id', $teacher->college_id)
                     ->lockForUpdate()
                     ->get();
 
                 foreach ($existingPrincipals as $existingPrincipal) {
-                    $existingPrincipal->update(['role' => Role::Teacher]);
-                    $existingPrincipal->syncRoles([Role::Teacher->value]);
+                    $existingPrincipal->syncRoles(['teacher']);
                 }
 
                 $user->approval_status = ApprovalStatus::Approved;
                 $user->approved_by = auth()->id();
                 $user->approved_at = now();
                 College::query()->whereKey($teacher->college_id)->update(['submitted_by' => $user->id]);
-            } elseif ($user->role === Role::Principal) {
+            } elseif ($user->hasRole('principal')) {
                 College::query()->where('submitted_by', $user->id)->update(['submitted_by' => null]);
             }
 
-            $user->role = $newRole;
             $user->college_id = $teacher->college_id;
             $user->save();
-            $user->syncRoles([$newRole->value]);
+            $user->syncRoles([$newRole]);
         });
 
         Flux::toast(variant: 'success', text: 'শিক্ষকের রোল সফলভাবে পরিবর্তন করা হয়েছে।');
@@ -605,7 +602,7 @@ class TeacherManagement extends Component
             : $this->accessibleTeachersQuery()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->orderBy('subject')->pluck('subject');
 
         return view('livewire.teacher-management', [
-            'teachers' => $query->with('user:id,name,email,mobile_no,role,picture')->latest()->paginate(10),
+            'teachers' => $query->with('user:id,name,email,mobile_no,picture')->latest()->paginate(10),
             'isAdmin' => $isAdmin,
             'collegeCount' => $isAdmin ? (clone $query)->whereNotNull('college_id')->distinct()->count('college_id') : null,
             'subjects' => $subjects,
@@ -692,9 +689,9 @@ class TeacherManagement extends Component
     {
         $query = $onlyTrashed ? Teacher::onlyTrashed() : Teacher::query();
 
-        if (auth()->user()->role === Role::Principal) {
+        if (auth()->user()->hasRole('principal')) {
             $query->where('college_id', auth()->user()->college_id);
-        } elseif (auth()->user()->role === Role::Teacher) {
+        } elseif (auth()->user()->hasRole('teacher')) {
             $query->where('user_id', auth()->id());
         }
 

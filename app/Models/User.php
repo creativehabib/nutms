@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\UserRole as Role;
 use App\Enums\ApprovalStatus;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
@@ -13,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
@@ -54,7 +52,6 @@ class User extends Authenticatable implements PasskeyUser
             'name',
             'email',
             'password',
-            'role',
             'college_id',
             'mobile_no',
             'picture',
@@ -69,9 +66,7 @@ class User extends Authenticatable implements PasskeyUser
     protected static function booted(): void
     {
         static::created(function (User $user): void {
-            if (Schema::hasTable('roles') && $user->role !== null) {
-                $user->assignRole($user->role->value);
-            }
+            $user->assignRole('teacher');
         });
 
         static::saved(function (User $user): void {
@@ -91,7 +86,6 @@ class User extends Authenticatable implements PasskeyUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'role' => Role::class,
             'approval_status' => ApprovalStatus::class,
             'approved_at' => 'datetime',
         ];
@@ -109,7 +103,22 @@ class User extends Authenticatable implements PasskeyUser
 
     public function isAdmin(): bool
     {
-        return $this->hasRole(Role::Admin->value) || $this->role === Role::Admin;
+        return $this->hasRole('admin');
+    }
+
+    public function isPrincipal(): bool
+    {
+        return $this->hasRole('principal');
+    }
+
+    public function isTeacher(): bool
+    {
+        return $this->hasRole('teacher');
+    }
+
+    public function primaryRoleName(): string
+    {
+        return $this->getRoleNames()->first() ?? 'teacher';
     }
 
     public function isApproved(): bool

@@ -17,6 +17,11 @@ class UserFactory extends Factory
      */
     protected static ?string $password;
 
+    public function configure(): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->syncRoles(['admin']));
+    }
+
     /**
      * Define the model's default state.
      *
@@ -31,11 +36,15 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'role' => 'admin',
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ];
+    }
+
+    public function withRole(string $role): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->syncRoles([$role]));
     }
 
     /**

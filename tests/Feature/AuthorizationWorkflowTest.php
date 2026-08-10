@@ -1,26 +1,26 @@
 <?php
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole as Role;
 use App\Livewire\CollegeManagement;
 use App\Livewire\RolePermissionManagement;
 use App\Livewire\TeacherManagement;
 use App\Models\College;
 use App\Models\Teacher;
 use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role as PermissionRole;
 
 it('defines user mass assignable attributes without redeclaring the fillable property', function () {
     expect((new User)->getFillable())->toEqualCanonicalizing([
-        'name', 'email', 'password', 'role', 'college_id',
-        'approval_status', 'approved_by', 'approved_at',
-    ]);
+        'name', 'email', 'password', 'college_id', 'mobile_no', 'picture',
+        'digital_signature', 'approval_status', 'approved_by', 'approved_at', 'locale',
+    ])->and(Schema::hasColumn('users', 'role'))->toBeFalse();
 });
 
 it('allows an admin to approve a principal submitted college', function () {
-    $admin = User::factory()->create(['role' => Role::Admin]);
-    $principal = User::factory()->create(['role' => Role::Principal]);
+    $admin = User::factory()->withRole('admin')->create();
+    $principal = User::factory()->withRole('principal')->create();
     $college = College::query()->create([
         'name' => 'Pending College',
         'submitted_by' => $principal->id,
@@ -38,18 +38,18 @@ it('allows an admin to approve a principal submitted college', function () {
 });
 
 it('allows admin to promote an approved teacher to principal of their college', function () {
-    $admin = User::factory()->create(['role' => Role::Admin]);
+    $admin = User::factory()->withRole('admin')->create();
     $college = College::query()->create(['name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
     $otherCollege = College::query()->create(['name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
-    $principal = User::factory()->create(['role' => Role::Teacher]);
+    $principal = User::factory()->withRole('teacher')->create();
     $teacher = Teacher::query()->create(['name' => 'Principal Teacher', 'user_id' => $principal->id, 'college_id' => $college->id, 'approval_status' => ApprovalStatus::Approved]);
 
     Livewire::actingAs($admin)->test(RolePermissionManagement::class)
-        ->call('changeRole', $principal->id, Role::Principal->value)
+        ->call('changeRole', $principal->id, 'principal')
         ->assertHasNoErrors();
 
     $principal->refresh();
-    expect($principal->role)->toBe(Role::Principal)
+    expect($principal->hasRole('principal'))->toBeTrue()
         ->and($principal->teacherProfile?->is($teacher))->toBeTrue()
         ->and($principal->approved_by)->toBe($admin->id);
     $this->actingAs($principal)->get(route('colleges.edit', $college))->assertSuccessful();
@@ -62,11 +62,11 @@ it('allows admin to promote an approved teacher to principal of their college', 
 });
 
 it('allows admin to change a linked teachers role from teacher management', function () {
-    $admin = User::factory()->create(['role' => Role::Admin]);
+    $admin = User::factory()->withRole('admin')->create();
     $college = College::query()->create(['name' => 'Role College', 'approval_status' => ApprovalStatus::Approved]);
-    $existingPrincipal = User::factory()->create(['role' => Role::Principal, 'college_id' => $college->id]);
+    $existingPrincipal = User::factory()->withRole('principal')->create(['college_id' => $college->id]);
     $college->update(['submitted_by' => $existingPrincipal->id]);
-    $teacherUser = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
+    $teacherUser = User::factory()->withRole('teacher')->create(['college_id' => $college->id]);
     $teacher = Teacher::query()->create([
         'name' => 'Role Teacher',
         'user_id' => $teacherUser->id,
@@ -75,47 +75,103 @@ it('allows admin to change a linked teachers role from teacher management', func
     ]);
 
     Livewire::actingAs($admin)->test(TeacherManagement::class)
-        ->call('changeTeacherRole', $teacher->id, Role::Principal->value)
+        ->call('changeTeacherRole', $teacher->id, 'principal')
         ->assertHasNoErrors();
 
-    expect($teacherUser->refresh()->role)->toBe(Role::Principal)
-        ->and($teacherUser->hasRole(Role::Principal->value))->toBeTrue()
+    expect($teacherUser->refresh()->hasRole('principal'))->toBeTrue()
+        ->and($teacherUser->hasRole('principal'))->toBeTrue()
         ->and($teacherUser->approval_status)->toBe(ApprovalStatus::Approved)
         ->and($teacherUser->approved_by)->toBe($admin->id)
-        ->and($existingPrincipal->refresh()->role)->toBe(Role::Teacher)
-        ->and($existingPrincipal->hasRole(Role::Teacher->value))->toBeTrue()
+        ->and($existingPrincipal->refresh()->hasRole('teacher'))->toBeTrue()
+        ->and($existingPrincipal->hasRole('teacher'))->toBeTrue()
         ->and($college->refresh()->submitted_by)->toBe($teacherUser->id);
 });
 
 it('allows admin to configure permissions for each role', function () {
-    $admin = User::factory()->create(['role' => Role::Admin]);
+    $admin = User::factory()->withRole('admin')->create();
 
     Livewire::actingAs($admin)->test(RolePermissionManagement::class)
-        ->set('selectedRole', Role::Teacher->value)
+        ->set('selectedRole', 'teacher')
         ->set('selectedPermissions', ['teachers.view', 'teachers.update'])
         ->call('saveRolePermissions')
         ->assertHasNoErrors();
 
-    expect(PermissionRole::findByName(Role::Teacher->value)->permissions->pluck('name')->all())
+    expect(PermissionRole::findByName('teacher')->permissions->pluck('name')->all())
         ->toEqualCanonicalizing(['teachers.view', 'teachers.update']);
 });
 
-it('does not promote a user without an approved teacher profile to principal', function () {
-    $admin = User::factory()->create(['role' => Role::Admin]);
-    $user = User::factory()->create(['role' => Role::Teacher]);
+it('assigns a custom Spatie role to a user without a legacy role attribute', function () {
+    $admin = User::factory()->withRole('admin')->create();
+    $user = User::factory()->withRole('teacher')->create();
+    PermissionRole::create(['name' => 'content-reviewer', 'guard_name' => 'web']);
 
     Livewire::actingAs($admin)->test(RolePermissionManagement::class)
-        ->call('changeRole', $user->id, Role::Principal->value)
+        ->call('changeRole', $user->id, 'content-reviewer')
+        ->assertHasNoErrors();
+
+    expect($user->refresh()->hasRole('content-reviewer'))->toBeTrue()
+        ->and($user->hasRole('teacher'))->toBeFalse()
+        ->and(array_key_exists('role', $user->getAttributes()))->toBeFalse();
+});
+
+it('allows admin to create rename and delete a custom role', function () {
+    $admin = User::factory()->withRole('admin')->create();
+
+    Livewire::actingAs($admin)->test(RolePermissionManagement::class)
+        ->set('roleName', 'content-manager')
+        ->call('saveRole')
+        ->assertHasNoErrors()
+        ->assertSet('selectedRole', 'content-manager');
+
+    $customRole = PermissionRole::findByName('content-manager');
+
+    Livewire::actingAs($admin)->test(RolePermissionManagement::class)
+        ->call('editRole', $customRole->id)
+        ->set('roleName', 'report-manager')
+        ->call('saveRole')
+        ->assertHasNoErrors()
+        ->assertSet('selectedRole', 'report-manager')
+        ->call('deleteRole', $customRole->id)
+        ->assertHasNoErrors()
+        ->assertSet('selectedRole', 'teacher');
+
+    expect(PermissionRole::query()->where('name', 'content-manager')->exists())->toBeFalse()
+        ->and(PermissionRole::query()->where('name', 'report-manager')->exists())->toBeFalse();
+});
+
+it('protects system roles and custom roles assigned to users from deletion', function () {
+    $admin = User::factory()->withRole('admin')->create();
+    $customRole = PermissionRole::create(['name' => 'auditor', 'guard_name' => 'web']);
+    $user = User::factory()->withRole('teacher')->create();
+    $user->assignRole($customRole);
+
+    Livewire::actingAs($admin)->test(RolePermissionManagement::class)
+        ->call('deleteRole', $customRole->id)
         ->assertHasErrors('role');
 
-    expect($user->refresh()->role)->toBe(Role::Teacher);
+    Livewire::actingAs($admin)->test(RolePermissionManagement::class)
+        ->call('deleteRole', PermissionRole::findByName('admin')->id)
+        ->assertForbidden();
+
+    expect($customRole->fresh())->not->toBeNull();
+});
+
+it('does not promote a user without an approved teacher profile to principal', function () {
+    $admin = User::factory()->withRole('admin')->create();
+    $user = User::factory()->withRole('teacher')->create();
+
+    Livewire::actingAs($admin)->test(RolePermissionManagement::class)
+        ->call('changeRole', $user->id, 'principal')
+        ->assertHasErrors('role');
+
+    expect($user->refresh()->hasRole('teacher'))->toBeTrue();
 });
 
 it('allows only the college principal or admin to approve a teacher', function () {
     $college = College::query()->create(['name' => 'Approved College', 'approval_status' => ApprovalStatus::Approved]);
-    $principal = User::factory()->create(['role' => Role::Principal, 'college_id' => $college->id]);
-    $otherPrincipal = User::factory()->create(['role' => Role::Principal]);
-    $teacherUser = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
+    $principal = User::factory()->withRole('principal')->create(['college_id' => $college->id]);
+    $otherPrincipal = User::factory()->withRole('principal')->create();
+    $teacherUser = User::factory()->withRole('teacher')->create(['college_id' => $college->id]);
     $teacher = Teacher::query()->create([
         'name' => 'Pending Teacher',
         'college_id' => $college->id,
@@ -138,13 +194,13 @@ it('allows only the college principal or admin to approve a teacher', function (
 });
 
 it('restricts administrative pages by role', function () {
-    $teacher = User::factory()->create(['role' => Role::Teacher]);
-    $principal = User::factory()->create(['role' => Role::Principal]);
+    $teacher = User::factory()->withRole('teacher')->create();
+    $principal = User::factory()->withRole('principal')->create();
 
     $this->actingAs($teacher)->get(route('training-catalog.manage'))->assertForbidden();
     $this->actingAs($teacher)->get(route('teachers.manage'))->assertForbidden();
     $this->actingAs($teacher)->get(route('roles-permissions.manage'))->assertForbidden();
-    $this->actingAs(User::factory()->create(['role' => Role::Admin]))->get(route('roles-permissions.manage'))
+    $this->actingAs(User::factory()->withRole('admin')->create())->get(route('roles-permissions.manage'))
         ->assertSuccessful()
         ->assertSee('Roles &amp; Permissions', false)
         ->assertSee('Permission Matrix')
@@ -154,7 +210,7 @@ it('restricts administrative pages by role', function () {
 });
 
 it('shows college management as a standalone admin navigation item', function () {
-    $admin = User::factory()->create(['role' => Role::Admin]);
+    $admin = User::factory()->withRole('admin')->create();
 
     $response = $this->actingAs($admin)->get(route('dashboard'));
 
@@ -164,7 +220,7 @@ it('shows college management as a standalone admin navigation item', function ()
 });
 
 it('lets a teacher access only their approved profile', function () {
-    $teacherUser = User::factory()->create(['role' => Role::Teacher]);
+    $teacherUser = User::factory()->withRole('teacher')->create();
     $teacher = Teacher::query()->create(['name' => 'Self Service Teacher', 'user_id' => $teacherUser->id, 'approval_status' => ApprovalStatus::Pending]);
 
     $this->actingAs($teacherUser)->get(route('teachers.show', $teacher))->assertForbidden();

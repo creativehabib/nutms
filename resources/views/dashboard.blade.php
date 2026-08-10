@@ -7,10 +7,10 @@
                 <div>
                     <div class="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold ring-1 ring-white/20">
                         <flux:icon.chart-bar-square class="size-4" />
-                        {{ auth()->user()->isAdmin() ? __('Institution and Teacher Overview') : (auth()->user()->role === \App\Enums\UserRole::Principal ? __('College Management') : __('Teacher Services')) }}
+                        {{ auth()->user()->isAdmin() ? __('Institution and Teacher Overview') : (auth()->user()->hasRole('principal') ? __('College Management') : __('Teacher Services')) }}
                     </div>
-                    <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ auth()->user()->isAdmin() ? __('Admin Dashboard') : (auth()->user()->role === \App\Enums\UserRole::Principal ? __('Principal Dashboard') : __('Teacher Dashboard')) }}</h1>
-                    <p class="mt-2 max-w-2xl text-sm text-indigo-100 sm:text-base">{{ auth()->user()->isAdmin() ? __('Monitor institutional training, labs, and teacher data from one place.') : (auth()->user()->role === \App\Enums\UserRole::Principal ? __('Track your college profile, teachers, and approval status.') : __('Manage your teacher profile, training records, and retirement timeline.')) }}</p>
+                    <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ auth()->user()->isAdmin() ? __('Admin Dashboard') : (auth()->user()->hasRole('principal') ? __('Principal Dashboard') : __('Teacher Dashboard')) }}</h1>
+                    <p class="mt-2 max-w-2xl text-sm text-indigo-100 sm:text-base">{{ auth()->user()->isAdmin() ? __('Monitor institutional training, labs, and teacher data from one place.') : (auth()->user()->hasRole('principal') ? __('Track your college profile, teachers, and approval status.') : __('Manage your teacher profile, training records, and retirement timeline.')) }}</p>
                 </div>
 
                 @if (auth()->user()->isAdmin() && $report['lastUpdatedAt'])
@@ -22,9 +22,9 @@
             </div>
         </header>
 
-        @if(auth()->user()->role === \App\Enums\UserRole::Principal && ! auth()->user()->isApproved())
+        @if(auth()->user()->hasRole('principal') && ! auth()->user()->isApproved())
             <flux:card><flux:heading size="lg">{{ __('Approval Pending') }}</flux:heading><flux:callout class="mt-4" variant="warning" :heading="__('Account awaiting approval')">{{ __('Your principal account must be approved before you can manage college records.') }}</flux:callout></flux:card>
-        @elseif(auth()->user()->role === \App\Enums\UserRole::Principal)
+        @elseif(auth()->user()->hasRole('principal'))
             <div class="grid gap-5 md:grid-cols-3">
                 <flux:card class="flex flex-col"><div class="flex items-center gap-3"><div class="rounded-lg bg-indigo-50 p-2.5 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300"><flux:icon.identification class="size-6" /></div><flux:heading size="lg">{{ __('My Profile') }}</flux:heading></div><flux:text class="mt-3">{{ __('View your linked teacher profile and approval details.') }}</flux:text>@if(auth()->user()->teacherProfile)<flux:button class="mt-5" variant="primary" :href="route('teachers.show', auth()->user()->teacherProfile)" wire:navigate>{{ __('View Profile') }}</flux:button>@else<flux:callout class="mt-5" variant="warning">{{ __('No teacher profile is linked to your account yet.') }}</flux:callout>@endif</flux:card>
                 <flux:card class="flex flex-col"><div class="flex items-center gap-3"><div class="rounded-lg bg-sky-50 p-2.5 text-sky-600 dark:bg-sky-950 dark:text-sky-300"><flux:icon.building-library class="size-6" /></div><flux:heading size="lg">{{ __('College Profile') }}</flux:heading></div><flux:text class="mt-3">{{ __('Review your college profile, contact details, and lab information.') }}</flux:text><flux:button class="mt-5" :href="route('colleges.show', auth()->user()->college_id)" wire:navigate>{{ __('View College Profile') }}</flux:button></flux:card>
@@ -41,7 +41,7 @@
                 <flux:card><flux:heading size="lg">{{ __('ICT Training Summary') }}</flux:heading><div class="mt-4 grid gap-3">@forelse($principalStats['trainings'] as $training)<div class="flex items-center justify-between gap-4 rounded-lg bg-zinc-50 px-4 py-3 dark:bg-zinc-800"><span>{{ $training['name'] }}</span><flux:badge color="emerald">{{ $training['count'] }} teachers</flux:badge></div>@empty<flux:text>{{ __('No training records are available yet.') }}</flux:text>@endforelse</div></flux:card>
                 <flux:card class="lg:col-span-2"><div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><flux:heading size="lg">{{ __('Retirement Timeline') }}</flux:heading><flux:text>Current retirement age {{ $principalStats['retirementAge'] }} years.</flux:text></div><div class="flex gap-2"><flux:badge color="red">Retired {{ $principalStats['retired']->count() }} teachers</flux:badge><flux:badge color="amber">In the next 1 year {{ $principalStats['upcomingRetirements']->count() }} teachers</flux:badge></div></div>@if($principalStats['missingBirthDates'] > 0)<flux:callout class="mt-4" variant="warning">{{ $principalStats['missingBirthDates'] }} teachers are missing birth dates.</flux:callout>@endif<div class="mt-4 grid gap-4 md:grid-cols-2"><div><p class="mb-2 text-sm font-semibold">{{ __('Already Retired') }}</p>@forelse($principalStats['retired'] as $row)<div class="flex justify-between gap-3 border-b border-zinc-200 py-2 text-sm dark:border-zinc-700"><span>{{ $row['name'] }}</span><span>{{ $row['retirement_date']->format('d M Y') }}</span></div>@empty<flux:text>{{ __('No retired teachers found.') }}</flux:text>@endforelse</div><div><p class="mb-2 text-sm font-semibold">{{ __('Retiring Soon') }}</p>@forelse($principalStats['upcomingRetirements'] as $row)<div class="flex justify-between gap-3 border-b border-zinc-200 py-2 text-sm dark:border-zinc-700"><span>{{ $row['name'] }}</span><span>{{ $row['retirement_date']->format('d M Y') }}</span></div>@empty<flux:text>{{ __('No upcoming retirements found.') }}</flux:text>@endforelse</div></div></flux:card>
             </div>
-        @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
+        @elseif(auth()->user()->hasRole('teacher'))
             @if($teacherStats)
                 @cannot('teachers.update')
                     @if($teacherStats['profile']->approval_status !== \App\Enums\ApprovalStatus::Rejected)

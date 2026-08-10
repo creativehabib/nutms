@@ -16,7 +16,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole as Role;
 
 class CollegeForm extends Component
 {
@@ -110,8 +109,8 @@ class CollegeForm extends Component
 
     public function mount(?College $college = null): void
     {
-        abort_unless(auth()->user()->role === Role::Admin || auth()->user()->role === Role::Principal, 403);
-        if ($college?->exists && auth()->user()->role === Role::Principal) {
+        abort_unless(auth()->user()->hasRole('admin') || auth()->user()->hasRole('principal'), 403);
+        if ($college?->exists && auth()->user()->hasRole('principal')) {
             abort_unless($college->id === auth()->user()->college_id && auth()->user()->isApproved(), 403);
         }
         if ($college !== null && $college->exists) {
@@ -212,14 +211,14 @@ class CollegeForm extends Component
                 'desktop_count' => $validated['hasComputerLab'] === '1' && in_array($validated['labEquipmentType'], ['desktop', 'both'], true) ? ($validated['desktopCount'] ?? null) : null,
                 'laptop_count' => $validated['hasComputerLab'] === '1' && in_array($validated['labEquipmentType'], ['laptop', 'both'], true) ? ($validated['laptopCount'] ?? null) : null,
                 'is_active' => $validated['isActive'],
-                'submitted_by' => $user->role === Role::Principal
+                'submitted_by' => $user->hasRole('principal')
                     ? (College::query()->whereKey($this->editingId)->value('submitted_by') ?: $user->id)
                     : College::query()->whereKey($this->editingId)->value('submitted_by'),
                 'approval_status' => $user->isAdmin() ? ApprovalStatus::Approved : (College::query()->whereKey($this->editingId)->value('approval_status') ?: ApprovalStatus::Approved),
                 'approved_by' => $user->isAdmin() ? $user->id : College::query()->whereKey($this->editingId)->value('approved_by'),
                 'approved_at' => $user->isAdmin() ? now() : College::query()->whereKey($this->editingId)->value('approved_at'),
             ]);
-            if ($user->role === Role::Principal) {
+            if ($user->hasRole('principal')) {
                 $user->update(['college_id' => $college->id]);
             }
             $college->programs()->delete();
