@@ -73,7 +73,6 @@
                             <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
                             <flux:text size="sm" class="truncate">{{ auth()->user()->email }}</flux:text>
                             <div class="mt-2 flex flex-wrap gap-1.5">
-{{--                                <flux:badge color="blue" size="sm">{{ __('Role:') }} {{ __(ucwords(str_replace('_', ' ', auth()->user()->role))) }}</flux:badge>--}}
 {{--                                <flux:badge color="zinc" size="sm">{{ __('PF No:') }} {{ auth()->user()->pf_no ?? 'N/A' }}</flux:badge>--}}
                             </div>
                         </div>
@@ -130,15 +129,15 @@
                     <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>{{ __('College Management') }}</flux:sidebar.item>
                 @endif
 
-                @if((auth()->user()->isAdmin() || (auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())) && auth()->user()->can('teachers.view'))
+                @if((auth()->user()->isAdmin() || (auth()->user()->hasRole('principal') && auth()->user()->isApproved())) && auth()->user()->can('teachers.view'))
                     <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.*')" wire:navigate>
                         {{ __('Teacher Management') }}
                     </flux:sidebar.item>
                 @php($principalTeacherId = auth()->user()->teacherProfile?->id)
-                @if(auth()->user()->role === \App\Enums\UserRole::Principal && $principalTeacherId)
+                @if(auth()->user()->hasRole('principal') && $principalTeacherId)
                     <flux:sidebar.item icon="identification" :href="route('teachers.show', $principalTeacherId)" :current="request()->routeIs('teachers.show') && (int) request()->route('teacher')?->id === $principalTeacherId" wire:navigate>{{ __('My Profile') }}</flux:sidebar.item>
                 @endif
-                @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
+                @elseif(auth()->user()->hasRole('teacher'))
                     @if(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Approved && auth()->user()->can('teachers.view'))
                         <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacherProfile)" :current="request()->routeIs('teachers.show')" wire:navigate>{{ __('My Profile') }}</flux:sidebar.item>
                     @elseif(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Rejected && auth()->user()->can('teachers.create'))
@@ -186,9 +185,9 @@
                         {{ __('Admission Summary') }}
                     </flux:sidebar.item>
                 @endif
-                @if(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())
+                @if(auth()->user()->hasRole('principal') && auth()->user()->isApproved())
                     <flux:sidebar.item icon="building-library" :href="route('colleges.show', auth()->user()->college_id)" :current="request()->routeIs('colleges.show', 'colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>{{ __('College Profile') }}</flux:sidebar.item>
-                @elseif(auth()->user()->role === \App\Enums\UserRole::Principal)
+                @elseif(auth()->user()->hasRole('principal'))
                     <div class="px-3 py-2 text-sm text-amber-600">{{ __('Awaiting approval') }}</div>
                 @endif
 

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole;
 use App\Models\College;
 use App\Models\Designation;
 use App\Models\District;
@@ -55,10 +54,10 @@ class DatabaseSeeder extends Seeder
             'mobile_no' => '01700000001',
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
-            'role' => UserRole::Admin,
             'approval_status' => ApprovalStatus::Approved,
             'approved_at' => now(),
         ]);
+        $admin->syncRoles(['admin']);
 
         $college = College::query()->create([
             'code' => 'DEMO-001',
@@ -82,7 +81,7 @@ class DatabaseSeeder extends Seeder
             'Demo Principal',
             'principal@example.com',
             '01700000002',
-            UserRole::Principal,
+            'principal',
             $college,
             $admin,
         );
@@ -90,7 +89,7 @@ class DatabaseSeeder extends Seeder
             'Demo Teacher',
             'teacher@example.com',
             '01700000003',
-            UserRole::Teacher,
+            'teacher',
             $college,
             $admin,
         );
@@ -103,20 +102,23 @@ class DatabaseSeeder extends Seeder
         $college->programs()->create(['level' => 'honours', 'name' => 'Honours', 'items' => ['Information and Communication Technology']]);
     }
 
-    private function createDemoUser(string $name, string $email, string $mobileNumber, UserRole $role, College $college, User $admin): User
+    private function createDemoUser(string $name, string $email, string $mobileNumber, string $role, College $college, User $admin): User
     {
-        return User::query()->forceCreate([
+        $user = User::query()->forceCreate([
             'name' => $name,
             'email' => $email,
             'mobile_no' => $mobileNumber,
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
-            'role' => $role,
             'college_id' => $college->id,
             'approval_status' => ApprovalStatus::Approved,
             'approved_by' => $admin->id,
             'approved_at' => now(),
         ]);
+
+        $user->syncRoles([$role]);
+
+        return $user;
     }
 
     private function createDemoTeacher(
@@ -152,7 +154,7 @@ class DatabaseSeeder extends Seeder
             'permanent_address' => 'Dhanmondi, Dhaka',
             'bank_name' => 'Demo Bank',
             'bank_branch_name' => 'Dhaka Branch',
-            'bank_account_number' => $user->role === UserRole::Principal ? '100000000001' : '100000000002',
+            'bank_account_number' => $user->isPrincipal() ? '100000000001' : '100000000002',
             'bank_routing_number' => '123456789',
             'approval_status' => ApprovalStatus::Approved,
             'approved_by' => $admin->id,

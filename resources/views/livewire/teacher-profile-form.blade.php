@@ -8,7 +8,7 @@
             </flux:heading>
             <flux:subheading class="mt-1 text-zinc-500">{{ __('Enter accurate personal, professional, contact, training, and bank details.') }}</flux:subheading>
         </div>
-        <flux:button variant="subtle" :href="auth()->user()->role === \App\Enums\UserRole::Teacher ? route('dashboard') : route('teachers.manage')" icon="arrow-left" wire:navigate class="shrink-0">{{ __('Back') }}</flux:button>
+        <flux:button variant="subtle" :href="auth()->user()->hasRole('teacher') ? route('dashboard') : route('teachers.manage')" icon="arrow-left" wire:navigate class="shrink-0">{{ __('Back') }}</flux:button>
     </div>
 
     <!-- Tab Navigation (Horizontal) -->
@@ -97,7 +97,7 @@
                     </div>
                 </div>
 
-                @if(! $editingId && auth()->user()->role !== \App\Enums\UserRole::Teacher)
+                @if(! $editingId && ! auth()->user()->isTeacher())
                     <div class="mt-8 rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 dark:border-indigo-900 dark:bg-indigo-950/30">
                         <flux:heading size="md">{{ __('Teacher Login Account') }}</flux:heading>
                         <flux:text class="mt-1 text-sm">{{ __('Create login credentials for this teacher.') }}</flux:text>
@@ -190,16 +190,16 @@
                         <flux:field>
                             <flux:label>{{ __('Mobile Number') }}</flux:label>
                             <flux:input wire:model="mobileNumber" :placeholder="__('Enter mobile number')" required
-                                        :readonly="auth()->user()->role === \App\Enums\UserRole::Teacher"
-                                        :class="auth()->user()->role === \App\Enums\UserRole::Teacher ? 'opacity-70 cursor-not-allowed' : ''" />
+                                        :readonly="auth()->user()->hasRole('teacher')"
+                                        :class="auth()->user()->hasRole('teacher') ? 'opacity-70 cursor-not-allowed' : ''" />
                             <flux:error name="mobileNumber" />
                         </flux:field>
 
                         <flux:field>
                             <flux:label>{{ __('Email Address') }}</flux:label>
                             <flux:input wire:model="email" type="email" placeholder="example@gmail.com"
-                                        :readonly="auth()->user()->role === \App\Enums\UserRole::Teacher"
-                                        :class="auth()->user()->role === \App\Enums\UserRole::Teacher ? 'opacity-70 cursor-not-allowed' : ''" />
+                                        :readonly="auth()->user()->hasRole('teacher')"
+                                        :class="auth()->user()->hasRole('teacher') ? 'opacity-70 cursor-not-allowed' : ''" />
                             <flux:error name="email" />
                         </flux:field>
                     </div>
@@ -333,7 +333,7 @@
                 <!-- Save Button (Only visible on the final step) -->
                 @if($activeStep === 'bank')
                 <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm" wire:loading.attr="disabled" wire:target="submit">
-                    <span wire:loading.remove wire:target="submit">{{ $editingId ? __('Update Profile') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Submit Profile') : __('Create Teacher')) }}</span>
+                    <span wire:loading.remove wire:target="submit">{{ $editingId ? __('Update Profile') : (auth()->user()->hasRole('teacher') ? __('Submit Profile') : __('Create Teacher')) }}</span>
                     <span wire:loading wire:target="submit">{{ __('Checking all steps...') }}</span>
                 </flux:button>
                 @endif

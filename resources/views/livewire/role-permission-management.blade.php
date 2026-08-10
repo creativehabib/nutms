@@ -5,6 +5,41 @@
         <flux:subheading>{{ __('Manage role permissions and user role assignments.') }}</flux:subheading>
     </div>
 
+    <flux:card class="flex flex-col gap-5">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <flux:heading size="lg">{{ __('Custom Roles') }}</flux:heading>
+                <flux:subheading class="mt-1">{{ __('Create, rename, or delete roles for your organization.') }}</flux:subheading>
+            </div>
+            <flux:button variant="primary" icon="plus" wire:click="createRole">{{ __('Create role') }}</flux:button>
+        </div>
+
+        <flux:error name="role" />
+
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            @foreach($roles as $role)
+                @php($isSystemRole = in_array($role->name, $systemRoleNames, true))
+                <div wire:key="role-{{ $role->id }}" class="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="truncate font-semibold text-zinc-900 dark:text-zinc-100">{{ __(str($role->name)->replace(['-', '_'], ' ')->title()->toString()) }}</span>
+                            @if($isSystemRole)
+                                <flux:badge size="sm" color="zinc">{{ __('System') }}</flux:badge>
+                            @endif
+                        </div>
+                        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ trans_choice(':count assigned user|:count assigned users', $role->users_count, ['count' => $role->users_count]) }}</p>
+                    </div>
+                    @unless($isSystemRole)
+                        <div class="flex shrink-0 items-center gap-1">
+                            <flux:button size="sm" variant="ghost" icon="pencil-square" :aria-label="__('Edit role')" wire:click="editRole({{ $role->id }})" />
+                            <flux:button size="sm" variant="ghost" icon="trash" :aria-label="__('Delete role')" wire:click="deleteRole({{ $role->id }})" wire:confirm="{{ __('Are you sure you want to delete this role?') }}" />
+                        </div>
+                    @endunless
+                </div>
+            @endforeach
+        </div>
+    </flux:card>
+
     <!-- Permissions Setup Card -->
     <flux:card class="flex flex-col gap-6">
         <!-- Card Header -->
@@ -23,7 +58,7 @@
                 <div class="w-full sm:w-64">
                     <flux:select wire:model.live="selectedRole" :placeholder="__('Select a role')">
                         @foreach($roles as $role)
-                            <option value="{{ $role->value }}">{{ $role->label() }}</option>
+                            <option value="{{ $role->name }}">{{ __(str($role->name)->replace(['-', '_'], ' ')->title()->toString()) }}</option>
                         @endforeach
                     </flux:select>
                 </div>
@@ -119,8 +154,8 @@
 
                             <!-- Current Role Badge -->
                             <flux:table.cell>
-                                <flux:badge size="sm" :color="$user->role->value === 'admin' ? 'indigo' : ($user->role->value === 'principal' ? 'emerald' : 'zinc')">
-                                    {{ $user->role->label() }}
+                                <flux:badge size="sm" :color="$user->hasRole('admin') ? 'indigo' : ($user->hasRole('principal') ? 'emerald' : 'zinc')">
+                                    {{ __(str($user->primaryRoleName())->replace(['-', '_'], ' ')->title()->toString()) }}
                                 </flux:badge>
                             </flux:table.cell>
 
@@ -134,8 +169,8 @@
                                             size="sm"
                                         >
                                             @foreach($roles as $role)
-                                                <option value="{{ $role->value }}" @selected($user->role === $role)>
-                                                    {{ $role->label() }}
+                                                <option value="{{ $role->name }}" @selected($user->hasRole($role->name))>
+                                                    {{ __(str($role->name)->replace(['-', '_'], ' ')->title()->toString()) }}
                                                 </option>
                                             @endforeach
                                         </flux:select>
@@ -166,4 +201,22 @@
             </div>
         @endif
     </flux:card>
+
+    <flux:modal name="role-form" @close="$wire.cancelRoleForm()" focusable class="max-w-md">
+        <form wire:submit="saveRole" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ $editingRoleId === null ? __('Create role') : __('Edit role') }}</flux:heading>
+                <flux:subheading class="mt-1">{{ __('Use a short, unique name. Permissions can be selected after saving.') }}</flux:subheading>
+            </div>
+
+            <flux:input wire:model="roleName" :label="__('Role name')" placeholder="content-manager" autocomplete="off" />
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button type="button" variant="ghost" wire:click="cancelRoleForm">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ $editingRoleId === null ? __('Create') : __('Save') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 </div>

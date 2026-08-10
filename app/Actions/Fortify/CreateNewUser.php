@@ -4,7 +4,6 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
-use App\Enums\UserRole as Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -34,7 +33,6 @@ class CreateNewUser implements CreatesNewUsers
             'email' => $input['email'],
             'mobile_no' => $input['mobile_no'],
             'password' => $input['password'],
-            'role' => Role::Teacher,
             'college_id' => $input['college_id'],
         ]);
     }

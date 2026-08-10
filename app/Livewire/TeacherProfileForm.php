@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Concerns\PasswordValidationRules;
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole as Role;
 use App\Models\College;
 use App\Models\Designation;
 use App\Models\District;
@@ -74,30 +73,30 @@ class TeacherProfileForm extends Component
         $user = auth()->user();
 
         $isRejectedOwnerProfile = $teacher?->exists
-            && $user->role === Role::Teacher
+            && $user->hasRole('teacher')
             && $teacher->user_id === $user->id
             && $teacher->approval_status === ApprovalStatus::Rejected;
 
         abort_unless($user->can($teacher?->exists && ! $isRejectedOwnerProfile ? 'teachers.update' : 'teachers.create'), 403);
 
-        if ($user->role === Role::Teacher && $user->college_id !== null) {
+        if ($user->hasRole('teacher') && $user->college_id !== null) {
             $this->collegeId = (string) $user->college_id;
         }
-        if ($user->role === Role::Teacher && (! $teacher?->exists)) {
+        if ($user->hasRole('teacher') && (! $teacher?->exists)) {
             $this->name = $user->name;
         }
-        if ((! $teacher?->exists) && $user->role === Role::Teacher && $user->teacherProfile !== null) {
+        if ((! $teacher?->exists) && $user->hasRole('teacher') && $user->teacherProfile !== null) {
             $teacher = $user->teacherProfile;
             abort_unless($user->can('teachers.update'), 403);
             abort_if($teacher?->approval_status === ApprovalStatus::Pending, 403, 'প্রোফাইলটি অনুমোদনের অপেক্ষায় আছে।');
         }
         if ($teacher?->exists) {
-            $isTeacherResubmittingRejectedProfile = $user->role === Role::Teacher
+            $isTeacherResubmittingRejectedProfile = $user->hasRole('teacher')
                 && $teacher->user_id === $user->id
                 && $teacher->approval_status === ApprovalStatus::Rejected
                 && $user->can('teachers.create');
 
-            abort_unless($user->isAdmin() || ($user->role === Role::Principal && $teacher->college_id === $user->college_id) || ($user->role === Role::Teacher && $teacher->user_id === $user->id && $teacher->approval_status === ApprovalStatus::Approved) || $isTeacherResubmittingRejectedProfile, 403);
+            abort_unless($user->isAdmin() || ($user->hasRole('principal') && $teacher->college_id === $user->college_id) || ($user->hasRole('teacher') && $teacher->user_id === $user->id && $teacher->approval_status === ApprovalStatus::Approved) || $isTeacherResubmittingRejectedProfile, 403);
         }
         if ($teacher !== null && $teacher->exists) {
             $this->editingId = $teacher->id;
@@ -134,7 +133,7 @@ class TeacherProfileForm extends Component
             ]))->values()->all();
         }
 
-        if ($user->role === Role::Teacher) {
+        if ($user->hasRole('teacher')) {
             $this->email = $user->email;
             $this->accountEmail = $user->email;
             $this->mobileNumber = (string) ($user->mobile_no ?? $this->mobileNumber);
@@ -188,14 +187,14 @@ class TeacherProfileForm extends Component
     {
         abort_unless(in_array($step, self::STEPS, true), 404);
 
-        $isStaffCreatingTeacherAccount = $this->editingId === null && auth()->user()->role !== Role::Teacher;
+        $isStaffCreatingTeacherAccount = $this->editingId === null && ! auth()->user()->hasRole('teacher');
         $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
 
         $profileUserId = null;
         if ($this->editingId !== null) {
             $profileUserId = Teacher::query()->whereKey($this->editingId)->value('user_id');
         }
-        if ($profileUserId === null && auth()->user()->role === Role::Teacher) {
+        if ($profileUserId === null && auth()->user()->hasRole('teacher')) {
             $profileUserId = auth()->id();
         }
 
@@ -301,20 +300,20 @@ class TeacherProfileForm extends Component
     public function save(): void
     {
         $editingTeacher = $this->editingId === null ? null : Teacher::query()->find($this->editingId);
-        $isTeacherResubmittingRejectedProfile = auth()->user()->role === Role::Teacher
+        $isTeacherResubmittingRejectedProfile = auth()->user()->hasRole('teacher')
             && $editingTeacher?->user_id === auth()->id()
             && $editingTeacher->approval_status === ApprovalStatus::Rejected;
 
         abort_unless(auth()->user()->can($this->editingId === null || $isTeacherResubmittingRejectedProfile ? 'teachers.create' : 'teachers.update'), 403);
 
-        $isStaffCreatingTeacherAccount = $this->editingId === null && auth()->user()->role !== Role::Teacher;
+        $isStaffCreatingTeacherAccount = $this->editingId === null && ! auth()->user()->hasRole('teacher');
         $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
 
         $profileUserId = null;
         if ($this->editingId !== null) {
             $profileUserId = Teacher::query()->whereKey($this->editingId)->value('user_id');
         }
-        if ($profileUserId === null && auth()->user()->role === Role::Teacher) {
+        if ($profileUserId === null && auth()->user()->hasRole('teacher')) {
             $profileUserId = auth()->id();
         }
 
@@ -376,7 +375,7 @@ class TeacherProfileForm extends Component
 
         // সিকিউরিটি: যদি লগইন করা ইউজার শিক্ষক (Teacher) হন, তবে তার ইমেইল এবং মোবাইল নম্বর
         // জোরপূর্বক তার বর্তমান User অ্যাকাউন্ট থেকেই নেওয়া হবে, ফর্ম থেকে নয়।
-        if (auth()->user()->role === Role::Teacher) {
+        if (auth()->user()->hasRole('teacher')) {
             $validated['email'] = auth()->user()->email;
             $validated['mobileNumber'] = auth()->user()->mobile_no;
         }
@@ -385,20 +384,20 @@ class TeacherProfileForm extends Component
             $user = auth()->user();
             $college = College::query()->findOrFail($validated['collegeId']);
 
-            if ($user->role === Role::Teacher) {
+            if ($user->hasRole('teacher')) {
                 abort_unless($college->id === $user->college_id && $college->approval_status === ApprovalStatus::Approved, 403);
-            } elseif ($user->role === Role::Principal) {
+            } elseif ($user->hasRole('principal')) {
                 abort_unless($college->id === $user->college_id && $college->approval_status === ApprovalStatus::Approved, 403);
             }
 
-            $isApprovedTeacherEditingOwnProfile = $user->role === Role::Teacher
+            $isApprovedTeacherEditingOwnProfile = $user->hasRole('teacher')
                 && $this->editingId !== null
                 && Teacher::query()
                     ->whereKey($this->editingId)
                     ->where('user_id', $user->id)
                     ->where('approval_status', ApprovalStatus::Approved)
                     ->exists();
-            $isRejectedTeacherResubmission = $user->role === Role::Teacher
+            $isRejectedTeacherResubmission = $user->hasRole('teacher')
                 && $this->editingId !== null
                 && Teacher::query()
                     ->whereKey($this->editingId)
@@ -413,7 +412,6 @@ class TeacherProfileForm extends Component
                     'email' => $validated['accountEmail'],
                     'password' => $validated['accountPassword'],
                     'mobile_no' => $validated['mobileNumber'],
-                    'role' => Role::Teacher,
                     'college_id' => $college->id,
                     'approval_status' => ApprovalStatus::Approved,
                     'approved_by' => $user->id,
@@ -431,10 +429,10 @@ class TeacherProfileForm extends Component
                 'bank_name' => $validated['bankName'] ?: null, 'bank_branch_name' => $validated['bankBranchName'] ?: null,
                 'bank_account_number' => $validated['bankAccountNumber'] ?: null,
                 'bank_routing_number' => $validated['bankRoutingNumber'] ?: null,
-                'user_id' => $this->editingId ? Teacher::query()->whereKey($this->editingId)->value('user_id') : ($teacherAccount?->id ?? ($user->role === Role::Teacher ? $user->id : null)),
-                'approval_status' => $user->role === Role::Teacher && ! $isApprovedTeacherEditingOwnProfile ? ApprovalStatus::Pending : ApprovalStatus::Approved,
-                'approved_by' => $isRejectedTeacherResubmission ? null : ($user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_by') : $user->id),
-                'approved_at' => $isRejectedTeacherResubmission ? null : ($user->role === Role::Teacher ? Teacher::query()->whereKey($this->editingId)->value('approved_at') : now()),
+                'user_id' => $this->editingId ? Teacher::query()->whereKey($this->editingId)->value('user_id') : ($teacherAccount?->id ?? ($user->hasRole('teacher') ? $user->id : null)),
+                'approval_status' => $user->hasRole('teacher') && ! $isApprovedTeacherEditingOwnProfile ? ApprovalStatus::Pending : ApprovalStatus::Approved,
+                'approved_by' => $isRejectedTeacherResubmission ? null : ($user->hasRole('teacher') ? Teacher::query()->whereKey($this->editingId)->value('approved_by') : $user->id),
+                'approved_at' => $isRejectedTeacherResubmission ? null : ($user->hasRole('teacher') ? Teacher::query()->whereKey($this->editingId)->value('approved_at') : now()),
             ]);
 
             $linkedUser = $teacherAccount ?? ($teacher->user_id !== null ? User::query()->find($teacher->user_id) : null);
@@ -481,9 +479,9 @@ class TeacherProfileForm extends Component
             }
         });
 
-        $isNewTeacherSubmission = auth()->user()->role === Role::Teacher && $this->editingId === null;
+        $isNewTeacherSubmission = auth()->user()->hasRole('teacher') && $this->editingId === null;
         Flux::toast(variant: 'success', text: $isNewTeacherSubmission ? 'প্রোফাইলটি প্রিন্সিপালের অনুমোদনের জন্য জমা হয়েছে।' : 'শিক্ষকের প্রোফাইল সংরক্ষণ করা হয়েছে।');
-        $this->redirectRoute(auth()->user()->role === Role::Teacher ? 'dashboard' : 'teachers.manage', navigate: true);
+        $this->redirectRoute(auth()->user()->hasRole('teacher') ? 'dashboard' : 'teachers.manage', navigate: true);
     }
 
     public function submit(): void
@@ -501,8 +499,8 @@ class TeacherProfileForm extends Component
     {
         return view('livewire.teacher-profile-form', [
             'colleges' => College::query()->where('is_active', true)->where('approval_status', ApprovalStatus::Approved)
-                ->when(auth()->user()->role === Role::Principal, fn ($query) => $query->whereKey(auth()->user()->college_id))
-                ->when(auth()->user()->role === Role::Teacher, fn ($query) => $query->whereKey(auth()->user()->college_id))
+                ->when(auth()->user()->hasRole('principal'), fn ($query) => $query->whereKey(auth()->user()->college_id))
+                ->when(auth()->user()->hasRole('teacher'), fn ($query) => $query->whereKey(auth()->user()->college_id))
                 ->orderBy('name')->get(['id', 'code', 'name']),
             'designations' => Designation::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'subjects' => Subject::query()->where('is_active', true)->orderBy('name')->pluck('name'),

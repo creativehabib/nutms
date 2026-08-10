@@ -23,7 +23,7 @@ test('public registration always creates a teacher account', function () {
     ])->assertSessionHasNoErrors();
 
     $user = User::query()->where('email', 'new-teacher@example.com')->firstOrFail();
-    expect($user->role->value)->toBe('teacher')
+    expect($user->hasRole('teacher'))->toBeTrue()
         ->and($user->college_id)->toBe($college->id)
         ->and($user->mobile_no)->toBe('01700000010');
 });
@@ -55,7 +55,7 @@ test('new users can register', function () {
         ->assertRedirect(route('dashboard', absolute: false));
 
     $this->assertAuthenticated();
-    expect(auth()->user()->role->value)->toBe('teacher')
+    expect(auth()->user()->hasRole('teacher'))->toBeTrue()
         ->and(auth()->user()->college_id)->toBe($college->id)
         ->and(auth()->user()->mobile_no)->toBe('01700000011');
 });

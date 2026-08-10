@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ApprovalStatus;
-use App\Enums\UserRole;
 use App\Livewire\TeacherManagement;
 use App\Livewire\TeacherProfileForm;
 use App\Models\College;
@@ -82,7 +81,7 @@ it('lets staff create a teacher login account without completing the full profil
     $teacher = Teacher::query()->where('user_id', $user?->id)->first();
 
     expect($user)->not->toBeNull()
-        ->and($user->role)->toBe(UserRole::Teacher)
+        ->and($user->hasRole('teacher'))->toBeTrue()
         ->and($user->college_id)->toBe($college->id)
         ->and($user->approval_status)->toBe(ApprovalStatus::Approved)
         ->and($teacher)->not->toBeNull()
@@ -186,7 +185,7 @@ it('clears teacher search and filters together', function () {
 it('gives principals a college-scoped teacher management interface', function () {
     $principalCollege = College::query()->create(['code' => 'OWN-001', 'name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
     $otherCollege = College::query()->create(['code' => 'OTHER-002', 'name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
-    $principal = User::factory()->create(['role' => UserRole::Principal, 'college_id' => $principalCollege->id]);
+    $principal = User::factory()->withRole('principal')->create(['college_id' => $principalCollege->id]);
     Teacher::query()->create(['college_id' => $principalCollege->id, 'college_code' => $principalCollege->code, 'name' => 'Own College Teacher', 'subject' => 'Physics']);
     Teacher::query()->create(['college_id' => $otherCollege->id, 'college_code' => $otherCollege->code, 'name' => 'Other College Teacher', 'subject' => 'Chemistry']);
 

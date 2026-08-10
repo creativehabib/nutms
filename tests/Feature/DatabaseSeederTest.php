@@ -12,15 +12,16 @@ it('seeds demo users with all required user table attributes', function () {
     $this->seed(DatabaseSeeder::class);
 
     $expectedUsers = [
-        'admin@example.com' => '01700000001',
-        'principal@example.com' => '01700000002',
-        'teacher@example.com' => '01700000003',
+        'admin@example.com' => ['mobile' => '01700000001', 'role' => 'admin'],
+        'principal@example.com' => ['mobile' => '01700000002', 'role' => 'principal'],
+        'teacher@example.com' => ['mobile' => '01700000003', 'role' => 'teacher'],
     ];
 
-    foreach ($expectedUsers as $email => $mobileNumber) {
+    foreach ($expectedUsers as $email => $expectedUser) {
         $user = User::query()->where('email', $email)->firstOrFail();
 
-        expect($user->mobile_no)->toBe($mobileNumber)
+        expect($user->mobile_no)->toBe($expectedUser['mobile'])
+            ->and($user->hasRole($expectedUser['role']))->toBeTrue()
             ->and($user->email_verified_at)->not->toBeNull();
     }
 });

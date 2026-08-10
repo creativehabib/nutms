@@ -334,8 +334,7 @@ it('shows a concise college table and a separate full details page', function ()
 it('gives a principal direct view and edit access to only their college profile', function () {
     $college = College::query()->create(['name' => 'Principal Profile College', 'approval_status' => ApprovalStatus::Approved]);
     $otherCollege = College::query()->create(['name' => 'Restricted College', 'approval_status' => ApprovalStatus::Approved]);
-    $principal = User::factory()->create([
-        'role' => \App\Enums\UserRole::Principal,
+    $principal = User::factory()->withRole('principal')->create([
         'college_id' => $college->id,
         'approval_status' => ApprovalStatus::Approved,
     ]);
