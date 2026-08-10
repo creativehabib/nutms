@@ -318,6 +318,8 @@ it('allows a teacher to correct and resubmit a rejected profile', function () {
 
     $this->actingAs($user)->get(route('dashboard'))
         ->assertSuccessful()
+        ->assertSee('প্রত্যাখ্যাত')
+        ->assertDontSee('অনুমোদনের জন্য অপেক্ষারত')
         ->assertSee('প্রোফাইল সংশোধন ও পুনরায় জমা দিন')
         ->assertSee(route('teachers.resubmit', $teacher), false);
     $this->actingAs($user)->get(route('teachers.resubmit', $teacher))->assertSuccessful();

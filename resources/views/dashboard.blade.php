@@ -68,7 +68,7 @@
                 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                         <div class="flex items-center justify-between gap-3"><span class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Profile Approval Status') }}</span><flux:icon.shield-check class="size-5 text-indigo-500" /></div>
-                        <div class="mt-4"><flux:badge :color="$teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved ? 'green' : 'amber'">{{ $teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved ? __('Approved') : __('Pending Approval') }}</flux:badge></div>
+                        <div class="mt-4"><flux:badge :color="match($teacherStats['profile']->approval_status) { \App\Enums\ApprovalStatus::Approved => 'green', \App\Enums\ApprovalStatus::Rejected => 'red', default => 'amber' }">{{ match($teacherStats['profile']->approval_status) { \App\Enums\ApprovalStatus::Approved => __('Approved'), \App\Enums\ApprovalStatus::Rejected => __('Rejected'), default => __('Pending Approval') } }}</flux:badge></div>
                     </div>
                     <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                         <div class="flex items-center justify-between gap-3"><span class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Retirement Date') }}</span><flux:icon.calendar-days class="size-5 text-sky-500" /></div>
