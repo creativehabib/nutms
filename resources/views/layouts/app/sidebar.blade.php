@@ -130,7 +130,7 @@
                     <flux:sidebar.item icon="building-library" :href="route('colleges.manage')" :current="request()->routeIs('colleges.*')" wire:navigate>{{ __('College Management') }}</flux:sidebar.item>
                 @endif
 
-                @if(auth()->user()->isAdmin() || (auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved()))
+                @if((auth()->user()->isAdmin() || (auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())) && auth()->user()->can('teachers.view'))
                     <flux:sidebar.item icon="user-group" :href="route('teachers.manage')" :current="request()->routeIs('teachers.*')" wire:navigate>
                         {{ __('Teacher Management') }}
                     </flux:sidebar.item>
@@ -139,11 +139,13 @@
                     <flux:sidebar.item icon="identification" :href="route('teachers.show', $principalTeacherId)" :current="request()->routeIs('teachers.show') && (int) request()->route('teacher')?->id === $principalTeacherId" wire:navigate>{{ __('My Profile') }}</flux:sidebar.item>
                 @endif
                 @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
-                    @if(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Approved)
+                    @if(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Approved && auth()->user()->can('teachers.view'))
                         <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacherProfile)" :current="request()->routeIs('teachers.show')" wire:navigate>{{ __('My Profile') }}</flux:sidebar.item>
+                    @elseif(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Rejected && auth()->user()->can('teachers.create'))
+                        <flux:sidebar.item icon="pencil-square" :href="route('teachers.create')" :current="request()->routeIs('teachers.create')" wire:navigate>{{ __('সংশোধন করে পুনরায় জমা দিন') }}</flux:sidebar.item>
                     @elseif(auth()->user()->teacherProfile)
                         <div class="px-3 py-2 text-sm text-amber-600">{{ __('Profile needs attention') }}</div>
-                    @else
+                    @elseif(auth()->user()->can('teachers.create'))
                         <flux:sidebar.item icon="user-plus" :href="route('teachers.create')" :current="request()->routeIs('teachers.create')" wire:navigate>{{ __('Create Profile') }}</flux:sidebar.item>
                     @endif
                 @endif

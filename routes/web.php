@@ -30,9 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/admin/language-settings', LanguageManager::class)->name('admin.language_settings');
     Route::get('/teacher-management', TeacherManagement::class)->middleware(['role:admin,principal', 'permission:teachers.view'])->name('teachers.manage');
-    Route::get('/teachers/create', TeacherProfileForm::class)->name('teachers.create');
-    Route::get('/teachers/{teacher}/edit', TeacherProfileForm::class)->name('teachers.edit');
-    Route::get('/teachers/{teacher}', TeacherDetails::class)->name('teachers.show');
+    Route::get('/teachers/create', TeacherProfileForm::class)->middleware('permission:teachers.create')->name('teachers.create');
+    Route::get('/teachers/{teacher}/edit', TeacherProfileForm::class)->middleware('permission:teachers.update')->name('teachers.edit');
+    Route::get('/teachers/{teacher}', TeacherDetails::class)->middleware('permission:teachers.view')->name('teachers.show');
     Route::get('/reference-data/{type}', ReferenceDataManagement::class)->middleware(['role:admin', 'permission:reference-data.manage'])
         ->whereIn('type', ['subjects', 'designations', 'teacher-levels', 'employments'])
         ->name('reference-data.manage');

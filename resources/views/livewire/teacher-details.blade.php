@@ -34,7 +34,9 @@
         <div class="flex items-center gap-2">
             <flux:button variant="subtle" :href="auth()->user()->role === \App\Enums\UserRole::Teacher ? route('dashboard') : route('teachers.manage')" icon="arrow-left" wire:navigate class="hidden sm:flex">{{ __('Back') }}</flux:button>
             <flux:button type="button" variant="outline" icon="printer" onclick="window.print()">{{ __('Print') }}</flux:button>
-            <flux:button variant="primary" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate class="shadow-sm">{{ __('Edit') }}</flux:button>
+            @can('teachers.update')
+                <flux:button variant="primary" icon="pencil-square" :href="route('teachers.edit', $teacher)" wire:navigate class="shadow-sm">{{ __('Edit') }}</flux:button>
+            @endcan
         </div>
     </div>
 
