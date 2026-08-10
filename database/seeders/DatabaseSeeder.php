@@ -49,9 +49,10 @@ class DatabaseSeeder extends Seeder
             'duration_unit' => 'days',
         ]);
 
-        $admin = User::query()->create([
+        $admin = User::query()->forceCreate([
             'name' => 'Demo Admin',
             'email' => 'admin@example.com',
+            'mobile_no' => '01700000001',
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'role' => UserRole::Admin,
@@ -77,8 +78,22 @@ class DatabaseSeeder extends Seeder
             'approved_at' => now(),
         ]);
 
-        $principal = $this->createDemoUser('Demo Principal', 'principal@example.com', UserRole::Principal, $college, $admin);
-        $teacherUser = $this->createDemoUser('Demo Teacher', 'teacher@example.com', UserRole::Teacher, $college, $admin);
+        $principal = $this->createDemoUser(
+            'Demo Principal',
+            'principal@example.com',
+            '01700000002',
+            UserRole::Principal,
+            $college,
+            $admin,
+        );
+        $teacherUser = $this->createDemoUser(
+            'Demo Teacher',
+            'teacher@example.com',
+            '01700000003',
+            UserRole::Teacher,
+            $college,
+            $admin,
+        );
 
         $this->createDemoTeacher($principal, $college, $division, $district, $thana, $subject, $designation, $teacherLevel, $employment, $admin);
         $teacher = $this->createDemoTeacher($teacherUser, $college, $division, $district, $thana, $subject, $designation, $teacherLevel, $employment, $admin);
@@ -88,11 +103,12 @@ class DatabaseSeeder extends Seeder
         $college->programs()->create(['level' => 'honours', 'name' => 'Honours', 'items' => ['Information and Communication Technology']]);
     }
 
-    private function createDemoUser(string $name, string $email, UserRole $role, College $college, User $admin): User
+    private function createDemoUser(string $name, string $email, string $mobileNumber, UserRole $role, College $college, User $admin): User
     {
-        return User::query()->create([
+        return User::query()->forceCreate([
             'name' => $name,
             'email' => $email,
+            'mobile_no' => $mobileNumber,
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'role' => $role,
