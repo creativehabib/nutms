@@ -9,6 +9,7 @@ use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Spatie\Permission\Models\Role as PermissionRole;
 
 test('guests are redirected to the login page', function () {
     $response = $this->get(route('dashboard'));
@@ -147,6 +148,33 @@ test('teacher dashboard shows only their profile workflow', function () {
         ->assertSee('শিক্ষক প্রোফাইল')
         ->assertDontSee('কম্পিউটার ল্যাব রিপোর্ট')
         ->assertDontSee('আইসিটি ট্রেনিং রিপোর্ট');
+});
+
+test('teacher dashboard warns when submitted profiles cannot be edited', function () {
+    $user = User::factory()->create(['role' => UserRole::Teacher]);
+    Teacher::query()->create([
+        'user_id' => $user->id,
+        'name' => 'Restricted Dashboard Teacher',
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    PermissionRole::findByName(UserRole::Teacher->value)->revokePermissionTo('teachers.update');
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee('শিক্ষক প্রোফাইল তৈরি ও জমা দেওয়ার পর আপনি নিজে আর এটি সম্পাদনা করতে পারবেন না।')
+        ->assertDontSee(route('teachers.edit', $user->teacherProfile), false);
+});
+
+test('teacher dashboard warns before one-time profile submission', function () {
+    $user = User::factory()->create(['role' => UserRole::Teacher]);
+
+    PermissionRole::findByName(UserRole::Teacher->value)->revokePermissionTo('teachers.update');
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee('প্রোফাইলটি তৈরি ও জমা দেওয়ার পর আপনি নিজে আর সম্পাদনা করতে পারবেন না।')
+        ->assertSee(route('teachers.create'), false);
 });
 
 test('teacher dashboard shows personal retirement training and update information', function () {

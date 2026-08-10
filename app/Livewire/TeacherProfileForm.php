@@ -67,6 +67,9 @@ class TeacherProfileForm extends Component
     public function mount(?Teacher $teacher = null): void
     {
         $user = auth()->user();
+
+        abort_unless($user->can($teacher?->exists ? 'teachers.update' : 'teachers.create'), 403);
+
         if ($user->role === Role::Teacher && $user->college_id !== null) {
             $this->collegeId = (string) $user->college_id;
         }
@@ -75,6 +78,7 @@ class TeacherProfileForm extends Component
         }
         if ((! $teacher?->exists) && $user->role === Role::Teacher && $user->teacherProfile !== null) {
             $teacher = $user->teacherProfile;
+            abort_unless($user->can('teachers.update'), 403);
             abort_if($teacher?->approval_status === ApprovalStatus::Pending, 403, 'প্রোফাইলটি অনুমোদনের অপেক্ষায় আছে।');
         }
         if ($teacher?->exists) {
@@ -251,6 +255,8 @@ class TeacherProfileForm extends Component
 
     public function save(): void
     {
+        abort_unless(auth()->user()->can($this->editingId === null ? 'teachers.create' : 'teachers.update'), 403);
+
         $isStaffCreatingTeacherAccount = $this->editingId === null && auth()->user()->role !== Role::Teacher;
         $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
 
