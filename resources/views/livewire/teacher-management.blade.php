@@ -21,9 +21,11 @@
                     @if($isAdmin)
                         <flux:badge color="indigo" class="shadow-sm">{{ trans_choice(':count college|:count colleges', $collegeCount) }}</flux:badge>
                     @endif
-                    <flux:button variant="primary" icon="plus" :href="route('teachers.create')" wire:navigate size="sm" class="shadow-sm">
-                        {{ __('Add Teacher') }}
-                    </flux:button>
+                    @can('teachers.create')
+                        <flux:button variant="primary" icon="plus" :href="route('teachers.create')" wire:navigate size="sm" class="shadow-sm">
+                            {{ __('Add Teacher') }}
+                        </flux:button>
+                    @endcan
                 </div>
             </div>
 
@@ -227,7 +229,7 @@
                                                 @endcan
 
                                                 @can('teachers.approve')
-                                                    @if(! $isAdmin && $teacher->approval_status === \App\Enums\ApprovalStatus::Pending)
+                                                    @if($teacher->approval_status === \App\Enums\ApprovalStatus::Pending)
                                                         <flux:menu.separator />
                                                         <flux:menu.item icon="check-circle" wire:click="approveTeacher({{ $teacher->id }})" class="text-emerald-600 hover:text-emerald-700">{{ __('Approve') }}</flux:menu.item>
                                                         <flux:menu.item icon="x-circle" wire:click="rejectTeacher({{ $teacher->id }})" class="text-red-600 hover:text-red-700">{{ __('Reject') }}</flux:menu.item>
