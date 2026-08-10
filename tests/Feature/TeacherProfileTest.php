@@ -292,3 +292,45 @@ it('renders and navigates every teacher profile form step', function () {
         ->assertSet('activeStep', 'bank')
         ->assertSee('Bank Details');
 });
+
+it('allows a teacher to correct and resubmit a rejected profile', function () {
+    $college = College::query()->create(['name' => 'Rejected Profile College', 'approval_status' => ApprovalStatus::Approved]);
+    $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
+    $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
+    $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    $user = User::factory()->create(['role' => Role::Teacher, 'college_id' => $college->id]);
+    $teacher = Teacher::query()->create([
+        'user_id' => $user->id,
+        'college_id' => $college->id,
+        'name' => 'Rejected Teacher',
+        'division_id' => $division->id,
+        'district_id' => $district->id,
+        'thana_id' => $thana->id,
+        'present_address' => 'Old present address',
+        'permanent_address' => 'Permanent address',
+        'approval_status' => ApprovalStatus::Rejected,
+        'approved_by' => $admin->id,
+        'approved_at' => now(),
+    ]);
+
+    PermissionRole::findByName(Role::Teacher->value)->revokePermissionTo('teachers.update');
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee('প্রোফাইল সংশোধন ও পুনরায় জমা দিন')
+        ->assertSee(route('teachers.create'), false);
+    $this->actingAs($user)->get(route('teachers.create'))->assertSuccessful();
+
+    Livewire::actingAs($user)->test(TeacherProfileForm::class)
+        ->assertSet('editingId', $teacher->id)
+        ->set('presentAddress', 'Corrected present address')
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('dashboard'));
+
+    expect($teacher->refresh()->approval_status)->toBe(ApprovalStatus::Pending)
+        ->and($teacher->present_address)->toBe('Corrected present address')
+        ->and($teacher->approved_by)->toBeNull()
+        ->and($teacher->approved_at)->toBeNull();
+});

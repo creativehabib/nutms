@@ -44,9 +44,11 @@
         @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
             @if($teacherStats)
                 @cannot('teachers.update')
+                    @if($teacherStats['profile']->approval_status !== \App\Enums\ApprovalStatus::Rejected)
                     <flux:callout variant="warning" :heading="__('প্রোফাইল সম্পাদনার অনুমতি নেই')">
                         {{ __('শিক্ষক প্রোফাইল তৈরি ও জমা দেওয়ার পর আপনি নিজে আর এটি সম্পাদনা করতে পারবেন না। কোনো তথ্য পরিবর্তনের প্রয়োজন হলে আপনার কলেজের প্রিন্সিপাল বা কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।') }}
                     </flux:callout>
+                    @endif
                 @endcannot
                 <flux:card class="overflow-hidden border-indigo-200 bg-linear-to-r from-indigo-50 to-sky-50 dark:border-indigo-900 dark:from-indigo-950/50 dark:to-sky-950/40">
                     <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -84,6 +86,13 @@
 
                 @if($teacherStats['profile']->approval_status !== \App\Enums\ApprovalStatus::Approved)
                     <flux:callout variant="warning" :heading="__('Approval Required')">{{ __('Your teacher profile must be approved before all services are available.') }}</flux:callout>
+                @endif
+
+                @if($teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Rejected && auth()->user()->can('teachers.create'))
+                    <flux:callout variant="danger" :heading="__('প্রোফাইলটি প্রত্যাখ্যাত হয়েছে')">
+                        {{ __('প্রয়োজনীয় তথ্য সংশোধন ও সম্পূর্ণ করে প্রোফাইলটি পুনরায় অনুমোদনের জন্য জমা দিন।') }}
+                        <flux:button class="mt-4" variant="primary" :href="route('teachers.create')" wire:navigate>{{ __('প্রোফাইল সংশোধন ও পুনরায় জমা দিন') }}</flux:button>
+                    </flux:callout>
                 @endif
 
                 <div class="grid gap-5 lg:grid-cols-3">
