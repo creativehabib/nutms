@@ -176,14 +176,14 @@
                 @endcan
                 @if(auth()->user()->isAdmin() )
                     <flux:sidebar.item icon="language" :href="route('admin.language_settings')" :current="request()->routeIs('admin.language_settings')" wire:navigate>
-                        <span>{{ __('Language Settings') }}</span>
+                        {{ __('Language Settings') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="language" :href="route('admin.survey.report')" :current="request()->routeIs('admin.survey.report')" wire:navigate>
-                        <span>{{ __('Survey Report') }}</span>
+                        {{ __('Survey Report') }}
                     </flux:sidebar.item>
 
                     <flux:sidebar.item icon="identification" :href="route('admission.summary')" :current="request()->routeIs('admission.summary')" wire:navigate>
-                        <span>{{ __('Admission Summary') }}</span>
+                        {{ __('Admission Summary') }}
                     </flux:sidebar.item>
                 @endif
                 @if(auth()->user()->role === \App\Enums\UserRole::Principal && auth()->user()->isApproved())
