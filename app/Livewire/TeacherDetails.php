@@ -2,12 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Enums\ApprovalStatus;
+use App\Enums\UserRole as Role;
 use App\Models\Teacher;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
-use App\Enums\ApprovalStatus;
-use App\Enums\UserRole as Role;
 
 class TeacherDetails extends Component
 {
@@ -17,6 +17,7 @@ class TeacherDetails extends Component
     public function mount(Teacher $teacher): void
     {
         $user = auth()->user();
+        abort_unless($user->can('teachers.view'), 403);
         abort_unless($user->isAdmin() || ($user->role === Role::Principal && $teacher->college_id === $user->college_id) || ($user->role === Role::Teacher && $teacher->user_id === $user->id && $teacher->approval_status === ApprovalStatus::Approved), 403);
         $this->teacher = $teacher->load([
             'user:id,name,email,mobile_no,picture,digital_signature',

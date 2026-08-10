@@ -2,6 +2,8 @@
         activeTab: 'basic',
         tabs: ['basic', 'professional', 'contact', 'training', 'bank'],
         isValidating: false,
+        isSubmitting: false,
+        submissionError: false,
         async goToNext() {
             this.isValidating = true;
             try {
@@ -24,6 +26,32 @@
             let currentIndex = this.tabs.indexOf(this.activeTab);
             if (currentIndex > 0) this.activeTab = this.tabs[currentIndex - 1];
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+        async submitForm() {
+            this.isSubmitting = true;
+            this.submissionError = false;
+
+            for (const tab of this.tabs) {
+                try {
+                    await $wire.validateStep(tab);
+                } catch (error) {
+                    this.activeTab = tab;
+                    this.submissionError = true;
+                    this.isSubmitting = false;
+
+                    await this.$nextTick();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    this.$root.querySelector('[aria-invalid="true"]')?.focus();
+
+                    return;
+                }
+            }
+
+            try {
+                await $wire.save();
+            } finally {
+                this.isSubmitting = false;
+            }
         }
     }"
      class="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8 space-y-6"
@@ -60,8 +88,12 @@
         </nav>
     </div>
 
+    <flux:callout x-show="submissionError" x-cloak variant="danger" :heading="__('প্রয়োজনীয় তথ্য পাওয়া যায়নি')">
+        {{ __('যে ধাপে প্রয়োজনীয় তথ্য অসম্পূর্ণ আছে সেখানে আপনাকে ফিরিয়ে নেওয়া হয়েছে। লাল রঙে দেখানো তথ্যগুলো পূরণ করে আবার চেষ্টা করুন।') }}
+    </flux:callout>
+
     <!-- Main Form -->
-    <form wire:submit="save" class="relative pb-24">
+    <form @submit.prevent="submitForm()" class="relative pb-24">
 
         <!-- Tab 1: Institution & Basic Info -->
         <div x-show="activeTab === 'basic'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
@@ -340,8 +372,9 @@
                 </div>
 
                 <!-- Save Button (Only visible on the final step) -->
-                <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm" x-show="activeTab === 'bank'">
-                    {{ $editingId ? __('Update Profile') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Submit Profile') : __('Create Teacher')) }}
+                <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm" x-show="activeTab === 'bank'" x-bind:disabled="isSubmitting">
+                    <span x-show="!isSubmitting">{{ $editingId ? __('Update Profile') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Submit Profile') : __('Create Teacher')) }}</span>
+                    <span x-show="isSubmitting">{{ __('Checking all steps...') }}</span>
                 </flux:button>
             </div>
         </div>
