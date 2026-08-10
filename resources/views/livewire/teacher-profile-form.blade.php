@@ -25,6 +25,32 @@
             let currentIndex = this.tabs.indexOf(this.activeTab);
             if (currentIndex > 0) this.activeTab = this.tabs[currentIndex - 1];
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+        async submitForm() {
+            this.isSubmitting = true;
+            this.submissionError = false;
+
+            for (const tab of this.tabs) {
+                try {
+                    await $wire.validateStep(tab);
+                } catch (error) {
+                    this.activeTab = tab;
+                    this.submissionError = true;
+                    this.isSubmitting = false;
+
+                    await this.$nextTick();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    this.$root.querySelector('[aria-invalid="true"]')?.focus();
+
+                    return;
+                }
+            }
+
+            try {
+                await $wire.save();
+            } finally {
+                this.isSubmitting = false;
+            }
         }
     }"
      x-on:teacher-profile-validation-failed.window="
