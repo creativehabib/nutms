@@ -142,7 +142,7 @@
                     @if(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Approved && auth()->user()->can('teachers.view'))
                         <flux:sidebar.item icon="user" :href="route('teachers.show', auth()->user()->teacherProfile)" :current="request()->routeIs('teachers.show')" wire:navigate>{{ __('My Profile') }}</flux:sidebar.item>
                     @elseif(auth()->user()->teacherProfile?->approval_status === \App\Enums\ApprovalStatus::Rejected && auth()->user()->can('teachers.create'))
-                        <flux:sidebar.item icon="pencil-square" :href="route('teachers.create')" :current="request()->routeIs('teachers.create')" wire:navigate>{{ __('সংশোধন করে পুনরায় জমা দিন') }}</flux:sidebar.item>
+                        <flux:sidebar.item icon="pencil-square" :href="route('teachers.resubmit', auth()->user()->teacherProfile)" :current="request()->routeIs('teachers.resubmit')" wire:navigate>{{ __('সংশোধন করে পুনরায় জমা দিন') }}</flux:sidebar.item>
                     @elseif(auth()->user()->teacherProfile)
                         <div class="px-3 py-2 text-sm text-amber-600">{{ __('Profile needs attention') }}</div>
                     @elseif(auth()->user()->can('teachers.create'))

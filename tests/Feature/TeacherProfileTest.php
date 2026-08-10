@@ -319,10 +319,10 @@ it('allows a teacher to correct and resubmit a rejected profile', function () {
     $this->actingAs($user)->get(route('dashboard'))
         ->assertSuccessful()
         ->assertSee('প্রোফাইল সংশোধন ও পুনরায় জমা দিন')
-        ->assertSee(route('teachers.create'), false);
-    $this->actingAs($user)->get(route('teachers.create'))->assertSuccessful();
+        ->assertSee(route('teachers.resubmit', $teacher), false);
+    $this->actingAs($user)->get(route('teachers.resubmit', $teacher))->assertSuccessful();
 
-    Livewire::actingAs($user)->test(TeacherProfileForm::class)
+    Livewire::actingAs($user)->test(TeacherProfileForm::class, ['teacher' => $teacher])
         ->assertSet('editingId', $teacher->id)
         ->set('presentAddress', 'Corrected present address')
         ->call('submit')

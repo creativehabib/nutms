@@ -91,7 +91,7 @@
                 @if($teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Rejected && auth()->user()->can('teachers.create'))
                     <flux:callout variant="danger" :heading="__('প্রোফাইলটি প্রত্যাখ্যাত হয়েছে')">
                         {{ __('প্রয়োজনীয় তথ্য সংশোধন ও সম্পূর্ণ করে প্রোফাইলটি পুনরায় অনুমোদনের জন্য জমা দিন।') }}
-                        <flux:button class="mt-4" variant="primary" :href="route('teachers.create')" wire:navigate>{{ __('প্রোফাইল সংশোধন ও পুনরায় জমা দিন') }}</flux:button>
+                        <flux:button class="mt-4" variant="primary" :href="route('teachers.resubmit', $teacherStats['profile'])" wire:navigate>{{ __('প্রোফাইল সংশোধন ও পুনরায় জমা দিন') }}</flux:button>
                     </flux:callout>
                 @endif
 
