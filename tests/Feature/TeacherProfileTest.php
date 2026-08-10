@@ -252,3 +252,21 @@ it('enforces teacher profile permissions on routes and components', function () 
     Livewire::actingAs($user)->test(TeacherProfileForm::class, ['teacher' => $teacher])
         ->assertForbidden();
 });
+
+it('reports required fields when an incomplete teacher profile is submitted', function () {
+    $user = User::factory()->create(['role' => Role::Teacher]);
+
+    Livewire::actingAs($user)->test(TeacherProfileForm::class)
+        ->assertSee('প্রয়োজনীয় তথ্য পাওয়া যায়নি')
+        ->call('save')
+        ->assertHasErrors([
+            'collegeId' => 'required',
+            'divisionId' => 'required',
+            'districtId' => 'required',
+            'thanaId' => 'required',
+            'presentAddress' => 'required',
+            'permanentAddress' => 'required',
+        ]);
+
+    expect($user->teacherProfile)->toBeNull();
+});
