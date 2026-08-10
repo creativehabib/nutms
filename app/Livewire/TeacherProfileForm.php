@@ -32,8 +32,13 @@ class TeacherProfileForm extends Component
 {
     use PasswordValidationRules, WithFileUploads;
 
+    /** @var array<int, string> */
+    private const STEPS = ['basic', 'professional', 'contact', 'training', 'bank'];
+
     #[Locked]
     public ?int $editingId = null;
+    public string $activeStep = 'basic';
+    public bool $submissionError = false;
     public string $collegeId = '';
     public string $ttisId = '';
     public string $name = '';
@@ -171,6 +176,8 @@ class TeacherProfileForm extends Component
     // নতুন মেথড: প্রতিটি ট্যাবের ডেটা আলাদাভাবে ভ্যালিডেট করার জন্য
     public function validateStep(string $step): void
     {
+        abort_unless(in_array($step, self::STEPS, true), 404);
+
         $isStaffCreatingTeacherAccount = $this->editingId === null && auth()->user()->role !== Role::Teacher;
         $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
 
@@ -250,6 +257,34 @@ class TeacherProfileForm extends Component
                 'bankAccountNumber' => ['nullable', 'string', 'max:100'],
                 'bankRoutingNumber' => ['nullable', 'string', 'max:30'],
             ]);
+        }
+    }
+
+    public function goToStep(string $step): void
+    {
+        abort_unless(in_array($step, self::STEPS, true), 404);
+
+        $this->activeStep = $step;
+        $this->submissionError = false;
+    }
+
+    public function nextStep(): void
+    {
+        $this->validateStep($this->activeStep);
+
+        $currentStepIndex = array_search($this->activeStep, self::STEPS, true);
+
+        if ($currentStepIndex !== false && $currentStepIndex < count(self::STEPS) - 1) {
+            $this->activeStep = self::STEPS[$currentStepIndex + 1];
+        }
+    }
+
+    public function previousStep(): void
+    {
+        $currentStepIndex = array_search($this->activeStep, self::STEPS, true);
+
+        if ($currentStepIndex !== false && $currentStepIndex > 0) {
+            $this->activeStep = self::STEPS[$currentStepIndex - 1];
         }
     }
 
@@ -435,10 +470,8 @@ class TeacherProfileForm extends Component
             $this->save();
         } catch (ValidationException $exception) {
             $this->setErrorBag($exception->errors());
-            $this->dispatch(
-                'teacher-profile-validation-failed',
-                step: $this->validationStepFor(array_keys($exception->errors())),
-            );
+            $this->activeStep = $this->validationStepFor(array_keys($exception->errors()));
+            $this->submissionError = true;
         }
     }
 

@@ -257,9 +257,10 @@ it('reports required fields when an incomplete teacher profile is submitted', fu
     $user = User::factory()->create(['role' => Role::Teacher]);
 
     Livewire::actingAs($user)->test(TeacherProfileForm::class)
-        ->assertSee('প্রয়োজনীয় তথ্য পাওয়া যায়নি')
         ->call('submit')
-        ->assertDispatched('teacher-profile-validation-failed', step: 'basic')
+        ->assertSet('activeStep', 'basic')
+        ->assertSet('submissionError', true)
+        ->assertSee('প্রয়োজনীয় তথ্য পাওয়া যায়নি')
         ->assertHasErrors([
             'collegeId' => 'required',
             'divisionId' => 'required',
@@ -270,4 +271,24 @@ it('reports required fields when an incomplete teacher profile is submitted', fu
         ]);
 
     expect($user->teacherProfile)->toBeNull();
+});
+
+it('renders and navigates every teacher profile form step', function () {
+    $user = User::factory()->create(['role' => Role::Teacher]);
+
+    Livewire::actingAs($user)->test(TeacherProfileForm::class)
+        ->assertSet('activeStep', 'basic')
+        ->assertSee('Basic Teacher Details')
+        ->call('goToStep', 'professional')
+        ->assertSet('activeStep', 'professional')
+        ->assertSee('Professional Details')
+        ->call('goToStep', 'contact')
+        ->assertSet('activeStep', 'contact')
+        ->assertSee('Contact & Address')
+        ->call('goToStep', 'training')
+        ->assertSet('activeStep', 'training')
+        ->assertSee('Training History')
+        ->call('goToStep', 'bank')
+        ->assertSet('activeStep', 'bank')
+        ->assertSee('Bank Details');
 });
