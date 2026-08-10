@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\ApprovalStatus;
+use App\Enums\UserRole as Role;
 use App\Livewire\TeacherDetails;
 use App\Livewire\TeacherProfileForm;
 use App\Models\College;
@@ -12,9 +14,8 @@ use App\Models\TrainingType;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use App\Enums\UserRole as Role;
-use App\Enums\ApprovalStatus;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role as PermissionRole;
 
 beforeEach(function () {
     $division = Division::query()->firstOrCreate(['name' => 'Teacher Test Division'], ['country_id' => 1, 'bn_name' => 'শিক্ষক টেস্ট বিভাগ']);
@@ -231,3 +232,23 @@ it('does not allow a teacher to edit a profile before it is approved', function 
     'pending' => ApprovalStatus::Pending,
     'rejected' => ApprovalStatus::Rejected,
 ]);
+
+it('enforces teacher profile permissions on routes and components', function () {
+    $user = User::factory()->create(['role' => Role::Teacher]);
+    $teacher = Teacher::query()->create([
+        'name' => 'Permission Restricted Teacher',
+        'user_id' => $user->id,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    PermissionRole::findByName(Role::Teacher->value)->revokePermissionTo('teachers.update');
+
+    $this->actingAs($user)->get(route('teachers.edit', $teacher))->assertForbidden();
+
+    Livewire::actingAs($user)->test(TeacherDetails::class, ['teacher' => $teacher])
+        ->assertDontSee(route('teachers.edit', $teacher), false)
+        ->assertDontSee('সম্পাদনা');
+
+    Livewire::actingAs($user)->test(TeacherProfileForm::class, ['teacher' => $teacher])
+        ->assertForbidden();
+});

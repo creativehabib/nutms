@@ -21,9 +21,11 @@
                     @if($isAdmin)
                         <flux:badge color="indigo" class="shadow-sm">{{ trans_choice(':count college|:count colleges', $collegeCount) }}</flux:badge>
                     @endif
-                    <flux:button variant="primary" icon="plus" :href="route('teachers.create')" wire:navigate size="sm" class="shadow-sm">
-                        {{ __('Add Teacher') }}
-                    </flux:button>
+                    @can('teachers.create')
+                        <flux:button variant="primary" icon="plus" :href="route('teachers.create')" wire:navigate size="sm" class="shadow-sm">
+                            {{ __('Add Teacher') }}
+                        </flux:button>
+                    @endcan
                 </div>
             </div>
 
