@@ -130,6 +130,7 @@ class TeacherManagement extends Component
         abort_unless(auth()->user()->can('teachers.approve'), 403);
         $teacher = $this->accessibleTeachersQuery()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
         $teacher->update(['approval_status' => ApprovalStatus::Rejected, 'approved_by' => auth()->id(), 'approved_at' => now()]);
+        Flux::toast(variant: 'success', text: 'শিক্ষক প্রোফাইল প্রত্যাখ্যান করা হয়েছে।');
     }
 
     public function changeTeacherRole(int $teacherId, string $role): void
