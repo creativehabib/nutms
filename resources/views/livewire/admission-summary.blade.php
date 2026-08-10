@@ -44,14 +44,25 @@
 
         <!-- Filter Section -->
         <div class="border-b border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:select wire:model.live="selectedCollege" :label="__('Select College')" placeholder="{{ __('Type to search college...') }}" searchable>
-                <flux:select.option value="">{{ __('--- Search & Select a College ---') }}</flux:select.option>
-                @foreach($colleges as $college)
-                    <flux:select.option value="{{ $college->college_code }}">
-                        {{ $college->college_name }} ({{ $college->college_code }})
-                    </flux:select.option>
-                @endforeach
-            </flux:select>
+            <flux:field>
+                <flux:label>{{ __('Select College') }}</flux:label>
+                <div wire:ignore>
+                    <select
+                        wire:model.live="selectedCollege"
+                        data-searchable-select
+                        data-placeholder="{{ __('Type to search college...') }}"
+                        data-search-placeholder="{{ __('Search by college name or code') }}"
+                        data-no-results-text="{{ __('No colleges found') }}"
+                    >
+                        <option value="">{{ __('Type to search college...') }}</option>
+                        @foreach($colleges as $college)
+                            <option value="{{ $college->college_code }}">
+                                {{ $college->college_name }} ({{ $college->college_code }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </flux:field>
         </div>
 
         <!-- Summary Result Section -->
