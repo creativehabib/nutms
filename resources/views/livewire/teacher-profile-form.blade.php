@@ -2,7 +2,6 @@
         activeTab: 'basic',
         tabs: ['basic', 'professional', 'contact', 'training', 'bank'],
         isValidating: false,
-        isSubmitting: false,
         submissionError: false,
         async goToNext() {
             this.isValidating = true;
@@ -54,6 +53,14 @@
             }
         }
     }"
+     x-on:teacher-profile-validation-failed.window="
+        activeTab = $event.detail.step;
+        submissionError = true;
+        $nextTick(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            $root.querySelector('[aria-invalid=true]')?.focus();
+        });
+     "
      class="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8 space-y-6"
 >
 
@@ -93,7 +100,7 @@
     </flux:callout>
 
     <!-- Main Form -->
-    <form @submit.prevent="submitForm()" class="relative pb-24">
+    <form wire:submit="submit" class="relative pb-24">
 
         <!-- Tab 1: Institution & Basic Info -->
         <div x-show="activeTab === 'basic'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
@@ -372,9 +379,9 @@
                 </div>
 
                 <!-- Save Button (Only visible on the final step) -->
-                <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm" x-show="activeTab === 'bank'" x-bind:disabled="isSubmitting">
-                    <span x-show="!isSubmitting">{{ $editingId ? __('Update Profile') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Submit Profile') : __('Create Teacher')) }}</span>
-                    <span x-show="isSubmitting">{{ __('Checking all steps...') }}</span>
+                <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm" x-show="activeTab === 'bank'" wire:loading.attr="disabled" wire:target="submit">
+                    <span wire:loading.remove wire:target="submit">{{ $editingId ? __('Update Profile') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Submit Profile') : __('Create Teacher')) }}</span>
+                    <span wire:loading wire:target="submit">{{ __('Checking all steps...') }}</span>
                 </flux:button>
             </div>
         </div>

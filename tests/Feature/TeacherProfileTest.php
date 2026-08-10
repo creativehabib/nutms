@@ -47,7 +47,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
             'training_type_id' => (string) $training->id, 'name' => '', 'duration_value' => '',
             'duration_unit' => 'days', 'training_year' => '2026',
         ]])
-        ->call('save')->assertHasNoErrors()->assertRedirect(route('teachers.manage'));
+        ->call('submit')->assertHasNoErrors()->assertRedirect(route('teachers.manage'));
 
     $teacher = Teacher::query()->where('name', 'New Teacher')->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
@@ -117,7 +117,7 @@ it('submits a teacher profile under the selected college for principal approval'
         ->set('presentAddress', 'Present Address')
         ->set('permanentAddress', 'Permanent Address')
         ->set('mobileNumber', '01700000001')
-        ->call('save')
+        ->call('submit')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard'));
 
@@ -208,7 +208,7 @@ it('allows a teacher to view and update their profile after principal approval',
         ->assertSee('শিক্ষক account তৈরির সময় ব্যবহৃত ইমেইল ঠিকানা।')
         ->set('presentAddress', 'Updated Present Address')
         ->set('email', 'tampered@example.com')
-        ->call('save')
+        ->call('submit')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard'));
 
@@ -258,7 +258,8 @@ it('reports required fields when an incomplete teacher profile is submitted', fu
 
     Livewire::actingAs($user)->test(TeacherProfileForm::class)
         ->assertSee('প্রয়োজনীয় তথ্য পাওয়া যায়নি')
-        ->call('save')
+        ->call('submit')
+        ->assertDispatched('teacher-profile-validation-failed', step: 'basic')
         ->assertHasErrors([
             'collegeId' => 'required',
             'divisionId' => 'required',

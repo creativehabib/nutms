@@ -429,6 +429,19 @@ class TeacherProfileForm extends Component
         $this->redirectRoute(auth()->user()->role === Role::Teacher ? 'dashboard' : 'teachers.manage', navigate: true);
     }
 
+    public function submit(): void
+    {
+        try {
+            $this->save();
+        } catch (ValidationException $exception) {
+            $this->setErrorBag($exception->errors());
+            $this->dispatch(
+                'teacher-profile-validation-failed',
+                step: $this->validationStepFor(array_keys($exception->errors())),
+            );
+        }
+    }
+
     public function render(): View
     {
         return view('livewire.teacher-profile-form', [
@@ -446,5 +459,31 @@ class TeacherProfileForm extends Component
             'trainingInstitutes' => TrainingInstitute::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'trainingTypes' => TrainingType::query()->where('is_active', true)->orderBy('name')->get(['id', 'training_institute_id', 'name', 'duration_value', 'duration_unit']),
         ]);
+    }
+
+    /**
+     * @param  array<int, string>  $fields
+     */
+    private function validationStepFor(array $fields): string
+    {
+        $stepFields = [
+            'basic' => ['collegeId', 'name', 'birthDate', 'profileImage', 'digitalSignature', 'accountEmail', 'accountPassword'],
+            'professional' => ['designation', 'subject', 'teacherLevel', 'employmentType'],
+            'contact' => ['divisionId', 'districtId', 'thanaId', 'presentAddress', 'permanentAddress', 'mobileNumber', 'email'],
+            'training' => ['trainingEntries'],
+            'bank' => ['bankName', 'bankBranchName', 'bankAccountNumber', 'bankRoutingNumber'],
+        ];
+
+        foreach ($stepFields as $step => $prefixes) {
+            foreach ($fields as $field) {
+                foreach ($prefixes as $prefix) {
+                    if ($field === $prefix || str_starts_with($field, "{$prefix}.")) {
+                        return $step;
+                    }
+                }
+            }
+        }
+
+        return 'basic';
     }
 }
