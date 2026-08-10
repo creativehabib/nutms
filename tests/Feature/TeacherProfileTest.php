@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\ApprovalStatus;
+use App\Enums\UserRole as Role;
 use App\Livewire\TeacherDetails;
 use App\Livewire\TeacherProfileForm;
 use App\Models\College;
@@ -12,9 +14,8 @@ use App\Models\TrainingType;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use App\Enums\UserRole as Role;
-use App\Enums\ApprovalStatus;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role as PermissionRole;
 
 beforeEach(function () {
     $division = Division::query()->firstOrCreate(['name' => 'Teacher Test Division'], ['country_id' => 1, 'bn_name' => 'শিক্ষক টেস্ট বিভাগ']);
@@ -46,7 +47,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
             'training_type_id' => (string) $training->id, 'name' => '', 'duration_value' => '',
             'duration_unit' => 'days', 'training_year' => '2026',
         ]])
-        ->call('save')->assertHasNoErrors()->assertRedirect(route('teachers.manage'));
+        ->call('submit')->assertHasNoErrors()->assertRedirect(route('teachers.manage'));
 
     $teacher = Teacher::query()->where('name', 'New Teacher')->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
@@ -116,7 +117,7 @@ it('submits a teacher profile under the selected college for principal approval'
         ->set('presentAddress', 'Present Address')
         ->set('permanentAddress', 'Permanent Address')
         ->set('mobileNumber', '01700000001')
-        ->call('save')
+        ->call('submit')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard'));
 
@@ -207,7 +208,7 @@ it('allows a teacher to view and update their profile after principal approval',
         ->assertSee('শিক্ষক account তৈরির সময় ব্যবহৃত ইমেইল ঠিকানা।')
         ->set('presentAddress', 'Updated Present Address')
         ->set('email', 'tampered@example.com')
-        ->call('save')
+        ->call('submit')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard'));
 
@@ -231,3 +232,42 @@ it('does not allow a teacher to edit a profile before it is approved', function 
     'pending' => ApprovalStatus::Pending,
     'rejected' => ApprovalStatus::Rejected,
 ]);
+
+it('enforces teacher profile permissions on routes and components', function () {
+    $user = User::factory()->create(['role' => Role::Teacher]);
+    $teacher = Teacher::query()->create([
+        'name' => 'Permission Restricted Teacher',
+        'user_id' => $user->id,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    PermissionRole::findByName(Role::Teacher->value)->revokePermissionTo('teachers.update');
+
+    $this->actingAs($user)->get(route('teachers.edit', $teacher))->assertForbidden();
+
+    Livewire::actingAs($user)->test(TeacherDetails::class, ['teacher' => $teacher])
+        ->assertDontSee(route('teachers.edit', $teacher), false)
+        ->assertDontSee('সম্পাদনা');
+
+    Livewire::actingAs($user)->test(TeacherProfileForm::class, ['teacher' => $teacher])
+        ->assertForbidden();
+});
+
+it('reports required fields when an incomplete teacher profile is submitted', function () {
+    $user = User::factory()->create(['role' => Role::Teacher]);
+
+    Livewire::actingAs($user)->test(TeacherProfileForm::class)
+        ->assertSee('প্রয়োজনীয় তথ্য পাওয়া যায়নি')
+        ->call('submit')
+        ->assertDispatched('teacher-profile-validation-failed', step: 'basic')
+        ->assertHasErrors([
+            'collegeId' => 'required',
+            'divisionId' => 'required',
+            'districtId' => 'required',
+            'thanaId' => 'required',
+            'presentAddress' => 'required',
+            'permanentAddress' => 'required',
+        ]);
+
+    expect($user->teacherProfile)->toBeNull();
+});

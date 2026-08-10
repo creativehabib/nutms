@@ -67,6 +67,9 @@ class TeacherProfileForm extends Component
     public function mount(?Teacher $teacher = null): void
     {
         $user = auth()->user();
+
+        abort_unless($user->can($teacher?->exists ? 'teachers.update' : 'teachers.create'), 403);
+
         if ($user->role === Role::Teacher && $user->college_id !== null) {
             $this->collegeId = (string) $user->college_id;
         }
@@ -75,6 +78,7 @@ class TeacherProfileForm extends Component
         }
         if ((! $teacher?->exists) && $user->role === Role::Teacher && $user->teacherProfile !== null) {
             $teacher = $user->teacherProfile;
+            abort_unless($user->can('teachers.update'), 403);
             abort_if($teacher?->approval_status === ApprovalStatus::Pending, 403, 'প্রোফাইলটি অনুমোদনের অপেক্ষায় আছে।');
         }
         if ($teacher?->exists) {
@@ -251,6 +255,8 @@ class TeacherProfileForm extends Component
 
     public function save(): void
     {
+        abort_unless(auth()->user()->can($this->editingId === null ? 'teachers.create' : 'teachers.update'), 403);
+
         $isStaffCreatingTeacherAccount = $this->editingId === null && auth()->user()->role !== Role::Teacher;
         $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
 
@@ -423,6 +429,19 @@ class TeacherProfileForm extends Component
         $this->redirectRoute(auth()->user()->role === Role::Teacher ? 'dashboard' : 'teachers.manage', navigate: true);
     }
 
+    public function submit(): void
+    {
+        try {
+            $this->save();
+        } catch (ValidationException $exception) {
+            $this->setErrorBag($exception->errors());
+            $this->dispatch(
+                'teacher-profile-validation-failed',
+                step: $this->validationStepFor(array_keys($exception->errors())),
+            );
+        }
+    }
+
     public function render(): View
     {
         return view('livewire.teacher-profile-form', [
@@ -440,5 +459,31 @@ class TeacherProfileForm extends Component
             'trainingInstitutes' => TrainingInstitute::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'trainingTypes' => TrainingType::query()->where('is_active', true)->orderBy('name')->get(['id', 'training_institute_id', 'name', 'duration_value', 'duration_unit']),
         ]);
+    }
+
+    /**
+     * @param  array<int, string>  $fields
+     */
+    private function validationStepFor(array $fields): string
+    {
+        $stepFields = [
+            'basic' => ['collegeId', 'name', 'birthDate', 'profileImage', 'digitalSignature', 'accountEmail', 'accountPassword'],
+            'professional' => ['designation', 'subject', 'teacherLevel', 'employmentType'],
+            'contact' => ['divisionId', 'districtId', 'thanaId', 'presentAddress', 'permanentAddress', 'mobileNumber', 'email'],
+            'training' => ['trainingEntries'],
+            'bank' => ['bankName', 'bankBranchName', 'bankAccountNumber', 'bankRoutingNumber'],
+        ];
+
+        foreach ($stepFields as $step => $prefixes) {
+            foreach ($fields as $field) {
+                foreach ($prefixes as $prefix) {
+                    if ($field === $prefix || str_starts_with($field, "{$prefix}.")) {
+                        return $step;
+                    }
+                }
+            }
+        }
+
+        return 'basic';
     }
 }
