@@ -120,6 +120,25 @@ it('lets an admin toggle a teacher approval status from the table', function () 
         ->and($teacher->approved_at)->toBeNull();
 });
 
+it('lets an admin reject a pending teacher profile from the table actions', function () {
+    $teacher = Teacher::query()->create([
+        'name' => 'Admin Rejection Teacher',
+        'approval_status' => ApprovalStatus::Pending,
+    ]);
+
+    Livewire::test(TeacherManagement::class)
+        ->assertSee('Admin Rejection Teacher')
+        ->assertSeeHtml('wire:click="rejectTeacher('.$teacher->id.')"')
+        ->assertSee('প্রত্যাখ্যান')
+        ->call('rejectTeacher', $teacher->id)
+        ->assertHasNoErrors()
+        ->assertSee('প্রত্যাখ্যাত');
+
+    expect($teacher->refresh()->approval_status)->toBe(ApprovalStatus::Rejected)
+        ->and($teacher->approved_by)->toBe(auth()->id())
+        ->and($teacher->approved_at)->not->toBeNull();
+});
+
 it('searches teachers by profile, account, and college identifiers', function (string $searchTerm) {
     $college = College::query()->create([
         'code' => 'COL-SEARCH-01',
