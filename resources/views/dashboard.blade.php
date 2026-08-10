@@ -43,6 +43,13 @@
             </div>
         @elseif(auth()->user()->role === \App\Enums\UserRole::Teacher)
             @if($teacherStats)
+                @cannot('teachers.update')
+                    @if($teacherStats['profile']->approval_status !== \App\Enums\ApprovalStatus::Rejected)
+                    <flux:callout variant="warning" :heading="__('প্রোফাইল সম্পাদনার অনুমতি নেই')">
+                        {{ __('শিক্ষক প্রোফাইল তৈরি ও জমা দেওয়ার পর আপনি নিজে আর এটি সম্পাদনা করতে পারবেন না। কোনো তথ্য পরিবর্তনের প্রয়োজন হলে আপনার কলেজের প্রিন্সিপাল বা কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।') }}
+                    </flux:callout>
+                    @endif
+                @endcannot
                 <flux:card class="overflow-hidden border-indigo-200 bg-linear-to-r from-indigo-50 to-sky-50 dark:border-indigo-900 dark:from-indigo-950/50 dark:to-sky-950/40">
                     <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div class="max-w-2xl">
@@ -50,9 +57,9 @@
                             <div class="mt-4 h-3 overflow-hidden rounded-full bg-white ring-1 ring-indigo-100 dark:bg-zinc-800 dark:ring-indigo-900" role="progressbar" :aria-label="__('Profile completion progress')" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $teacherStats['completeness']['percentage'] }}"><div class="h-full rounded-full bg-linear-to-r from-indigo-600 to-sky-500 transition-all duration-500" style="width: {{ $teacherStats['completeness']['percentage'] }}%"></div></div>
                             @if($teacherStats['completeness']['percentage'] < 100)<div class="mt-4 flex flex-wrap gap-2"><span class="text-xs font-semibold text-zinc-600 dark:text-zinc-300">{{ __('Missing profile fields') }}</span>@foreach($teacherStats['completeness']['missing']->take(6) as $field)<flux:badge color="amber">{{ $field }}</flux:badge>@endforeach @if($teacherStats['completeness']['missing']->count() > 6)<flux:badge color="zinc">{{ __(':count more items', ['count' => $teacherStats['completeness']['missing']->count() - 6]) }}</flux:badge>@endif</div>@endif
                         </div>
-                        @if($teacherStats['completeness']['percentage'] < 100)
+                        @if($teacherStats['completeness']['percentage'] < 100 && auth()->user()->can('teachers.update'))
                             <div class="lg:max-w-sm"><flux:callout variant="warning" :heading="__('Complete your profile')">{{ __('Add the missing profile details to keep your teacher record up to date.') }}</flux:callout>@if($teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved)<flux:button class="mt-3 w-full" variant="primary" :href="route('teachers.edit', $teacherStats['profile'])" icon="pencil-square" wire:navigate>{{ __('Edit Profile') }}</flux:button>@else<flux:text class="mt-3 text-xs">{{ __('Profile edits are available after approval.') }}</flux:text>@endif</div>
-                        @else
+                        @elseif($teacherStats['completeness']['percentage'] === 100)
                             <flux:badge color="green" size="lg">{{ __('Profile Complete') }}</flux:badge>
                         @endif
                     </div>
@@ -81,6 +88,13 @@
                     <flux:callout variant="warning" :heading="__('Approval Required')">{{ __('Your teacher profile must be approved before all services are available.') }}</flux:callout>
                 @endif
 
+                @if($teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Rejected && auth()->user()->can('teachers.create'))
+                    <flux:callout variant="danger" :heading="__('প্রোফাইলটি প্রত্যাখ্যাত হয়েছে')">
+                        {{ __('প্রয়োজনীয় তথ্য সংশোধন ও সম্পূর্ণ করে প্রোফাইলটি পুনরায় অনুমোদনের জন্য জমা দিন।') }}
+                        <flux:button class="mt-4" variant="primary" :href="route('teachers.resubmit', $teacherStats['profile'])" wire:navigate>{{ __('প্রোফাইল সংশোধন ও পুনরায় জমা দিন') }}</flux:button>
+                    </flux:callout>
+                @endif
+
                 <div class="grid gap-5 lg:grid-cols-3">
                     <flux:card class="lg:col-span-2">
                         <div class="flex items-start justify-between gap-4"><div><flux:heading size="lg">{{ __('ICT Training Records') }}</flux:heading><flux:text class="mt-1">{{ __('Review the training courses recorded for your profile.') }}</flux:text></div><div class="rounded-lg bg-emerald-50 p-2.5 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300"><flux:icon.academic-cap class="size-6" /></div></div>
@@ -89,11 +103,11 @@
                     <flux:card class="flex flex-col">
                         <div class="flex items-center gap-3"><div class="rounded-lg bg-indigo-50 p-2.5 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300"><flux:icon.identification class="size-6" /></div><flux:heading size="lg">{{ __('My Profile') }}</flux:heading></div>
                         <div class="mt-4 grid gap-3 text-sm"><div class="flex justify-between gap-3"><span class="text-zinc-500 dark:text-zinc-400">{{ __('Subject') }}</span><span class="font-medium text-zinc-950 dark:text-white">{{ $teacherStats['profile']->subject ?: __('Not added') }}</span></div><div class="flex justify-between gap-3"><span class="text-zinc-500 dark:text-zinc-400">{{ __('Designation') }}</span><span class="font-medium text-zinc-950 dark:text-white">{{ $teacherStats['profile']->designation ?: __('Not added') }}</span></div><div class="flex justify-between gap-3"><span class="text-zinc-500 dark:text-zinc-400">{{ __('Retirement Age') }}</span><span class="font-medium text-zinc-950 dark:text-white">{{ $teacherStats['retirementAge'] }} years</span></div></div>
-                        @if($teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved)<flux:button class="mt-6" variant="primary" :href="route('teachers.show', $teacherStats['profile'])" wire:navigate>{{ __('View Profile') }}</flux:button>@endif
+                        @if($teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved && auth()->user()->can('teachers.view'))<flux:button class="mt-6" variant="primary" :href="route('teachers.show', $teacherStats['profile'])" wire:navigate>{{ __('View Profile') }}</flux:button>@endif
                     </flux:card>
                 </div>
             @else
-                <flux:card><flux:heading size="lg">{{ __('Create Teacher Profile') }}</flux:heading><flux:text class="mt-2">{{ __('Start by creating your teacher profile and linking it to your college.') }}</flux:text><flux:button class="mt-4" variant="primary" :href="route('teachers.create')" wire:navigate>{{ __('Create Profile') }}</flux:button></flux:card>
+                <flux:card><flux:heading size="lg">{{ __('Create Teacher Profile') }}</flux:heading><flux:text class="mt-2">{{ __('Start by creating your teacher profile and linking it to your college.') }}</flux:text>@cannot('teachers.update')<flux:callout class="mt-4" variant="warning">{{ __('প্রোফাইলটি তৈরি ও জমা দেওয়ার পর আপনি নিজে আর সম্পাদনা করতে পারবেন না। জমা দেওয়ার আগে সব তথ্য ভালোভাবে যাচাই করুন।') }}</flux:callout>@endcannot @can('teachers.create')<flux:button class="mt-4" variant="primary" :href="route('teachers.create')" wire:navigate>{{ __('Create Profile') }}</flux:button>@else<flux:callout class="mt-4" variant="danger">{{ __('শিক্ষক প্রোফাইল তৈরির অনুমতি আপনার নেই। কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।') }}</flux:callout>@endcan</flux:card>
             @endif
         @elseif(auth()->user()->isAdmin())
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

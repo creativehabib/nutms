@@ -1,33 +1,4 @@
-<div x-data="{
-        activeTab: 'basic',
-        tabs: ['basic', 'professional', 'contact', 'training', 'bank'],
-        isValidating: false,
-        async goToNext() {
-            this.isValidating = true;
-            try {
-                // Next-এ যাওয়ার আগে বর্তমান ট্যাবের ডেটা ভ্যালিডেট করা হচ্ছে
-                await $wire.validateStep(this.activeTab);
-
-                let currentIndex = this.tabs.indexOf(this.activeTab);
-                if (currentIndex < this.tabs.length - 1) {
-                    this.activeTab = this.tabs[currentIndex + 1];
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            } catch (error) {
-                // Validation error হলে স্ক্রিন এখানেই থাকবে এবং এরর দেখাবে
-                console.log('Validation failed on step: ' + this.activeTab);
-            } finally {
-                this.isValidating = false;
-            }
-        },
-        goToPrev() {
-            let currentIndex = this.tabs.indexOf(this.activeTab);
-            if (currentIndex > 0) this.activeTab = this.tabs[currentIndex - 1];
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }"
-     class="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8 space-y-6"
->
+<div class="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6 lg:p-8">
 
     <!-- Page Header & Action -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -43,28 +14,35 @@
     <!-- Tab Navigation (Horizontal) -->
     <div class="border-b border-zinc-200 dark:border-zinc-800">
         <nav class="-mb-px flex space-x-6 overflow-x-auto scrollbar-hide" aria-label="Tabs">
-            <button @click="activeTab = 'basic'" :class="activeTab === 'basic' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
+            <button type="button" wire:click="goToStep('basic')" @class(['flex items-center gap-2 whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors', 'border-indigo-500 text-indigo-600 dark:text-indigo-400' => $activeStep === 'basic', 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300' => $activeStep !== 'basic'])>
                 <flux:icon.building-office-2 class="size-4" />{{ __('Basic Details') }}</button>
 
-            <button @click="activeTab = 'professional'" :class="activeTab === 'professional' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
+            <button type="button" wire:click="goToStep('professional')" @class(['flex items-center gap-2 whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors', 'border-indigo-500 text-indigo-600 dark:text-indigo-400' => $activeStep === 'professional', 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300' => $activeStep !== 'professional'])>
                 <flux:icon.briefcase class="size-4" />{{ __('Professional Details') }}</button>
 
-            <button @click="activeTab = 'contact'" :class="activeTab === 'contact' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
+            <button type="button" wire:click="goToStep('contact')" @class(['flex items-center gap-2 whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors', 'border-indigo-500 text-indigo-600 dark:text-indigo-400' => $activeStep === 'contact', 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300' => $activeStep !== 'contact'])>
                 <flux:icon.map-pin class="size-4" />{{ __('Contact & Address') }}</button>
 
-            <button @click="activeTab = 'training'" :class="activeTab === 'training' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
+            <button type="button" wire:click="goToStep('training')" @class(['flex items-center gap-2 whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors', 'border-indigo-500 text-indigo-600 dark:text-indigo-400' => $activeStep === 'training', 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300' => $activeStep !== 'training'])>
                 <flux:icon.academic-cap class="size-4" />{{ __('Training History') }}</button>
 
-            <button @click="activeTab = 'bank'" :class="activeTab === 'bank' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'" class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors flex items-center gap-2">
+            <button type="button" wire:click="goToStep('bank')" @class(['flex items-center gap-2 whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors', 'border-indigo-500 text-indigo-600 dark:text-indigo-400' => $activeStep === 'bank', 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300' => $activeStep !== 'bank'])>
                 <flux:icon.banknotes class="size-4" />{{ __('Bank Details') }}</button>
         </nav>
     </div>
 
+    @if($submissionError)
+    <flux:callout variant="danger" :heading="__('প্রয়োজনীয় তথ্য পাওয়া যায়নি')">
+        {{ __('যে ধাপে প্রয়োজনীয় তথ্য অসম্পূর্ণ আছে সেখানে আপনাকে ফিরিয়ে নেওয়া হয়েছে। লাল রঙে দেখানো তথ্যগুলো পূরণ করে আবার চেষ্টা করুন।') }}
+    </flux:callout>
+    @endif
+
     <!-- Main Form -->
-    <form wire:submit="save" class="relative pb-24">
+    <form wire:submit="submit" class="relative pb-24">
 
         <!-- Tab 1: Institution & Basic Info -->
-        <div x-show="activeTab === 'basic'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+        @if($activeStep === 'basic')
+        <div>
             <flux:card class="shadow-sm p-6 sm:p-8 border-t-4 border-t-indigo-500">
                 <div class="mb-6">
                     <flux:heading size="lg">{{ __('Basic Teacher Details') }}</flux:heading>
@@ -132,9 +110,11 @@
                 @endif
             </flux:card>
         </div>
+        @endif
 
         <!-- Tab 2: Professional Information -->
-        <div x-show="activeTab === 'professional'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+        @if($activeStep === 'professional')
+        <div>
             <flux:card class="shadow-sm p-6 sm:p-8 border-t-4 border-t-indigo-500">
                 <div class="mb-6">
                     <flux:heading size="lg">{{ __('Professional Details') }}</flux:heading>
@@ -171,9 +151,11 @@
                 </div>
             </flux:card>
         </div>
+        @endif
 
         <!-- Tab 3: Contact & Address -->
-        <div x-show="activeTab === 'contact'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+        @if($activeStep === 'contact')
+        <div>
             <flux:card class="shadow-sm p-6 sm:p-8 border-t-4 border-t-indigo-500">
                 <div class="mb-6">
                     <flux:heading size="lg">{{ __('Contact & Address') }}</flux:heading>
@@ -224,9 +206,11 @@
                 </div>
             </flux:card>
         </div>
+        @endif
 
         <!-- Tab 4: Training History -->
-        <div x-show="activeTab === 'training'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+        @if($activeStep === 'training')
+        <div>
             <flux:card class="shadow-sm p-6 sm:p-8 border-t-4 border-t-indigo-500">
                 <div class="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                     <div>
@@ -307,9 +291,11 @@
                 </div>
             </flux:card>
         </div>
+        @endif
 
         <!-- Tab 5: Bank Information -->
-        <div x-show="activeTab === 'bank'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+        @if($activeStep === 'bank')
+        <div>
             <flux:card class="shadow-sm p-6 sm:p-8 border-t-4 border-t-indigo-500">
                 <div class="mb-6">
                     <flux:heading size="lg">{{ __('Bank Details') }}</flux:heading>
@@ -323,26 +309,34 @@
                 </div>
             </flux:card>
         </div>
+        @endif
 
         <!-- Fixed Bottom Action Bar -->
         <div class="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200 bg-white/90 p-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             <div class="mx-auto flex w-full max-w-4xl items-center justify-between gap-3">
 
-                <!-- Prev/Next Navigation (Handled by Alpine.js) -->
+                <!-- Server-backed step navigation -->
                 <div class="flex items-center gap-2">
-                    <flux:button type="button" variant="outline" icon="chevron-left" @click="goToPrev()" x-show="activeTab !== 'basic'">{{ __('Previous') }}</flux:button>
+                    @if($activeStep !== 'basic')
+                        <flux:button type="button" variant="outline" icon="chevron-left" wire:click="previousStep">{{ __('Previous') }}</flux:button>
+                    @endif
 
                     <!-- Updated Next Button with Loading State -->
-                    <flux:button type="button" variant="outline" @click="goToNext()" x-show="activeTab !== 'bank'" x-bind:disabled="isValidating">
-                        <span x-show="!isValidating" class="flex items-center gap-2">{{ __('Next') }} <flux:icon.chevron-right class="size-4" /></span>
-                        <span x-show="isValidating" class="flex items-center gap-2">{{ __('Checking...') }} <svg class="animate-spin size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></span>
-                    </flux:button>
+                    @if($activeStep !== 'bank')
+                        <flux:button type="button" variant="outline" wire:click="nextStep" wire:loading.attr="disabled" wire:target="nextStep">
+                            <span wire:loading.remove wire:target="nextStep" class="flex items-center gap-2">{{ __('Next') }} <flux:icon.chevron-right class="size-4" /></span>
+                            <span wire:loading wire:target="nextStep">{{ __('Checking...') }}</span>
+                        </flux:button>
+                    @endif
                 </div>
 
                 <!-- Save Button (Only visible on the final step) -->
-                <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm" x-show="activeTab === 'bank'">
-                    {{ $editingId ? __('Update Profile') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Submit Profile') : __('Create Teacher')) }}
+                @if($activeStep === 'bank')
+                <flux:button type="submit" variant="primary" icon="check-circle" class="shadow-sm" wire:loading.attr="disabled" wire:target="submit">
+                    <span wire:loading.remove wire:target="submit">{{ $editingId ? __('Update Profile') : (auth()->user()->role === \App\Enums\UserRole::Teacher ? __('Submit Profile') : __('Create Teacher')) }}</span>
+                    <span wire:loading wire:target="submit">{{ __('Checking all steps...') }}</span>
                 </flux:button>
+                @endif
             </div>
         </div>
 
