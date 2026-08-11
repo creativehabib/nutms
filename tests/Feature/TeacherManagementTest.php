@@ -57,7 +57,7 @@ it('does not require the legacy user teacher foreign key', function () {
         ->and(Schema::hasTable('teacher_profiles'))->toBeTrue();
 });
 
-it('uses conventional relationships even while legacy attributes are hydrated', function () {
+it('uses conventional subject and designation relationships', function () {
     $subject = Subject::query()->create(['name' => 'Physics']);
     $designation = Designation::query()->create(['name' => 'Lecturer']);
     $teacherLevel = TeacherLevel::query()->create(['name' => 'College']);
@@ -70,15 +70,8 @@ it('uses conventional relationships even while legacy attributes are hydrated', 
         'employment_id' => $employment->id,
     ]);
 
-    $teacher->setRawAttributes([
-        ...$teacher->getAttributes(),
-        'subject' => 'Legacy Subject Value',
-        'designation' => 'Legacy Designation Value',
-    ], true);
-    $teacher->load(['subject', 'designation']);
-
-    expect($teacher->getRelation('subject')->is($subject))->toBeTrue()
-        ->and($teacher->getRelation('designation')->is($designation))->toBeTrue()
+    expect($teacher->subject->is($subject))->toBeTrue()
+        ->and($teacher->designation->is($designation))->toBeTrue()
         ->and($teacher->subject()->getModel())->toBeInstanceOf(Subject::class)
         ->and($teacher->designation()->getModel())->toBeInstanceOf(Designation::class)
         ->and($teacher->teacherLevel->is($teacherLevel))->toBeTrue()

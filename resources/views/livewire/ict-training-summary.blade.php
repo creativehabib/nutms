@@ -110,8 +110,8 @@
                                 <tr class="hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
                                     <td class="px-6 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
                                     <td class="px-6 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->display_name }}</td>
-                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->getRelation('subject')?->name ?: __('Not provided') }}</td>
-                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->getRelation('designation')?->name ?: __('Not provided') }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->subject?->name ?: __('Not provided') }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->designation?->name ?: __('Not provided') }}</td>
                                     <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->teacherLevel?->name ?: __('Not provided') }}</td>
                                     <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->employment?->name ?: __('Not provided') }}</td>
                                     <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600">{{ __('No training') }}</td>

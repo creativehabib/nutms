@@ -74,11 +74,11 @@
                 <tr>
                     <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Designation') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->getRelation('designation')?->name ?: __('Not specified') }}
+                        {{ $teacher->designation?->name ?: __('Not specified') }}
                     </td>
                     <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Subject') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->getRelation('subject')?->name ?: __('Not specified') }}
+                        {{ $teacher->subject?->name ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
