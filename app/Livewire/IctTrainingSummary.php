@@ -56,8 +56,8 @@ class IctTrainingSummary extends Component
                             $teacher->college?->code ?? '-',
                             $teacher->college?->name ?? '-',
                             $teacher->display_name ?: '-',
-                            $teacher->teachingSubject?->name ?: 'উল্লেখ নেই',
-                            $teacher->jobDesignation?->name ?: 'উল্লেখ নেই',
+                            $teacher->getRelation('subject')?->name ?: 'উল্লেখ নেই',
+                            $teacher->getRelation('designation')?->name ?: 'উল্লেখ নেই',
                             $teacher->teacherLevel?->name ?: 'উল্লেখ নেই',
                             $teacher->employment?->name ?: 'উল্লেখ নেই',
                             'ট্রেনিং নেই',
@@ -98,7 +98,7 @@ class IctTrainingSummary extends Component
     private function teachersWithoutIctQuery(): Builder
     {
         return Teacher::query()
-            ->with(['user:id,name', 'college:id,code,name', 'teachingSubject:id,name', 'jobDesignation:id,name', 'teacherLevel:id,name', 'employment:id,name'])
+            ->with(['user:id,name', 'college:id,code,name', 'subject:id,name', 'designation:id,name', 'teacherLevel:id,name', 'employment:id,name'])
             ->doesntHave('trainingTypes')
             ->doesntHave('otherTrainings')
             ->orderBy('college_id')

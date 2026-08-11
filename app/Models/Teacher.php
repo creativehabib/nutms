@@ -86,12 +86,12 @@ class Teacher extends Model
         return $ttisId;
     }
 
-    public function teachingSubject(): BelongsTo
+    public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class, 'subject_id');
     }
 
-    public function jobDesignation(): BelongsTo
+    public function designation(): BelongsTo
     {
         return $this->belongsTo(Designation::class, 'designation_id');
     }

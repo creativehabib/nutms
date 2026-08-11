@@ -21,7 +21,7 @@ class TeacherDetails extends Component
         $this->teacher = $teacher->load([
             'user:id,name,email,mobile_no,picture,digital_signature',
             'college:id,code,name', 'division:id,name,bn_name', 'district:id,name,bn_name', 'thana:id,name,bn_name',
-            'teachingSubject:id,name', 'jobDesignation:id,name', 'teacherLevel:id,name', 'employment:id,name',
+            'subject:id,name', 'designation:id,name', 'teacherLevel:id,name', 'employment:id,name',
             'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute',
         ]);
     }

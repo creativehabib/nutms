@@ -433,8 +433,8 @@ class TeacherManagement extends Component
             'college_code' => $teacher->college?->code,
             'college_name' => $teacher->college?->name,
             'name' => $teacher->display_name,
-            'designation' => $teacher->jobDesignation?->name,
-            'subject' => $teacher->teachingSubject?->name,
+            'designation' => $teacher->designation()->value('name'),
+            'subject' => $teacher->subject()->value('name'),
             'teacher_level' => $teacher->teacherLevel?->name,
             'employment_type' => $teacher->employment?->name,
             'mobile_number' => $teacher->user?->mobile_no,
@@ -611,8 +611,8 @@ class TeacherManagement extends Component
             'teachers' => $query->with([
                 'user:id,name,email,mobile_no,picture',
                 'college:id,code,name',
-                'teachingSubject:id,name',
-                'jobDesignation:id,name',
+                'subject:id,name',
+                'designation:id,name',
             ])->latest()->paginate(10),
             'isAdmin' => $isAdmin,
             'collegeCount' => $isAdmin ? (clone $query)->whereNotNull('college_id')->distinct()->count('college_id') : null,
@@ -683,7 +683,7 @@ class TeacherManagement extends Component
 
         // বিষয় অনুযায়ী ফিল্টার
         if ($this->subjectFilter !== '') {
-            $query->whereHas('teachingSubject', fn (Builder $subjectQuery): Builder => $subjectQuery->where('name', $this->subjectFilter));
+            $query->whereHas('subject', fn (Builder $subjectQuery): Builder => $subjectQuery->where('name', $this->subjectFilter));
         }
 
         // কলেজ কোড অনুযায়ী ফিল্টার

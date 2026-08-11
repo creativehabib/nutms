@@ -104,8 +104,8 @@ class TeacherProfileForm extends Component
             $this->ttisId = (string) ($teacher->ttis_id ?? '');
             $this->name = $teacher->display_name;
             $this->birthDate = $teacher->birth_date?->format('Y-m-d') ?? '';
-            $this->designation = (string) ($teacher->jobDesignation?->name ?? '');
-            $this->subject = (string) ($teacher->teachingSubject?->name ?? '');
+            $this->designation = (string) ($teacher->designation()->value('name') ?? '');
+            $this->subject = (string) ($teacher->subject()->value('name') ?? '');
             $this->teacherLevel = (string) ($teacher->teacherLevel?->name ?? '');
             $this->employmentType = (string) ($teacher->employment?->name ?? '');
             $this->divisionId = (string) ($teacher->division_id ?? '');

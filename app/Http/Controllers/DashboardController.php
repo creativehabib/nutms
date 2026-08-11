@@ -104,7 +104,7 @@ class DashboardController extends Controller
     private function teacherStats(): ?array
     {
         $teacher = Teacher::query()
-            ->with(['user', 'teachingSubject', 'jobDesignation', 'teacherLevel', 'employment', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
+            ->with(['user', 'subject', 'designation', 'teacherLevel', 'employment', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
             ->where('user_id', auth()->id())
             ->first();
 
@@ -136,8 +136,8 @@ class DashboardController extends Controller
             'কলেজ' => $teacher->college_id,
             'নাম' => $teacher->display_name,
             'জন্ম তারিখ' => $teacher->birth_date,
-            'পদবি' => $teacher->jobDesignation?->name,
-            'বিষয়' => $teacher->teachingSubject?->name,
+            'পদবি' => $teacher->getRelation('designation')?->name,
+            'বিষয়' => $teacher->getRelation('subject')?->name,
             'শিক্ষক স্তর' => $teacher->teacherLevel?->name,
             'চাকরির ধরন' => $teacher->employment?->name,
             'বিভাগ' => $teacher->division_id,

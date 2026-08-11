@@ -57,7 +57,7 @@ it('does not require the legacy user teacher foreign key', function () {
         ->and(Schema::hasTable('teacher_profiles'))->toBeTrue();
 });
 
-it('uses collision-safe normalized relationship names', function () {
+it('uses conventional relationships even while legacy attributes are hydrated', function () {
     $subject = Subject::query()->create(['name' => 'Physics']);
     $designation = Designation::query()->create(['name' => 'Lecturer']);
     $teacherLevel = TeacherLevel::query()->create(['name' => 'College']);
@@ -75,9 +75,12 @@ it('uses collision-safe normalized relationship names', function () {
         'subject' => 'Legacy Subject Value',
         'designation' => 'Legacy Designation Value',
     ], true);
+    $teacher->load(['subject', 'designation']);
 
-    expect($teacher->teachingSubject->is($subject))->toBeTrue()
-        ->and($teacher->jobDesignation->is($designation))->toBeTrue()
+    expect($teacher->getRelation('subject')->is($subject))->toBeTrue()
+        ->and($teacher->getRelation('designation')->is($designation))->toBeTrue()
+        ->and($teacher->subject()->getModel())->toBeInstanceOf(Subject::class)
+        ->and($teacher->designation()->getModel())->toBeInstanceOf(Designation::class)
         ->and($teacher->teacherLevel->is($teacherLevel))->toBeTrue()
         ->and($teacher->employment->is($employment))->toBeTrue()
         ->and($teacher->teacher_level_id)->toBe($teacherLevel->id)
