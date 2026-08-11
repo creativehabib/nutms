@@ -35,7 +35,7 @@ it('keeps teacher relationships synchronized when reference data changes', funct
     Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
         ->call('edit', $subject->id)->set('name', 'Applied Physics')->call('save');
 
-    expect($teacher->refresh()->subject_id)->toBe($subject->id)->and($teacher->subject->name)->toBe('Applied Physics');
+    expect($teacher->refresh()->subject_id)->toBe($subject->id)->and($teacher->subject()->value('name'))->toBe('Applied Physics');
 });
 
 it('does not delete reference data used by a teacher', function () {

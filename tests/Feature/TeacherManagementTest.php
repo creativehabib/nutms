@@ -57,16 +57,24 @@ it('does not require the legacy user teacher foreign key', function () {
         ->and(Schema::hasTable('teacher_profiles'))->toBeTrue();
 });
 
-it('uses concise teacher level and employment relationship names', function () {
+it('uses conventional subject and designation relationships', function () {
+    $subject = Subject::query()->create(['name' => 'Physics']);
+    $designation = Designation::query()->create(['name' => 'Lecturer']);
     $teacherLevel = TeacherLevel::query()->create(['name' => 'College']);
     $employment = Employment::query()->create(['name' => 'Permanent']);
     $teacher = Teacher::query()->create([
         'name' => 'Relationship Teacher',
+        'subject_id' => $subject->id,
+        'designation_id' => $designation->id,
         'teacher_level_id' => $teacherLevel->id,
         'employment_id' => $employment->id,
     ]);
 
-    expect($teacher->teacherLevel->is($teacherLevel))->toBeTrue()
+    expect($teacher->subject->is($subject))->toBeTrue()
+        ->and($teacher->designation->is($designation))->toBeTrue()
+        ->and($teacher->subject()->getModel())->toBeInstanceOf(Subject::class)
+        ->and($teacher->designation()->getModel())->toBeInstanceOf(Designation::class)
+        ->and($teacher->teacherLevel->is($teacherLevel))->toBeTrue()
         ->and($teacher->employment->is($employment))->toBeTrue()
         ->and($teacher->teacher_level_id)->toBe($teacherLevel->id)
         ->and($teacher->employment_id)->toBe($employment->id);
