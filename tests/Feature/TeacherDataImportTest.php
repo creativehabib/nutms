@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\TeacherDataImport;
+use App\Models\College;
 use App\Models\Teacher;
 use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
@@ -13,9 +14,9 @@ it('renders the professional import form', function () {
 });
 
 it('notifies the user instead of importing the same college again', function () {
+    $college = College::query()->create(['code' => '126', 'name' => 'FAKIRHAT GOVT. COLLEGE']);
     Teacher::query()->create([
-        'college_code' => '126',
-        'college_name' => 'FAKIRHAT GOVT. COLLEGE',
+        'college_id' => $college->id,
         'name' => 'Existing Teacher',
     ]);
 

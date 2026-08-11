@@ -4,7 +4,11 @@ use App\Enums\ApprovalStatus;
 use App\Livewire\TeacherManagement;
 use App\Livewire\TeacherProfileForm;
 use App\Models\College;
+use App\Models\Designation;
+use App\Models\Employment;
+use App\Models\Subject;
 use App\Models\Teacher;
+use App\Models\TeacherLevel;
 use App\Models\User;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
@@ -28,13 +32,44 @@ it('does not keep obsolete legacy training columns on teachers', function () {
 it('creates the final teacher profile schema without a cleanup migration', function () {
     expect(Schema::hasTable('teacher_profiles'))->toBeTrue()
         ->and(Schema::getColumnListing('teacher_profiles'))->toContain('user_id', 'college_id', 'approval_status')
-        ->not->toContain('has_training', 'ict_training_duration', 'other_training_duration', 'training_year');
+        ->not->toContain(
+            'college_code',
+            'college_name',
+            'designation',
+            'subject',
+            'teacher_level',
+            'employment_type',
+            'ict_training_name',
+            'other_training_name',
+            'training_institute',
+            'has_computer_lab',
+            'computer_count',
+            'has_training',
+            'ict_training_duration',
+            'other_training_duration',
+            'training_year',
+        );
 });
 
 it('does not require the legacy user teacher foreign key', function () {
     expect(Schema::hasColumn('users', 'teacher_id'))->toBeFalse()
         ->and(Schema::hasTable('teachers'))->toBeFalse()
         ->and(Schema::hasTable('teacher_profiles'))->toBeTrue();
+});
+
+it('uses concise teacher level and employment relationship names', function () {
+    $teacherLevel = TeacherLevel::query()->create(['name' => 'College']);
+    $employment = Employment::query()->create(['name' => 'Permanent']);
+    $teacher = Teacher::query()->create([
+        'name' => 'Relationship Teacher',
+        'teacher_level_id' => $teacherLevel->id,
+        'employment_id' => $employment->id,
+    ]);
+
+    expect($teacher->teacherLevel->is($teacherLevel))->toBeTrue()
+        ->and($teacher->employment->is($employment))->toBeTrue()
+        ->and($teacher->teacher_level_id)->toBe($teacherLevel->id)
+        ->and($teacher->employment_id)->toBe($employment->id);
 });
 
 it('renders a responsive edit form with a blurred backdrop', function () {
@@ -48,9 +83,11 @@ it('renders a responsive edit form with a blurred backdrop', function () {
 });
 
 it('shows the distinct college count beside the teacher count', function () {
-    Teacher::query()->create(['college_code' => '100', 'name' => 'First Teacher']);
-    Teacher::query()->create(['college_code' => '100', 'name' => 'Second Teacher']);
-    Teacher::query()->create(['college_code' => '200', 'name' => 'Third Teacher']);
+    $firstCollege = College::query()->create(['code' => '100', 'name' => 'First College']);
+    $secondCollege = College::query()->create(['code' => '200', 'name' => 'Second College']);
+    Teacher::query()->create(['college_id' => $firstCollege->id, 'name' => 'First Teacher']);
+    Teacher::query()->create(['college_id' => $firstCollege->id, 'name' => 'Second Teacher']);
+    Teacher::query()->create(['college_id' => $secondCollege->id, 'name' => 'Third Teacher']);
 
     Livewire::test(TeacherManagement::class)
         ->assertSee('মোট 3 জন শিক্ষক')
@@ -186,8 +223,10 @@ it('gives principals a college-scoped teacher management interface', function ()
     $principalCollege = College::query()->create(['code' => 'OWN-001', 'name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
     $otherCollege = College::query()->create(['code' => 'OTHER-002', 'name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
     $principal = User::factory()->withRole('principal')->create(['college_id' => $principalCollege->id]);
-    Teacher::query()->create(['college_id' => $principalCollege->id, 'college_code' => $principalCollege->code, 'name' => 'Own College Teacher', 'subject' => 'Physics']);
-    Teacher::query()->create(['college_id' => $otherCollege->id, 'college_code' => $otherCollege->code, 'name' => 'Other College Teacher', 'subject' => 'Chemistry']);
+    $physics = Subject::query()->create(['name' => 'Physics']);
+    $chemistry = Subject::query()->create(['name' => 'Chemistry']);
+    Teacher::query()->create(['college_id' => $principalCollege->id, 'name' => 'Own College Teacher', 'subject_id' => $physics->id]);
+    Teacher::query()->create(['college_id' => $otherCollege->id, 'name' => 'Other College Teacher', 'subject_id' => $chemistry->id]);
 
     Livewire::actingAs($principal)->test(TeacherManagement::class)
         ->assertSee('আমার কলেজের শিক্ষক')
@@ -243,10 +282,15 @@ it('uses the same explicit multi-select behavior in active and trash tables', fu
 
 it('allows every teacher data field to be updated', function () {
     $user = User::factory()->create(['email' => 'old-teacher@example.com', 'mobile_no' => '01799999991']);
+    $oldCollege = College::query()->create(['code' => '100', 'name' => 'Old College']);
+    $updatedCollege = College::query()->create(['code' => '200', 'name' => 'Updated College']);
+    $designation = Designation::query()->create(['name' => 'Assistant Professor']);
+    $subject = Subject::query()->create(['name' => 'Physics']);
+    $teacherLevel = TeacherLevel::query()->create(['name' => 'College']);
+    $employment = Employment::query()->create(['name' => 'Permanent']);
     $teacher = Teacher::query()->create([
         'user_id' => $user->id,
-        'college_code' => '100',
-        'college_name' => 'Old College',
+        'college_id' => $oldCollege->id,
         'name' => 'Old Name',
     ]);
 
@@ -258,9 +302,6 @@ it('allows every teacher data field to be updated', function () {
         'subject' => 'Physics',
         'teacher_level' => 'College',
         'employment_type' => 'Permanent',
-        'ict_training_name' => 'Digital Content',
-        'other_training_name' => 'Management',
-        'training_institute' => 'NAEM',
         'mobile_number' => '01700000000',
         'email' => 'teacher@example.com',
     ];
@@ -272,7 +313,14 @@ it('allows every teacher data field to be updated', function () {
         ->assertHasNoErrors()
         ->assertDispatched('close-edit-modal');
 
-    expect($teacher->refresh()->only(array_keys(collect($updatedData)->except(['mobile_number', 'email'])->all())))->toBe(collect($updatedData)->except(['mobile_number', 'email'])->all())
+    $teacher->refresh();
+
+    expect($teacher->college_id)->toBe($updatedCollege->id)
+        ->and($teacher->designation_id)->toBe($designation->id)
+        ->and($teacher->subject_id)->toBe($subject->id)
+        ->and($teacher->teacher_level_id)->toBe($teacherLevel->id)
+        ->and($teacher->employment_id)->toBe($employment->id)
+        ->and($teacher->name)->toBe('Updated Teacher')
         ->and($user->refresh()->mobile_no)->toBe('01700000000')
         ->and($user->email)->toBe('teacher@example.com');
 });

@@ -33,12 +33,12 @@ class ReferenceDataManagement extends Component
     public ?int $deletingId = null;
     public string $deletingName = '';
 
-    /** @var array<string, array{model: class-string<Model>, title: string, legacy: string, foreign_key: string}> */
+    /** @var array<string, array{model: class-string<Model>, title: string}> */
     private const TYPES = [
-        'subjects' => ['model' => Subject::class, 'title' => 'সাবজেক্ট', 'legacy' => 'subject', 'foreign_key' => 'subject_id'],
-        'designations' => ['model' => Designation::class, 'title' => 'পদবি', 'legacy' => 'designation', 'foreign_key' => 'designation_id'],
-        'teacher-levels' => ['model' => TeacherLevel::class, 'title' => 'শিক্ষক স্তর', 'legacy' => 'teacher_level', 'foreign_key' => 'teacher_level_id'],
-        'employments' => ['model' => Employment::class, 'title' => 'চাকরির ধরন', 'legacy' => 'employment_type', 'foreign_key' => 'employment_id'],
+        'subjects' => ['model' => Subject::class, 'title' => 'সাবজেক্ট'],
+        'designations' => ['model' => Designation::class, 'title' => 'পদবি'],
+        'teacher-levels' => ['model' => TeacherLevel::class, 'title' => 'শিক্ষক স্তর'],
+        'employments' => ['model' => Employment::class, 'title' => 'চাকরির ধরন'],
     ];
 
     public function mount(string $type): void
@@ -84,14 +84,8 @@ class ReferenceDataManagement extends Component
 
         DB::transaction(function () use ($validated, $modelClass): void {
             $record = $this->editingId === null ? new $modelClass : $this->modelQuery()->findOrFail($this->editingId);
-            $oldName = $record->exists ? $record->getAttribute('name') : null;
             $record->fill(['name' => $validated['name'], 'is_active' => $validated['isActive']]);
             $record->save();
-
-            if ($oldName !== null) {
-                $teacherUpdates = [$this->configuration()['legacy'] => $record->getAttribute('name')];
-                DB::table('teacher_profiles')->where($this->configuration()['foreign_key'], $record->getKey())->update($teacherUpdates);
-            }
         });
 
         $this->resetForm();

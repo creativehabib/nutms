@@ -50,7 +50,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
 
     $teacher = Teacher::query()->where('name', 'New Teacher')->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
-        ->and($teacher->college_name)->toBe('Teacher College')
+        ->and($teacher->college->name)->toBe('Teacher College')
         ->and($teacher->ttis_id)->toMatch('/^\d{6}$/')
         ->and($teacher->present_address)->toBe('Present Address')
         ->and($teacher->bank_name)->toBe('Sonali Bank')
