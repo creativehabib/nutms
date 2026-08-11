@@ -36,11 +36,11 @@ class IctTrainingSummary extends Component
                     fn (Collection $teachers): Collection => $teachers->values()->map(
                         fn (Teacher $teacher, int $index): array => [
                             $index + 1,
-                            $teacher->college_code ?? '-',
-                            $teacher->college_name ?? '-',
+                            $teacher->college?->code ?? '-',
+                            $teacher->college?->name ?? '-',
                             $teacher->display_name ?: '-',
                             $this->trainingDetails($teacher),
-                            $teacher->other_training_name ?: 'উল্লেখ নেই',
+                            $teacher->otherTrainings->pluck('name')->implode(', ') ?: 'উল্লেখ নেই',
                             $this->trainingInstitutes($teacher),
                         ],
                     ),
@@ -53,13 +53,13 @@ class IctTrainingSummary extends Component
                     fn (Collection $teachers): Collection => $teachers->values()->map(
                         fn (Teacher $teacher, int $index): array => [
                             $index + 1,
-                            $teacher->college_code ?? '-',
-                            $teacher->college_name ?? '-',
+                            $teacher->college?->code ?? '-',
+                            $teacher->college?->name ?? '-',
                             $teacher->display_name ?: '-',
-                            $teacher->subject ?: 'উল্লেখ নেই',
-                            $teacher->designation ?: 'উল্লেখ নেই',
-                            $teacher->teacher_level ?: 'উল্লেখ নেই',
-                            $teacher->employment_type ?: 'উল্লেখ নেই',
+                            $teacher->subject?->name ?: 'উল্লেখ নেই',
+                            $teacher->designation?->name ?: 'উল্লেখ নেই',
+                            $teacher->teacherLevel?->name ?: 'উল্লেখ নেই',
+                            $teacher->employment?->name ?: 'উল্লেখ নেই',
                             'ট্রেনিং নেই',
                         ],
                     ),
@@ -81,47 +81,33 @@ class IctTrainingSummary extends Component
 
         return view('livewire.ict-training-summary', [
             'teachers' => $teachers,
-            'teachersByCollege' => $teachers->getCollection()->groupBy('college_code'),
+            'teachersByCollege' => $teachers->getCollection()->groupBy('college_id'),
         ])->layout('layouts.app', ['title' => 'ICT Training Summary']);
     }
 
     private function teachersWithIctQuery(): Builder
     {
-        return Teacher::select('id', 'user_id', 'college_code', 'college_name', 'name', 'ict_training_name', 'other_training_name', 'training_institute')
-            ->with(['user:id,name', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
-            ->where(function (Builder $query): void {
-                $query->whereHas('trainingTypes')
-                    ->orWhereHas('otherTrainings')
-                    ->orWhere(function (Builder $query): void {
-                        $query->whereNotNull('ict_training_name')->where('ict_training_name', '!=', '');
-                    });
-            })
-            ->orderBy('college_code')
+        return Teacher::query()
+            ->with(['user:id,name', 'college:id,code,name', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
+            ->where(fn (Builder $query): Builder => $query->whereHas('trainingTypes')->orWhereHas('otherTrainings'))
+            ->orderBy('college_id')
             ->orderBy('name')
             ->orderBy('id');
     }
 
     private function teachersWithoutIctQuery(): Builder
     {
-        return Teacher::select('id', 'user_id', 'college_code', 'college_name', 'name', 'subject', 'designation', 'teacher_level', 'employment_type')
-            ->with('user:id,name')
+        return Teacher::query()
+            ->with(['user:id,name', 'college:id,code,name', 'subject:id,name', 'designation:id,name', 'teacherLevel:id,name', 'employment:id,name'])
             ->doesntHave('trainingTypes')
             ->doesntHave('otherTrainings')
-            ->where(function (Builder $query): void {
-                $query->whereNull('ict_training_name')
-                    ->orWhere('ict_training_name', '');
-            })
-            ->orderBy('college_code')
+            ->orderBy('college_id')
             ->orderBy('name')
             ->orderBy('id');
     }
 
     public function trainingDetails(Teacher $teacher): string
     {
-        if ($teacher->trainingTypes->isEmpty() && $teacher->otherTrainings->isEmpty()) {
-            return $teacher->ict_training_name ?: 'উল্লেখ নেই';
-        }
-
         $units = ['hours' => 'ঘণ্টা', 'days' => 'দিন', 'weeks' => 'সপ্তাহ', 'months' => 'মাস'];
 
         $catalogTrainings = $teacher->trainingTypes->map(function (TrainingType $trainingType) use ($units): string {
@@ -144,10 +130,6 @@ class IctTrainingSummary extends Component
 
     public function trainingInstitutes(Teacher $teacher): string
     {
-        if ($teacher->trainingTypes->isEmpty() && $teacher->otherTrainings->isEmpty()) {
-            return $teacher->training_institute ?: 'উল্লেখ নেই';
-        }
-
         return $teacher->trainingTypes->pluck('trainingInstitute.name')
             ->concat($teacher->otherTrainings->map(fn (TeacherOtherTraining $training): ?string => $training->trainingInstitute?->name ?? $training->institute_name))
             ->filter()->unique()->implode(', ');
@@ -160,7 +142,7 @@ class IctTrainingSummary extends Component
     {
         return $this->teachersWithIctQuery()
             ->get()
-            ->groupBy('college_code');
+            ->groupBy('college_id');
     }
 
     /**
@@ -170,6 +152,6 @@ class IctTrainingSummary extends Component
     {
         return $this->teachersWithoutIctQuery()
             ->get()
-            ->groupBy('college_code');
+            ->groupBy('college_id');
     }
 }

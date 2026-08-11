@@ -17,8 +17,29 @@ class Teacher extends Model
 
     protected $table = 'teacher_profiles';
 
-    // কোনো কলামই প্রোটেক্টেড নয়, সব কলামে ডেটা ইনসার্ট করা যাবে
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'college_id',
+        'ttis_id',
+        'name',
+        'birth_date',
+        'designation_id',
+        'subject_id',
+        'teacher_level_id',
+        'employment_id',
+        'division_id',
+        'district_id',
+        'thana_id',
+        'present_address',
+        'permanent_address',
+        'bank_name',
+        'bank_branch_name',
+        'bank_account_number',
+        'bank_routing_number',
+        'approval_status',
+        'approved_by',
+        'approved_at',
+    ];
 
     protected function casts(): array
     {
@@ -40,31 +61,6 @@ class Teacher extends Model
 
     protected static function booted(): void
     {
-        static::saving(function (Teacher $teacher): void {
-            if ($teacher->isDirty('subject')) {
-                $teacher->subject_id = filled($teacher->subject) ? Subject::query()->firstOrCreate(['name' => $teacher->subject])->id : null;
-            }
-            if ($teacher->isDirty('designation')) {
-                $teacher->designation_id = filled($teacher->designation) ? Designation::query()->firstOrCreate(['name' => $teacher->designation])->id : null;
-            }
-            if ($teacher->isDirty('teacher_level')) {
-                $teacher->teacher_level_id = filled($teacher->teacher_level) ? TeacherLevel::query()->firstOrCreate(['name' => $teacher->teacher_level])->id : null;
-            }
-            if ($teacher->isDirty('employment_type')) {
-                $teacher->employment_id = filled($teacher->employment_type) ? Employment::query()->firstOrCreate(['name' => $teacher->employment_type])->id : null;
-            }
-
-            if (($teacher->isDirty('college_code') || $teacher->isDirty('college_name')) && (filled($teacher->college_code) || filled($teacher->college_name))) {
-                $college = College::query()->firstOrCreate(
-                    filled($teacher->college_code) ? ['code' => $teacher->college_code] : ['name' => $teacher->college_name],
-                    ['name' => $teacher->college_name ?: $teacher->college_code],
-                );
-                $teacher->college_id = $college->id;
-            } elseif ($teacher->isDirty('college_code') || $teacher->isDirty('college_name')) {
-                $teacher->college_id = null;
-            }
-        });
-
         static::creating(function (Teacher $teacher): void {
             if (blank($teacher->ttis_id)) {
                 $teacher->ttis_id = self::generateTtisId();
@@ -92,12 +88,12 @@ class Teacher extends Model
 
     public function subject(): BelongsTo
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(Subject::class, 'subject_id');
     }
 
     public function designation(): BelongsTo
     {
-        return $this->belongsTo(Designation::class);
+        return $this->belongsTo(Designation::class, 'designation_id');
     }
 
     public function college(): BelongsTo
@@ -107,12 +103,12 @@ class Teacher extends Model
 
     public function teacherLevel(): BelongsTo
     {
-        return $this->belongsTo(TeacherLevel::class);
+        return $this->belongsTo(TeacherLevel::class, 'teacher_level_id');
     }
 
     public function employment(): BelongsTo
     {
-        return $this->belongsTo(Employment::class);
+        return $this->belongsTo(Employment::class, 'employment_id');
     }
 
     public function trainingTypes(): BelongsToMany

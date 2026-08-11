@@ -2,6 +2,8 @@
 
 use App\Enums\ApprovalStatus;
 use App\Models\College;
+use App\Models\Designation;
+use App\Models\Subject;
 use App\Models\SystemSetting;
 use App\Models\Teacher;
 use App\Models\TrainingInstitute;
@@ -48,18 +50,15 @@ test('dashboard shows college lab and ICT training report totals', function () {
     $trainedTeacher = Teacher::query()->create([
         'name' => 'Trained Teacher',
         'college_id' => $collegeWithLab->id,
-        'college_code' => $collegeWithLab->code,
     ]);
     $trainedTeacher->trainingTypes()->attach($training->id, ['training_year' => now()->year]);
     Teacher::query()->create([
         'name' => 'Second Teacher In Same College',
         'college_id' => $collegeWithLab->id,
-        'college_code' => $collegeWithLab->code,
     ]);
     Teacher::query()->create([
         'name' => 'Teacher Without Training',
         'college_id' => $collegeWithoutLab->id,
-        'college_code' => $collegeWithoutLab->code,
     ]);
 
     $response = $this->actingAs($user)->get(route('dashboard'));
@@ -117,9 +116,11 @@ test('principal dashboard summarizes subjects trainings and retirement dates', f
     SystemSetting::query()->updateOrCreate(['key' => SystemSetting::RETIREMENT_AGE], ['value' => '59']);
     $college = College::query()->create(['name' => 'Analytics College', 'approval_status' => ApprovalStatus::Approved]);
     $principal = User::factory()->withRole('principal')->create(['college_id' => $college->id, 'approval_status' => ApprovalStatus::Approved]);
-    $retired = Teacher::query()->create(['college_id' => $college->id, 'name' => 'Retired Teacher', 'subject' => 'Physics', 'birth_date' => now()->subYears(60), 'approval_status' => ApprovalStatus::Approved]);
-    $upcoming = Teacher::query()->create(['college_id' => $college->id, 'name' => 'Upcoming Teacher', 'subject' => 'Physics', 'birth_date' => now()->subYears(58)->subMonths(6), 'approval_status' => ApprovalStatus::Approved]);
-    Teacher::query()->create(['college_id' => $college->id, 'name' => 'No Birth Date Teacher', 'subject' => 'Chemistry', 'approval_status' => ApprovalStatus::Approved]);
+    $physics = Subject::query()->create(['name' => 'Physics']);
+    $chemistry = Subject::query()->create(['name' => 'Chemistry']);
+    $retired = Teacher::query()->create(['college_id' => $college->id, 'name' => 'Retired Teacher', 'subject_id' => $physics->id, 'birth_date' => now()->subYears(60), 'approval_status' => ApprovalStatus::Approved]);
+    $upcoming = Teacher::query()->create(['college_id' => $college->id, 'name' => 'Upcoming Teacher', 'subject_id' => $physics->id, 'birth_date' => now()->subYears(58)->subMonths(6), 'approval_status' => ApprovalStatus::Approved]);
+    Teacher::query()->create(['college_id' => $college->id, 'name' => 'No Birth Date Teacher', 'subject_id' => $chemistry->id, 'approval_status' => ApprovalStatus::Approved]);
     $institute = TrainingInstitute::query()->create(['name' => 'Dashboard Institute']);
     $training = TrainingType::query()->create(['training_institute_id' => $institute->id, 'name' => 'Digital Content', 'duration_value' => 5, 'duration_unit' => 'days']);
     $retired->trainingTypes()->attach($training->id, ['training_year' => now()->year]);
@@ -179,13 +180,15 @@ test('teacher dashboard shows personal retirement training and update informatio
     SystemSetting::query()->updateOrCreate(['key' => SystemSetting::RETIREMENT_AGE], ['value' => '59']);
     $college = College::query()->create(['name' => 'Teacher Dashboard College']);
     $user = User::factory()->withRole('teacher')->create(['college_id' => $college->id]);
+    $subject = Subject::query()->create(['name' => 'Mathematics']);
+    $designation = Designation::query()->create(['name' => 'Lecturer']);
     $profile = Teacher::query()->create([
         'user_id' => $user->id,
         'college_id' => $college->id,
         'name' => 'Dashboard Teacher',
         'birth_date' => '1990-01-15',
-        'subject' => 'Mathematics',
-        'designation' => 'Lecturer',
+        'subject_id' => $subject->id,
+        'designation_id' => $designation->id,
         'approval_status' => ApprovalStatus::Approved,
     ]);
     $profile->forceFill(['updated_at' => Carbon::parse('2026-07-30 14:30:00')])->saveQuietly();

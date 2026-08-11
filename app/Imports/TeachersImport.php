@@ -2,8 +2,13 @@
 
 namespace App\Imports;
 
+use App\Models\College;
+use App\Models\Designation;
+use App\Models\Employment;
+use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\TeacherOtherTraining;
+use App\Models\TeacherLevel;
 use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use Illuminate\Support\Collection;
@@ -52,15 +57,8 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
                 continue; // ফাঁকা রো স্কিপ করে লুপের পরের লাইনে চলে যাবে
             }
 
-            // কম্পিউটার কাউন্টে স্ট্রিং (Text) থাকলে সেটি যেন ডেটাবেস ক্র্যাশ না করে
-            $computerCount = $row[17 + $offset] ?? null;
-            if (!is_numeric($computerCount)) {
-                $computerCount = null;
-            }
-
             $data = [
-                'college_code'            => $row[0 + $offset] ?? null,
-                'college_name'            => $this->collegeName,
+                'college_code'            => trim((string) ($row[0 + $offset] ?? '')),
                 'ttis_id'                 => $row[3 + $offset] ?? null,
                 'name'                    => $name,
                 'designation'             => $row[5 + $offset] ?? null,
@@ -72,13 +70,31 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
                 'other_training_name'     => $row[12 + $offset] ?? null,
                 'other_training_duration' => $row[13 + $offset] ?? null,
                 'training_institute'      => $row[14 + $offset] ?? null,
-                'has_computer_lab'        => $row[16 + $offset] ?? null,
-                'computer_count'          => $computerCount,
             ];
 
+            $collegeName = $this->collegeName ?: $data['college_code'] ?: 'অনির্ধারিত কলেজ';
+            $college = College::query()->firstOrCreate(
+                $data['college_code'] !== '' ? ['code' => $data['college_code']] : ['name' => $collegeName],
+                ['name' => $collegeName],
+            );
+
             $teacherData = collect($data)->except([
+                'college_code',
+                'designation',
+                'subject',
+                'teacher_level',
+                'employment_type',
+                'ict_training_name',
                 'ict_training_duration',
+                'other_training_name',
                 'other_training_duration',
+                'training_institute',
+            ])->merge([
+                'college_id' => $college->id,
+                'designation_id' => filled($data['designation']) ? Designation::query()->firstOrCreate(['name' => $data['designation']])->id : null,
+                'subject_id' => filled($data['subject']) ? Subject::query()->firstOrCreate(['name' => $data['subject']])->id : null,
+                'teacher_level_id' => filled($data['teacher_level']) ? TeacherLevel::query()->firstOrCreate(['name' => $data['teacher_level']])->id : null,
+                'employment_id' => filled($data['employment_type']) ? Employment::query()->firstOrCreate(['name' => $data['employment_type']])->id : null,
             ])->all();
 
             // ডেটা সেভ বা আপডেট করা
@@ -86,8 +102,8 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
                 ? ['ttis_id' => $data['ttis_id']]
                 : [
                     'name' => $name,
-                    'subject' => $data['subject'],
-                    'college_name' => $this->collegeName,
+                    'subject_id' => $teacherData['subject_id'],
+                    'college_id' => $college->id,
                 ];
 
             $teacher = Teacher::updateOrCreate($teacherIdentity, $teacherData);

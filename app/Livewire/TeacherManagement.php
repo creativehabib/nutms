@@ -62,9 +62,6 @@ class TeacherManagement extends Component
         'subject' => '',
         'teacher_level' => '',
         'employment_type' => '',
-        'ict_training_name' => '',
-        'other_training_name' => '',
-        'training_institute' => '',
         'mobile_number' => '',
         'email' => '',
     ];
@@ -433,16 +430,13 @@ class TeacherManagement extends Component
 
         // ফর্মের ইনপুটে বর্তমান ডেটা সেট করা
         $this->editForm = [
-            'college_code' => $teacher->college_code,
-            'college_name' => $teacher->college_name,
+            'college_code' => $teacher->college?->code,
+            'college_name' => $teacher->college?->name,
             'name' => $teacher->display_name,
-            'designation' => $teacher->designation,
-            'subject' => $teacher->subject,
-            'teacher_level' => $teacher->teacher_level,
-            'employment_type' => $teacher->employment_type,
-            'ict_training_name' => $teacher->ict_training_name,
-            'other_training_name' => $teacher->other_training_name,
-            'training_institute' => $teacher->training_institute,
+            'designation' => $teacher->designation?->name,
+            'subject' => $teacher->subject?->name,
+            'teacher_level' => $teacher->teacherLevel?->name,
+            'employment_type' => $teacher->employment?->name,
             'mobile_number' => $teacher->user?->mobile_no,
             'email' => $teacher->user?->email,
         ];
@@ -489,9 +483,6 @@ class TeacherManagement extends Component
                 'editForm.subject' => 'nullable|string|max:255',
                 'editForm.teacher_level' => ['nullable', 'string', 'max:255'],
                 'editForm.employment_type' => ['nullable', 'string', 'max:255'],
-                'editForm.ict_training_name' => ['nullable', 'string'],
-                'editForm.other_training_name' => ['nullable', 'string'],
-                'editForm.training_institute' => ['nullable', 'string'],
                 'editForm.mobile_number' => ['nullable', 'string', 'max:50', Rule::unique('users', 'mobile_no')->ignore($this->accessibleTeachersQuery()->whereKey($this->editingId)->value('user_id'))],
                 'editForm.email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->accessibleTeachersQuery()->whereKey($this->editingId)->value('user_id'))],
                 'trainingEntries' => ['array'],
@@ -556,8 +547,22 @@ class TeacherManagement extends Component
                 $teacherData['designation_id'] = Designation::query()->where('name', $teacherData['designation'])->value('id');
                 $teacherData['teacher_level_id'] = TeacherLevel::query()->where('name', $teacherData['teacher_level'])->value('id');
                 $teacherData['employment_id'] = Employment::query()->where('name', $teacherData['employment_type'])->value('id');
-                $teacherData['college_id'] = College::query()->where('code', $teacherData['college_code'])
-                    ->orWhere('name', $teacherData['college_name'])->value('id');
+                $collegeCode = trim((string) $teacherData['college_code']);
+                $collegeName = trim((string) $teacherData['college_name']);
+                $teacherData['college_id'] = $collegeCode === '' && $collegeName === ''
+                    ? null
+                    : College::query()->firstOrCreate(
+                        $collegeCode !== '' ? ['code' => $collegeCode] : ['name' => $collegeName],
+                        ['name' => $collegeName !== '' ? $collegeName : $collegeCode],
+                    )->id;
+                unset(
+                    $teacherData['college_code'],
+                    $teacherData['college_name'],
+                    $teacherData['subject'],
+                    $teacherData['designation'],
+                    $teacherData['teacher_level'],
+                    $teacherData['employment_type'],
+                );
                 $teacher->update($teacherData);
 
                 if ($teacher->user_id !== null) {
@@ -599,10 +604,16 @@ class TeacherManagement extends Component
         $query = $this->filteredTeachersQuery();
         $subjects = $isAdmin
             ? Subject::query()->where('is_active', true)->orderBy('name')->pluck('name')
-            : $this->accessibleTeachersQuery()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->orderBy('subject')->pluck('subject');
+            : Subject::query()->whereHas('teachers', fn (Builder $query): Builder => $query->whereIn('id', $this->accessibleTeachersQuery()->select('id')))
+                ->orderBy('name')->pluck('name');
 
         return view('livewire.teacher-management', [
-            'teachers' => $query->with('user:id,name,email,mobile_no,picture')->latest()->paginate(10),
+            'teachers' => $query->with([
+                'user:id,name,email,mobile_no,picture',
+                'college:id,code,name',
+                'subject:id,name',
+                'designation:id,name',
+            ])->latest()->paginate(10),
             'isAdmin' => $isAdmin,
             'collegeCount' => $isAdmin ? (clone $query)->whereNotNull('college_id')->distinct()->count('college_id') : null,
             'subjects' => $subjects,
@@ -664,8 +675,6 @@ class TeacherManagement extends Component
                     ->orWhereHas('user', fn (Builder $userQuery): Builder => $userQuery
                         ->where('email', 'like', $searchPattern)
                         ->orWhere('mobile_no', 'like', $searchPattern))
-                    ->orWhere('college_code', 'like', $searchPattern)
-                    ->orWhere('college_name', 'like', $searchPattern)
                     ->orWhereHas('college', fn (Builder $collegeQuery): Builder => $collegeQuery
                         ->where('name', 'like', $searchPattern)
                         ->orWhere('code', 'like', $searchPattern));
@@ -674,12 +683,12 @@ class TeacherManagement extends Component
 
         // বিষয় অনুযায়ী ফিল্টার
         if ($this->subjectFilter !== '') {
-            $query->where('subject', $this->subjectFilter);
+            $query->whereHas('subject', fn (Builder $subjectQuery): Builder => $subjectQuery->where('name', $this->subjectFilter));
         }
 
         // কলেজ কোড অনুযায়ী ফিল্টার
         if (auth()->user()->isAdmin() && $this->collegeCodeFilter !== '') {
-            $query->where('college_code', $this->collegeCodeFilter);
+            $query->whereHas('college', fn (Builder $collegeQuery): Builder => $collegeQuery->where('code', $this->collegeCodeFilter));
         }
 
         return $query;

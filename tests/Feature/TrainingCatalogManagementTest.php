@@ -130,7 +130,7 @@ it('uses the existing teacher training pivot table from both relationship direct
 it('shows normalized training, completion year, and duration in the training summary', function () {
     $institute = TrainingInstitute::query()->create(['name' => 'NAEM']);
     $trainingType = TrainingType::query()->create(['training_institute_id' => $institute->id, 'name' => 'Digital Content', 'duration_value' => 10, 'duration_unit' => 'days']);
-    $teacher = Teacher::query()->create(['name' => 'Trained Teacher', 'college_code' => '1001']);
+    $teacher = Teacher::query()->create(['name' => 'Trained Teacher']);
     $teacher->trainingTypes()->attach($trainingType->id, ['training_year' => 2025]);
 
     Livewire::test(IctTrainingSummary::class)
