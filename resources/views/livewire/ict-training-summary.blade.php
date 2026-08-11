@@ -48,11 +48,11 @@
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 text-sm">
                         <!-- College group loop -->
-                        @forelse ($teachersByCollege as $collegeCode => $collegeTeachers)
+                        @forelse ($teachersByCollege as $collegeId => $collegeTeachers)
                             <!-- College header row -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
                                 <td colspan="5" class="px-4 py-2 font-bold text-indigo-800 dark:text-indigo-300 border text-center college-header text-base">
-                                    College code: {{ $collegeCode }} - {{ $collegeTeachers->first()->college_name ?? __('No records found') }}
+                                    College code: {{ $collegeTeachers->first()->college?->code ?? __('Not specified') }} - {{ $collegeTeachers->first()->college?->name ?? __('No records found') }}
                                 </td>
                             </tr>
 
@@ -63,7 +63,7 @@
                                     <td class="px-4 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
                                     <td class="px-4 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->display_name }}</td>
                                     <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $this->trainingDetails($teacher) }}</td>
-                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->other_training_name ?: __('Not provided') }}</td>
+                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->otherTrainings->pluck('name')->implode(', ') ?: __('Not provided') }}</td>
                                     <td class="px-4 py-3 text-gray-600 dark:text-slate-400 border text-xs">{{ $this->trainingInstitutes($teacher) }}</td>
                                 </tr>
                             @endforeach
@@ -96,11 +96,11 @@
                         </thead>
                         <tbody class="bg-white dark:bg-slate-900 text-sm">
                         <!-- College group loop -->
-                        @forelse ($teachersByCollege as $collegeCode => $collegeTeachers)
+                        @forelse ($teachersByCollege as $collegeId => $collegeTeachers)
                             <!-- College header row -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
                                 <td colspan="7" class="px-4 py-2 font-bold text-red-800 dark:text-red-300 border text-center college-header text-base">
-                                    College code: {{ $collegeCode }} - {{ $collegeTeachers->first()->college_name ?? __('No records found') }}
+                                    College code: {{ $collegeTeachers->first()->college?->code ?? __('Not specified') }} - {{ $collegeTeachers->first()->college?->name ?? __('No records found') }}
                                 </td>
                             </tr>
 
@@ -110,10 +110,10 @@
                                 <tr class="hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
                                     <td class="px-6 py-3 text-center text-gray-900 dark:text-slate-100 border">{{ $rowNumber++ }}</td>
                                     <td class="px-6 py-3 font-bold text-gray-800 dark:text-slate-200 border">{{ $teacher->display_name }}</td>
-                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->subject ?: __('Not provided') }}</td>
-                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->designation ?: __('Not provided') }}</td>
-                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->teacher_level ?: __('Not provided') }}</td>
-                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->employment_type ?: __('Not provided') }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->teachingSubject?->name ?: __('Not provided') }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->jobDesignation?->name ?: __('Not provided') }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->teacherLevel?->name ?: __('Not provided') }}</td>
+                                    <td class="px-6 py-3 text-gray-700 dark:text-slate-300 border">{{ $teacher->employment?->name ?: __('Not provided') }}</td>
                                     <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600">{{ __('No training') }}</td>
                                 </tr>
                             @endforeach

@@ -68,27 +68,27 @@
                 <tr>
                     <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('College Name') }}</th>
                     <td colspan="3" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->college?->name ?: $teacher->college_name ?: __('Not specified') }}
+                        {{ $teacher->college?->name ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
                     <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Designation') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->designation ?: __('Not specified') }}
+                        {{ $teacher->jobDesignation?->name ?: __('Not specified') }}
                     </td>
                     <th class="w-[20%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Subject') }}</th>
                     <td class="w-[30%] border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->subject ?: __('Not specified') }}
+                        {{ $teacher->teachingSubject?->name ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
                     <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Teacher Level') }}</th>
                     <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->teacher_level ?: __('Not specified') }}
+                        {{ $teacher->teacherLevel?->name ?: __('Not specified') }}
                     </td>
                     <th class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 print-bg-transparent text-zinc-700 dark:text-zinc-300 print-text font-semibold">{{ __('Employment Type') }}</th>
                     <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text">
-                        {{ $teacher->employment_type ?: __('Not specified') }}
+                        {{ $teacher->employment?->name ?: __('Not specified') }}
                     </td>
                 </tr>
                 <tr>
@@ -194,21 +194,11 @@
                 </tr>
                 </thead>
                 <tbody>
-                @if($teacher->trainingTypes->isEmpty() && $teacher->otherTrainings->isEmpty() && empty($teacher->ict_training_name))
+                @if($teacher->trainingTypes->isEmpty() && $teacher->otherTrainings->isEmpty())
                     <tr>
                         <td colspan="4" class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-6 text-center text-zinc-500 print-text">{{ __('No training records have been added yet.') }}</td>
                     </tr>
                 @else
-                    <!-- Legacy ICT Training -->
-                    @if($teacher->ict_training_name)
-                        <tr>
-                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-900 dark:text-zinc-100 print-text font-medium">{{ $teacher->ict_training_name }}</td>
-                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $teacher->training_institute ?: __('Not specified') }}</td>
-                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text">{{ $teacher->ict_training_duration ?: __('Not specified') }}</td>
-                            <td class="border border-zinc-300 dark:border-zinc-700 print-border px-4 py-2.5 text-zinc-800 dark:text-zinc-200 print-text text-center">{{ $teacher->training_year ?: '—' }}</td>
-                        </tr>
-                    @endif
-
                     <!-- Catalog Trainings -->
                     @foreach($teacher->trainingTypes as $training)
                         <tr>

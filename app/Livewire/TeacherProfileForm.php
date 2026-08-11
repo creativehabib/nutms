@@ -104,10 +104,10 @@ class TeacherProfileForm extends Component
             $this->ttisId = (string) ($teacher->ttis_id ?? '');
             $this->name = $teacher->display_name;
             $this->birthDate = $teacher->birth_date?->format('Y-m-d') ?? '';
-            $this->designation = (string) ($teacher->designation ?? '');
-            $this->subject = (string) ($teacher->subject ?? '');
-            $this->teacherLevel = (string) ($teacher->teacher_level ?? '');
-            $this->employmentType = (string) ($teacher->employment_type ?? '');
+            $this->designation = (string) ($teacher->jobDesignation?->name ?? '');
+            $this->subject = (string) ($teacher->teachingSubject?->name ?? '');
+            $this->teacherLevel = (string) ($teacher->teacherLevel?->name ?? '');
+            $this->employmentType = (string) ($teacher->employment?->name ?? '');
             $this->divisionId = (string) ($teacher->division_id ?? '');
             $this->districtId = (string) ($teacher->district_id ?? '');
             $this->thanaId = (string) ($teacher->thana_id ?? '');
@@ -420,10 +420,12 @@ class TeacherProfileForm extends Component
             }
 
             $teacher = Teacher::query()->updateOrCreate(['id' => $this->editingId], [
-                'college_id' => $college->id, 'college_code' => $college->code, 'college_name' => $college->name,
-                'name' => $validated['name'], 'birth_date' => $validated['birthDate'] ?: null, 'designation' => $validated['designation'] ?: null,
-                'subject' => $validated['subject'] ?: null, 'teacher_level' => $validated['teacherLevel'] ?: null,
-                'employment_type' => $validated['employmentType'] ?: null,
+                'college_id' => $college->id,
+                'name' => $validated['name'], 'birth_date' => $validated['birthDate'] ?: null,
+                'designation_id' => filled($validated['designation']) ? Designation::query()->where('name', $validated['designation'])->value('id') : null,
+                'subject_id' => filled($validated['subject']) ? Subject::query()->where('name', $validated['subject'])->value('id') : null,
+                'teacher_level_id' => filled($validated['teacherLevel']) ? TeacherLevel::query()->where('name', $validated['teacherLevel'])->value('id') : null,
+                'employment_id' => filled($validated['employmentType']) ? Employment::query()->where('name', $validated['employmentType'])->value('id') : null,
                 'division_id' => $validated['divisionId'] ?: null, 'district_id' => $validated['districtId'] ?: null, 'thana_id' => $validated['thanaId'] ?: null,
                 'present_address' => $validated['presentAddress'] ?: null, 'permanent_address' => $validated['permanentAddress'] ?: null,
                 'bank_name' => $validated['bankName'] ?: null, 'bank_branch_name' => $validated['bankBranchName'] ?: null,

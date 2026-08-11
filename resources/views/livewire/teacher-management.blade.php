@@ -168,8 +168,8 @@
                                 </flux:table.cell>
 
                             <flux:table.cell>
-                                <span class="block font-medium text-zinc-800 dark:text-zinc-200">{{ $teacher->designation }}</span>
-                                <span class="block text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ $teacher->subject }}</span>
+                                <span class="block font-medium text-zinc-800 dark:text-zinc-200">{{ $teacher->jobDesignation?->name }}</span>
+                                <span class="block text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ $teacher->teachingSubject?->name }}</span>
                             </flux:table.cell>
 
                             <flux:table.cell>

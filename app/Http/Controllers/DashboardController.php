@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\College;
+use App\Models\Subject;
 use App\Models\SystemSetting;
 use App\Models\Teacher;
 use App\Models\TeacherOtherTraining;
@@ -32,8 +33,7 @@ class DashboardController extends Controller
         $totalTeachers = (clone $teacherQuery)->count();
         $teachersWithIctTraining = (clone $teacherQuery)->where(function ($query): void {
             $query->whereHas('trainingTypes')
-                ->orWhereHas('otherTrainings')
-                ->orWhere(fn ($query) => $query->whereNotNull('ict_training_name')->where('ict_training_name', '!=', ''));
+                ->orWhereHas('otherTrainings');
         })->count();
         $lastUpdatedAt = (clone $teacherQuery)->max('updated_at');
 
@@ -92,8 +92,10 @@ class DashboardController extends Controller
             'retired' => $retirementRows->filter(fn (array $row): bool => $row['retirement_date']->lte($today))->sortBy('retirement_date')->values(),
             'upcomingRetirements' => $retirementRows->filter(fn (array $row): bool => $row['retirement_date']->gt($today) && $row['retirement_date']->lte($today->copy()->addYear()))->sortBy('retirement_date')->values(),
             'missingBirthDates' => Teacher::query()->where('college_id', $collegeId)->whereNull('birth_date')->count(),
-            'subjects' => Teacher::query()->where('college_id', $collegeId)->whereNotNull('subject')->where('subject', '!=', '')
-                ->selectRaw('subject, COUNT(*) as teachers_count')->groupBy('subject')->orderBy('subject')->get(),
+            'subjects' => Subject::query()
+                ->whereHas('teachers', fn ($query) => $query->where('college_id', $collegeId))
+                ->withCount(['teachers' => fn ($query) => $query->where('college_id', $collegeId)])
+                ->orderBy('name')->get(),
             'trainings' => $catalogTrainings->concat($otherTrainings)->groupBy('name')->map(fn ($rows, string $name): array => ['name' => $name, 'count' => $rows->sum('count')])->values(),
         ];
     }
@@ -102,7 +104,7 @@ class DashboardController extends Controller
     private function teacherStats(): ?array
     {
         $teacher = Teacher::query()
-            ->with(['user', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
+            ->with(['user', 'teachingSubject', 'jobDesignation', 'teacherLevel', 'employment', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
             ->where('user_id', auth()->id())
             ->first();
 
@@ -134,10 +136,10 @@ class DashboardController extends Controller
             'কলেজ' => $teacher->college_id,
             'নাম' => $teacher->display_name,
             'জন্ম তারিখ' => $teacher->birth_date,
-            'পদবি' => $teacher->designation,
-            'বিষয়' => $teacher->subject,
-            'শিক্ষক স্তর' => $teacher->teacher_level,
-            'চাকরির ধরন' => $teacher->employment_type,
+            'পদবি' => $teacher->jobDesignation?->name,
+            'বিষয়' => $teacher->teachingSubject?->name,
+            'শিক্ষক স্তর' => $teacher->teacherLevel?->name,
+            'চাকরির ধরন' => $teacher->employment?->name,
             'বিভাগ' => $teacher->division_id,
             'জেলা' => $teacher->district_id,
             'থানা' => $teacher->thana_id,
@@ -178,17 +180,8 @@ class DashboardController extends Controller
             'year' => $training->training_year,
         ]);
 
-        $legacyTrainings = collect([$teacher->ict_training_name, $teacher->other_training_name])
-            ->filter()
-            ->map(fn (string $name): array => [
-                'name' => $name,
-                'institute' => $teacher->training_institute,
-                'year' => null,
-            ]);
-
         return $catalogTrainings
             ->concat($otherTrainings)
-            ->concat($legacyTrainings)
             ->unique(fn (array $training): string => mb_strtolower($training['name']).'|'.$training['year'])
             ->sortByDesc('year')
             ->values();
