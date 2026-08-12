@@ -9,7 +9,7 @@ test('college lab summary paginates colleges and only loads the active tab', fun
     foreach (range(1, 51) as $index) {
         College::query()->create([
             'name' => "Lab College {$index}",
-            'code' => (string) (1000 + $index),
+            'college_code' => (string) (1000 + $index),
             'has_computer_lab' => true,
             'is_active' => true,
         ]);
@@ -17,7 +17,7 @@ test('college lab summary paginates colleges and only loads the active tab', fun
 
     College::query()->create([
         'name' => 'College Without Lab',
-        'code' => '2000',
+        'college_code' => '2000',
         'has_computer_lab' => false,
         'is_active' => true,
     ]);
@@ -36,7 +36,7 @@ test('each college lab tab can be exported to its own spreadsheet', function (st
 
     College::query()->create([
         'name' => 'Export College',
-        'code' => '1001',
+        'college_code' => '1001',
         'has_computer_lab' => $hasComputerLab,
         'desktop_count' => $hasComputerLab ? 12 : 0,
         'laptop_count' => $hasComputerLab ? 8 : 0,
@@ -54,7 +54,7 @@ test('each college lab tab can be exported to its own spreadsheet', function (st
 test('college lab summary uses the canonical college lab status and computer counts', function () {
     College::query()->create([
         'name' => 'Canonical Lab College',
-        'code' => 'LAB-01',
+        'college_code' => 'LAB-01',
         'has_computer_lab' => true,
         'desktop_count' => 12,
         'laptop_count' => 8,
@@ -63,7 +63,7 @@ test('college lab summary uses the canonical college lab status and computer cou
 
     College::query()->create([
         'name' => 'Canonical No Lab College',
-        'code' => 'NO-LAB-01',
+        'college_code' => 'NO-LAB-01',
         'has_computer_lab' => false,
         'desktop_count' => 99,
         'laptop_count' => 99,
@@ -72,7 +72,7 @@ test('college lab summary uses the canonical college lab status and computer cou
 
     College::query()->create([
         'name' => 'Inactive Lab College',
-        'code' => 'INACTIVE-01',
+        'college_code' => 'INACTIVE-01',
         'has_computer_lab' => true,
         'is_active' => false,
     ]);

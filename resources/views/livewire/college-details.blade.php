@@ -47,7 +47,7 @@
                 </flux:heading>
                 <div class="flex items-center gap-2 mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                     <span>{{ __('College code') }}:</span>
-                    <span class="font-mono font-medium text-zinc-900 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">{{ $college->code ?: __('Not provided') }}</span>
+                    <span class="font-mono font-medium text-zinc-900 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">{{ $college->college_code ?: __('Not provided') }}</span>
                 </div>
             </div>
         </div>
@@ -73,7 +73,7 @@
         <!-- Print Only Header -->
         <div class="hidden print:block text-center mb-6 pb-4 border-b-2 border-black">
             <h1 class="text-2xl font-bold uppercase tracking-wider text-black">{{ $college->name }}</h1>
-            <p class="text-sm mt-1 text-gray-700">College Code: <strong>{{ $college->code ?: 'N/A' }}</strong></p>
+            <p class="text-sm mt-1 text-gray-700">College Code: <strong>{{ $college->college_code ?: 'N/A' }}</strong></p>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-2 print:block print:space-y-6">

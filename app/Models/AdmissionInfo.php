@@ -11,12 +11,11 @@ class AdmissionInfo extends Model
 
     public function collegeInfo(): BelongsTo
     {
-        // AdmissionInfo এর 'college_code' এবং College এর 'code' ম্যাচ করানো হলো
-        return $this->belongsTo(College::class, 'college_code', 'code');
+        return $this->belongsTo(College::class, 'college_code', 'college_code');
     }
 
     public function college(): BelongsTo
     {
-        return $this->belongsTo(College::class, 'college_code', 'code');
+        return $this->belongsTo(College::class, 'college_code', 'college_code');
     }
 }
