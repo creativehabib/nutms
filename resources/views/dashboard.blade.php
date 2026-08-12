@@ -110,6 +110,7 @@
                 <flux:card><flux:heading size="lg">{{ __('Create Teacher Profile') }}</flux:heading><flux:text class="mt-2">{{ __('Start by creating your teacher profile and linking it to your college.') }}</flux:text>@cannot('teachers.update')<flux:callout class="mt-4" variant="warning">{{ __('প্রোফাইলটি তৈরি ও জমা দেওয়ার পর আপনি নিজে আর সম্পাদনা করতে পারবেন না। জমা দেওয়ার আগে সব তথ্য ভালোভাবে যাচাই করুন।') }}</flux:callout>@endcannot @can('teachers.create')<flux:button class="mt-4" variant="primary" :href="route('teachers.create')" wire:navigate>{{ __('Create Profile') }}</flux:button>@else<flux:callout class="mt-4" variant="danger">{{ __('শিক্ষক প্রোফাইল তৈরির অনুমতি আপনার নেই। কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।') }}</flux:callout>@endcan</flux:card>
             @endif
         @elseif(auth()->user()->isAdmin())
+        <livewire:training.training-registration-dashboard />
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <div class="flex items-center justify-between gap-4">
