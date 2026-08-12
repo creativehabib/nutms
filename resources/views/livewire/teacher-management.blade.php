@@ -30,7 +30,7 @@
             </div>
 
             <!-- Filters & Search Grid -->
-            <div @class(['grid gap-4 lg:items-end', 'lg:grid-cols-[1.5fr_1fr_1fr_auto]' => $isAdmin, 'lg:grid-cols-[2fr_1fr]' => ! $isAdmin])>
+            <div @class(['grid gap-4 lg:items-end', 'lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto]' => $isAdmin, 'lg:grid-cols-[2fr_1fr]' => ! $isAdmin])>
 
                 <!-- Search Input -->
                 <div class="w-full">
@@ -61,6 +61,13 @@
                             @foreach($collegeCodes as $code)
                                 <option value="{{ $code }}">{{ $code }}</option>
                             @endforeach
+                        </flux:select>
+                    </div>
+
+                    <div class="w-full">
+                        <flux:select wire:model.live="collegeCodeSort" label="{{ __('College Code Order') }}">
+                            <option value="asc">{{ __('Ascending') }}</option>
+                            <option value="desc">{{ __('Descending') }}</option>
                         </flux:select>
                     </div>
 

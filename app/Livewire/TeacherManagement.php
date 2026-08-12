@@ -35,6 +35,8 @@ class TeacherManagement extends Component
 
     public string $collegeCodeFilter = '';
 
+    public string $collegeCodeSort = 'asc';
+
     /** @var array<int, string> */
     public array $selectedTeacherIds = [];
 
@@ -84,6 +86,15 @@ class TeacherManagement extends Component
     {
         if (auth()->user()->hasRole('principal')) {
             $this->collegeCodeFilter = '';
+        }
+
+        $this->resetFiltersAndSelection();
+    }
+
+    public function updatedCollegeCodeSort(): void
+    {
+        if (! in_array($this->collegeCodeSort, ['asc', 'desc'], true)) {
+            $this->collegeCodeSort = 'asc';
         }
 
         $this->resetFiltersAndSelection();
@@ -613,11 +624,14 @@ class TeacherManagement extends Component
                 'college:id,college_code,name',
                 'subject:id,name',
                 'designation:id,name',
-            ])->latest()->paginate(10),
+            ])->orderBy(
+                College::query()->select('college_code')->whereColumn('colleges.id', 'teachers.college_id'),
+                $this->collegeCodeSort,
+            )->latest('teachers.created_at')->paginate(10),
             'isAdmin' => $isAdmin,
             'collegeCount' => $isAdmin ? (clone $query)->whereNotNull('college_id')->distinct()->count('college_id') : null,
             'subjects' => $subjects,
-            'collegeCodes' => $isAdmin ? College::query()->where('is_active', true)->whereNotNull('college_code')->orderBy('college_code')->pluck('college_code') : collect(),
+            'collegeCodes' => $isAdmin ? College::query()->where('is_active', true)->whereNotNull('college_code')->orderBy('college_code', $this->collegeCodeSort)->pluck('college_code') : collect(),
             'colleges' => College::query()->where('is_active', true)
                 ->when(! $isAdmin, fn (Builder $query): Builder => $query->whereKey($user->college_id))
                 ->orderBy('name')->get(['college_code', 'name']),

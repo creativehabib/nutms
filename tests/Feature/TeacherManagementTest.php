@@ -91,8 +91,8 @@ it('renders a responsive edit form with a blurred backdrop', function () {
 });
 
 it('shows the distinct college count beside the teacher count', function () {
-    $firstCollege = College::query()->create(['code' => '100', 'name' => 'First College']);
-    $secondCollege = College::query()->create(['code' => '200', 'name' => 'Second College']);
+    $firstCollege = College::query()->create(['college_code' => '100', 'name' => 'First College']);
+    $secondCollege = College::query()->create(['college_code' => '200', 'name' => 'Second College']);
     Teacher::query()->create(['college_id' => $firstCollege->id, 'name' => 'First Teacher']);
     Teacher::query()->create(['college_id' => $firstCollege->id, 'name' => 'Second Teacher']);
     Teacher::query()->create(['college_id' => $secondCollege->id, 'name' => 'Third Teacher']);
@@ -185,7 +185,7 @@ it('lets an admin reject a pending teacher profile from the table actions', func
 
 it('searches teachers by profile, account, and college identifiers', function (string $searchTerm) {
     $college = College::query()->create([
-        'code' => 'COL-SEARCH-01',
+        'college_code' => 'COL-SEARCH-01',
         'name' => 'Searchable College',
         'approval_status' => ApprovalStatus::Approved,
     ]);
@@ -227,9 +227,26 @@ it('clears teacher search and filters together', function () {
         ->assertDontSee('সক্রিয় সার্চ বা ফিল্টার অনুযায়ী ফলাফল দেখানো হচ্ছে।');
 });
 
+it('sorts teachers and the college code filter in either direction', function () {
+    $lowerCodeCollege = College::query()->create(['college_code' => '100', 'name' => 'Lower Code College']);
+    $higherCodeCollege = College::query()->create(['college_code' => '900', 'name' => 'Higher Code College']);
+    Teacher::query()->create(['college_id' => $higherCodeCollege->id, 'name' => 'Higher Code Teacher']);
+    Teacher::query()->create(['college_id' => $lowerCodeCollege->id, 'name' => 'Lower Code Teacher']);
+
+    Livewire::test(TeacherManagement::class)
+        ->assertSet('collegeCodeSort', 'asc')
+        ->assertSeeInOrder(['100', '900'])
+        ->assertSeeInOrder(['Lower Code Teacher', 'Higher Code Teacher'])
+        ->set('collegeCodeSort', 'desc')
+        ->assertSeeInOrder(['900', '100'])
+        ->assertSeeInOrder(['Higher Code Teacher', 'Lower Code Teacher'])
+        ->set('collegeCodeSort', 'invalid')
+        ->assertSet('collegeCodeSort', 'asc');
+});
+
 it('gives principals a college-scoped teacher management interface', function () {
-    $principalCollege = College::query()->create(['code' => 'OWN-001', 'name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
-    $otherCollege = College::query()->create(['code' => 'OTHER-002', 'name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
+    $principalCollege = College::query()->create(['college_code' => 'OWN-001', 'name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
+    $otherCollege = College::query()->create(['college_code' => 'OTHER-002', 'name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
     $principal = User::factory()->withRole('principal')->create(['college_id' => $principalCollege->id]);
     $physics = Subject::query()->create(['name' => 'Physics']);
     $chemistry = Subject::query()->create(['name' => 'Chemistry']);
@@ -290,8 +307,8 @@ it('uses the same explicit multi-select behavior in active and trash tables', fu
 
 it('allows every teacher data field to be updated', function () {
     $user = User::factory()->create(['email' => 'old-teacher@example.com', 'mobile_no' => '01799999991']);
-    $oldCollege = College::query()->create(['code' => '100', 'name' => 'Old College']);
-    $updatedCollege = College::query()->create(['code' => '200', 'name' => 'Updated College']);
+    $oldCollege = College::query()->create(['college_code' => '100', 'name' => 'Old College']);
+    $updatedCollege = College::query()->create(['college_code' => '200', 'name' => 'Updated College']);
     $designation = Designation::query()->create(['name' => 'Assistant Professor']);
     $subject = Subject::query()->create(['name' => 'Physics']);
     $teacherLevel = TeacherLevel::query()->create(['name' => 'College']);

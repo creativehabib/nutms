@@ -52,7 +52,7 @@
                     <flux:select wire:model="collegeId" :label="__('College')" required>
                         <option value="">{{ __('Select a college') }}</option>
                         @foreach($colleges as $college)
-                            <option value="{{ $college->id }}">{{ $college->code ? $college->code.' — ' : '' }}{{ $college->name }}</option>
+                            <option value="{{ $college->id }}">{{ $college->college_code ? $college->college_code.' — ' : '' }}{{ $college->name }}</option>
                         @endforeach
                     </flux:select>
                     <flux:input wire:model="name"  :label="__('Teacher Name')" :placeholder="__('Enter teacher name')" required />

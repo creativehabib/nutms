@@ -35,7 +35,7 @@ class TeacherDataImport extends Component
             $collegeAlreadyImported = Teacher::query()
                 ->withTrashed()
                 ->whereHas('college', fn ($query) => $query
-                    ->when($collegeCode !== '', fn ($query) => $query->where('code', $collegeCode))
+                    ->when($collegeCode !== '', fn ($query) => $query->where('college_code', $collegeCode))
                     ->when($collegeCode === '' && $collegeName, fn ($query) => $query->where('name', $collegeName)))
                 ->exists();
 
