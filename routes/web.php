@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportExportController;
+use App\Http\Controllers\TrainingCertificateController;
 use App\Livewire\Admin\LanguageManager;
 use App\Livewire\AdmissionInfoManager;
 use App\Livewire\AdmissionSummary;
@@ -19,7 +20,10 @@ use App\Livewire\TeacherDetails;
 use App\Livewire\TeacherManagement;
 use App\Livewire\TeacherProfileForm;
 use App\Livewire\TeacherSurveyForm;
+use App\Livewire\Training\MyTrainingCertificates;
 use App\Livewire\Training\TrainingCalendar;
+use App\Livewire\Training\TrainingManagement;
+use App\Livewire\Training\TrainingRegistrationManagement;
 use App\Livewire\TrainingCatalogManagement;
 use App\Models\AdmissionInfo;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +49,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/colleges/{college}/edit', CollegeForm::class)->middleware(['role:admin,principal', 'permission:colleges.update'])->name('colleges.edit');
     Route::get('/colleges/{college}', CollegeDetails::class)->middleware(['role:admin,principal', 'permission:colleges.view'])->name('colleges.show');
     Route::get('/training-catalog', TrainingCatalogManagement::class)->middleware(['role:admin', 'permission:training-catalog.manage'])->name('training-catalog.manage');
+    Route::get('/training-calendar', TrainingCalendar::class)->name('training.calendar');
+    Route::get('/training-management', TrainingManagement::class)->middleware('permission:training-catalog.manage')->name('training.manage');
+    Route::get('/training-registrations', TrainingRegistrationManagement::class)->middleware('permission:training-catalog.manage')->name('training.registrations');
+    Route::get('/my-training-certificates', MyTrainingCertificates::class)->middleware('role:teacher')->name('training.certificates');
+    Route::get('/trainings/{training}/certificate', TrainingCertificateController::class)->name('trainings.certificate');
     Route::get('/lab-summary', CollegeLabSummary::class)->middleware(['role:admin', 'permission:reports.view'])->name('lab.summary');
     Route::get('/ict-training-summary', IctTrainingSummary::class)->middleware(['role:admin', 'permission:reports.view'])->name('ict.summary');
     Route::get('admin/survey/report', SurveyReport::class)->name('admin.survey.report');
@@ -72,8 +81,5 @@ Route::get('/admission/print/{college_code}', function ($college_code) {
 
     return view('pages.admission-print', compact('records', 'collegeInfo', 'totalStudents'));
 })->name('admission.print');
-
-// Teacher Training Calendar
-Route::get('/training-calendar', TrainingCalendar::class)->name('training.calendar');
 
 require __DIR__.'/settings.php';
