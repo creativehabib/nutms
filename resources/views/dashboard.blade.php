@@ -106,27 +106,10 @@
                         @if($teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved && auth()->user()->can('teachers.view'))<flux:button class="mt-6" variant="primary" :href="route('teachers.show', $teacherStats['profile'])" wire:navigate>{{ __('View Profile') }}</flux:button>@endif
                     </flux:card>
                 </div>
-                <flux:card>
-                    <div class="flex items-start justify-between gap-4">
-                        <div><flux:heading size="lg">{{ __('Training Certificates') }}</flux:heading><flux:text class="mt-1">{{ __('Download certificates for your completed trainings.') }}</flux:text></div>
-                        <div class="rounded-lg bg-amber-50 p-2.5 text-amber-600 dark:bg-amber-950 dark:text-amber-300"><flux:icon.trophy class="size-6" /></div>
-                    </div>
-                    <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                        @forelse ($teacherStats['completedTrainingCertificates'] as $certificate)
-                            <div class="flex flex-col justify-between gap-4 rounded-xl border border-zinc-200 p-4 sm:flex-row sm:items-center dark:border-zinc-700">
-                                <div><p class="font-semibold text-zinc-950 dark:text-white">{{ $certificate['name'] }}</p><p class="mt-1 text-xs text-zinc-500">{{ __('Completed') }}: {{ $certificate['completed_at']->format('d M Y') }} · {{ $certificate['certificate_number'] }}</p></div>
-                                <flux:button variant="primary" size="sm" icon="arrow-down-tray" :href="$certificate['download_url']">{{ __('Download Certificate') }}</flux:button>
-                            </div>
-                        @empty
-                            <flux:callout class="sm:col-span-2" variant="info">{{ __('Certificates will appear here after an approved training is marked completed.') }}</flux:callout>
-                        @endforelse
-                    </div>
-                </flux:card>
             @else
                 <flux:card><flux:heading size="lg">{{ __('Create Teacher Profile') }}</flux:heading><flux:text class="mt-2">{{ __('Start by creating your teacher profile and linking it to your college.') }}</flux:text>@cannot('teachers.update')<flux:callout class="mt-4" variant="warning">{{ __('প্রোফাইলটি তৈরি ও জমা দেওয়ার পর আপনি নিজে আর সম্পাদনা করতে পারবেন না। জমা দেওয়ার আগে সব তথ্য ভালোভাবে যাচাই করুন।') }}</flux:callout>@endcannot @can('teachers.create')<flux:button class="mt-4" variant="primary" :href="route('teachers.create')" wire:navigate>{{ __('Create Profile') }}</flux:button>@else<flux:callout class="mt-4" variant="danger">{{ __('শিক্ষক প্রোফাইল তৈরির অনুমতি আপনার নেই। কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।') }}</flux:callout>@endcan</flux:card>
             @endif
         @elseif(auth()->user()->isAdmin())
-        <livewire:training.training-registration-dashboard />
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <div class="flex items-center justify-between gap-4">

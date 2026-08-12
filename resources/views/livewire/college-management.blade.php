@@ -85,8 +85,8 @@
             <flux:table>
                 <flux:table.columns>
                     @if(auth()->user()->isAdmin())
-                        <flux:table.column class="w-12 text-center">
-                            <input type="checkbox" wire:click="toggleSelectAllOnPage" @checked($selectAllOnPage) :aria-label="__('College')" class="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500">
+                        <flux:table.column class="w-12 px-4 py-3">
+                            <flux:checkbox wire:click="toggleSelectAllOnPage" data-teacher-checkbox :checked="$selectAllOnPage" />
                         </flux:table.column>
                     @endif
                     <flux:table.column>{{ __('College') }}</flux:table.column>
@@ -103,8 +103,8 @@
                         <flux:table.row wire:key="college-{{ $college->id }}" class="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors duration-200">
 
                             @if(auth()->user()->isAdmin())
-                                <flux:table.cell class="text-center">
-                                    <input type="checkbox" wire:model.live="selectedCollegeIds" value="{{ $college->id }}" aria-label="{{ $college->name }} select" class="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500">
+                                <flux:table.cell class="px-4 py-3 text-center">
+                                    <flux:checkbox wire:key="college-select-{{ $college->id }}" wire:model.live="selectedCollegeIds" value="{{ $college->id }}" aria-label="{{ $college->name }} select"/>
                                 </flux:table.cell>
                             @endif
 

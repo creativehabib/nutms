@@ -150,7 +150,7 @@
                 @endif
 
                 @can('reference-data.manage')
-                <flux:sidebar.group expandable icon="cog-8-tooth" :heading="__('Academic & Teacher Settings')" expandable :expanded="request()->routeIs('reference-data.manage')" class="grid">
+                <flux:sidebar.group expandable icon="cog-8-tooth" :heading="__('Academic Settings')" expandable :expanded="request()->routeIs('reference-data.manage')" class="grid">
                     <flux:sidebar.item icon="book-open" :href="route('reference-data.manage', 'subjects')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'subjects'" wire:navigate>{{ __('Subjects') }}</flux:sidebar.item>
                     <flux:sidebar.item icon="academic-cap" :href="route('reference-data.manage', 'courses')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'courses'" wire:navigate>{{ __('Courses') }}</flux:sidebar.item>
                     <flux:sidebar.item icon="briefcase" :href="route('reference-data.manage', 'designations')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'designations'" wire:navigate>{{ __('Designation') }}</flux:sidebar.item>
@@ -168,19 +168,18 @@
                         <flux:sidebar.item icon="user-group" :href="route('training.registrations')" :current="request()->routeIs('training.registrations')" wire:navigate>{{ __('Registered Teachers') }}</flux:sidebar.item>
                         <flux:sidebar.item icon="list-bullet" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>{{ __('Training Catalog') }}</flux:sidebar.item>
                     @endcan
-                    @can('reports.view')
-                        <flux:sidebar.item icon="chart-bar" :href="route('ict.summary')" :current="request()->routeIs('ict.summary')" wire:navigate>{{ __('ICT Training Summary') }}</flux:sidebar.item>
-                    @endcan
                 </flux:sidebar.group>
                 @can('roles.manage')
                     <flux:sidebar.item icon="shield-check" :href="route('roles-permissions.manage')" :current="request()->routeIs('roles-permissions.manage')" wire:navigate>{{ __('Roles & Permissions') }}</flux:sidebar.item>
                     <flux:sidebar.item icon="cog-6-tooth" :href="route('system-settings.manage')" :current="request()->routeIs('system-settings.manage')" wire:navigate>{{ __('System Settings') }}</flux:sidebar.item>
                 @endcan
                 @can('reports.view')
-                <flux:sidebar.item icon="computer-desktop" :href="route('lab.summary')" :current="request()->routeIs('lab.summary')" wire:navigate>
-                    {{ __('Lab Summary') }}
-                </flux:sidebar.item>
-
+                    <flux:sidebar.item icon="computer-desktop" :href="route('lab.summary')" :current="request()->routeIs('lab.summary')" wire:navigate>
+                        {{ __('Lab Summary') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="chart-bar" :href="route('ict.summary')" :current="request()->routeIs('ict.summary')" wire:navigate>
+                        {{ __('ICT Training Summary') }}
+                    </flux:sidebar.item>
                 @endcan
                 @if(auth()->user()->isAdmin() )
                     <flux:sidebar.item icon="language" :href="route('admin.language_settings')" :current="request()->routeIs('admin.language_settings')" wire:navigate>
@@ -194,9 +193,6 @@
                         {{ __('Admission Summary') }}
                     </flux:sidebar.item>
                 @endif
-                <flux:sidebar.item :href="route('training.calendar')" :current="request()->routeIs('training.calendar')" wire:navigate icon="rocket-launch">
-                    {{ __('Training Calendar') }}
-                </flux:sidebar.item>
                 @if(auth()->user()->hasRole('principal') && auth()->user()->isApproved())
                     <flux:sidebar.item icon="building-library" :href="route('colleges.show', auth()->user()->college_id)" :current="request()->routeIs('colleges.show', 'colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>{{ __('College Profile') }}</flux:sidebar.item>
                 @elseif(auth()->user()->hasRole('principal'))

@@ -12,7 +12,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <flux:table>
+            <flux:table class="px-4">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Training') }}</flux:table.column>
                     <flux:table.column>{{ __('Schedule') }}</flux:table.column>
