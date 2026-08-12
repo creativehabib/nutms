@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\TrainingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Training extends Model
@@ -13,7 +14,7 @@ class Training extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 'slug', 'description', 'thumbnail', 'start_date', 'end_date',
+        'training_type_id', 'allows_repeat', 'title', 'slug', 'description', 'thumbnail', 'start_date', 'end_date',
         'registration_deadline', 'type', 'location_or_link', 'instructor_name',
         'capacity', 'has_certificate', 'status',
     ];
@@ -26,6 +27,7 @@ class Training extends Model
             'registration_deadline' => 'datetime',
             'has_certificate' => 'boolean',
             'capacity' => 'integer',
+            'allows_repeat' => 'boolean',
         ];
     }
 
@@ -35,6 +37,11 @@ class Training extends Model
         return $this->belongsToMany(User::class)
             ->withPivot(['status', 'approved_by', 'approved_at', 'completed_at', 'certificate_number'])
             ->withTimestamps();
+    }
+
+    public function trainingType(): BelongsTo
+    {
+        return $this->belongsTo(TrainingType::class);
     }
 
     public function googleCalendarUrl(): string

@@ -23,6 +23,15 @@ class UpcomingTrainings extends Component
             ->where('start_date', '>', now())
             ->findOrFail($trainingId);
 
+        if (! $training->allows_repeat && $training->training_type_id !== null && auth()->user()->trainings()
+            ->where('trainings.training_type_id', $training->training_type_id)
+            ->wherePivot('status', 'Completed')
+            ->exists()) {
+            Flux::toast(variant: 'warning', text: __('You have already completed this training.'));
+
+            return;
+        }
+
         if ($training->registration_deadline?->isPast()) {
             Flux::toast(variant: 'warning', text: __('Registration for this training has closed.'));
 

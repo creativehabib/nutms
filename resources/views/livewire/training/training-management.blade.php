@@ -82,7 +82,13 @@
             </div>
 
             <div class="grid max-h-[70vh] gap-5 overflow-y-auto p-6 sm:grid-cols-2">
-                <div class="sm:col-span-2"><flux:input wire:model="title" :label="__('Training title')" required /></div>
+                <div class="sm:col-span-2">
+                    <flux:select wire:model="trainingTypeId" :label="__('Select Training')" :placeholder="__('Choose a training from the catalog')" required>
+                        @foreach ($trainingTypes as $trainingType)
+                            <option value="{{ $trainingType->id }}">{{ $trainingType->name }}{{ $trainingType->trainingInstitute ? ' · '.$trainingType->trainingInstitute->name : '' }}</option>
+                        @endforeach
+                    </flux:select>
+                </div>
                 <div class="sm:col-span-2"><flux:textarea wire:model="description" :label="__('Details')" rows="4" /></div>
                 <flux:input wire:model="startDate" type="datetime-local" :label="__('Start date and time')" required />
                 <flux:input wire:model="endDate" type="datetime-local" :label="__('End date and time')" required />
@@ -90,9 +96,10 @@
                 <flux:select wire:model="type" :label="__('Training type')"><option value="Online">{{ __('Online') }}</option><option value="Offline">{{ __('Offline') }}</option><option value="Hybrid">{{ __('Hybrid') }}</option></flux:select>
                 <flux:input wire:model="instructorName" :label="__('Instructor name')" />
                 <flux:input wire:model="capacity" type="number" min="1" :label="__('Seat capacity')" />
-                <div class="sm:col-span-2"><flux:input wire:model="locationOrLink" :label="__('Venue or meeting link')" /></div>
+                <div class="sm:col-span-2"><flux:input wire:model="locationOrLink" type="url" :label="__('Meeting link')" placeholder="https://" /></div>
                 <flux:select wire:model="status" :label="__('Publication status')">@foreach (['Draft', 'Upcoming', 'Ongoing', 'Completed', 'Canceled'] as $trainingStatus)<option value="{{ $trainingStatus }}">{{ __($trainingStatus) }}</option>@endforeach</flux:select>
                 <div class="flex items-end pb-2"><flux:switch wire:model="hasCertificate" :label="__('Issue certificate after completion')" /></div>
+                <div class="sm:col-span-2"><flux:switch wire:model="allowsRepeat" :label="__('Allow teachers to repeat this catalog training')" /></div>
                 <div class="sm:col-span-2"><flux:callout variant="info" icon="user-group">{{ __('Every approved teacher from an active affiliated college can register.') }}</flux:callout></div>
             </div>
 

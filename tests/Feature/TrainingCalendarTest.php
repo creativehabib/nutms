@@ -7,6 +7,8 @@ use App\Livewire\Training\UpcomingTrainings;
 use App\Enums\ApprovalStatus;
 use App\Models\College;
 use App\Models\Training;
+use App\Models\TrainingInstitute;
+use App\Models\TrainingType;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -26,11 +28,12 @@ it('requires authentication to view the training calendar', function () {
 
 it('allows an admin to create a training for all affiliated college teachers', function () {
     $admin = User::factory()->create();
+    $trainingType = trainingCatalogItem('Outcome Based Education');
 
     Livewire::actingAs($admin)->test(TrainingManagement::class)
         ->call('create')
         ->assertSet('showTrainingModal', true)
-        ->set('title', 'Outcome Based Education')
+        ->set('trainingTypeId', (string) $trainingType->id)
         ->set('description', 'Detailed workshop information')
         ->set('startDate', '2026-08-20T10:00')
         ->set('endDate', '2026-08-20T16:00')
@@ -46,18 +49,55 @@ it('allows an admin to create a training for all affiliated college teachers', f
 
 it('uses the same training modal for editing a published training', function () {
     $admin = User::factory()->create();
-    $training = Training::factory()->create(['title' => 'Published Training']);
+    $trainingType = trainingCatalogItem('Published Training');
+    $editedTrainingType = trainingCatalogItem('Edited Published Training');
+    $training = Training::factory()->create(['training_type_id' => $trainingType->id, 'title' => $trainingType->name]);
 
     Livewire::actingAs($admin)->test(TrainingManagement::class)
         ->call('edit', $training->id)
         ->assertSet('showTrainingModal', true)
         ->assertSet('editingTrainingId', $training->id)
-        ->assertSet('title', 'Published Training')
-        ->set('title', 'Edited Published Training')
+        ->assertSet('trainingTypeId', (string) $trainingType->id)
+        ->set('trainingTypeId', (string) $editedTrainingType->id)
         ->call('save')
         ->assertSet('showTrainingModal', false);
 
     expect($training->refresh()->title)->toBe('Edited Published Training');
+});
+
+it('prevents a teacher from registering for the same catalog training twice after completion', function () {
+    $teacherUser = registeredAffiliatedTeacher();
+    $trainingType = trainingCatalogItem('Digital Pedagogy');
+    $completedTraining = Training::factory()->create(['training_type_id' => $trainingType->id]);
+    $completedTraining->participants()->attach($teacherUser, ['status' => 'Completed', 'completed_at' => now()]);
+    $upcomingTraining = Training::factory()->create([
+        'training_type_id' => $trainingType->id,
+        'start_date' => now()->addDays(5),
+        'end_date' => now()->addDays(5)->addHours(4),
+    ]);
+
+    Livewire::actingAs($teacherUser)->test(UpcomingTrainings::class)
+        ->call('enroll', $upcomingTraining->id);
+
+    expect($upcomingTraining->participants()->whereKey($teacherUser->id)->exists())->toBeFalse();
+});
+
+it('can explicitly allow teachers to repeat a catalog training', function () {
+    $teacherUser = registeredAffiliatedTeacher();
+    $trainingType = trainingCatalogItem('Repeatable Workshop');
+    $completedTraining = Training::factory()->create(['training_type_id' => $trainingType->id]);
+    $completedTraining->participants()->attach($teacherUser, ['status' => 'Completed', 'completed_at' => now()]);
+    $repeatableTraining = Training::factory()->create([
+        'training_type_id' => $trainingType->id,
+        'allows_repeat' => true,
+        'start_date' => now()->addDays(5),
+        'end_date' => now()->addDays(5)->addHours(4),
+    ]);
+
+    Livewire::actingAs($teacherUser)->test(UpcomingTrainings::class)
+        ->call('enroll', $repeatableTraining->id);
+
+    expect($repeatableTraining->participants()->whereKey($teacherUser->id)->exists())->toBeTrue();
 });
 
 it('shows published training sessions in the selected month', function () {
@@ -262,6 +302,18 @@ function registeredAffiliatedTeacher(): User
     ]);
 
     return $user;
+}
+
+function trainingCatalogItem(string $name): TrainingType
+{
+    $institute = TrainingInstitute::query()->firstOrCreate(['name' => 'National University']);
+
+    return TrainingType::query()->create([
+        'training_institute_id' => $institute->id,
+        'name' => $name,
+        'duration_value' => 1,
+        'duration_unit' => 'days',
+    ]);
 }
 
 it('generates a Google Calendar event link', function () {
