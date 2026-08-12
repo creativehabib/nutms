@@ -15,7 +15,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 function createSummaryTeacher(string $name, string $collegeCode, bool $withTraining = false): Teacher
 {
-    $college = College::query()->firstOrCreate(['code' => $collegeCode], ['name' => "College {$collegeCode}"]);
+    $college = College::query()->firstOrCreate(['college_code' => $collegeCode], ['name' => "College {$collegeCode}"]);
     $teacher = Teacher::query()->create(['name' => $name, 'college_id' => $college->id]);
 
     if ($withTraining) {

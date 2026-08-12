@@ -23,7 +23,7 @@ beforeEach(function () {
 });
 
 it('creates a teacher linked to a college with contact and bank information', function () {
-    $college = College::query()->create(['code' => 'TC-1', 'name' => 'Teacher College']);
+    $college = College::query()->create(['college_code' => 'TC-1', 'name' => 'Teacher College']);
     $division = Division::query()->where('name', 'Teacher Test Division')->firstOrFail();
     $district = District::query()->where('name', 'Teacher Test District')->firstOrFail();
     $thana = Thana::query()->where('name', 'Teacher Test Thana')->firstOrFail();

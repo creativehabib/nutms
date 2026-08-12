@@ -28,14 +28,14 @@ test('authenticated users can visit the dashboard', function () {
 test('dashboard shows college lab and ICT training report totals', function () {
     $user = User::factory()->create();
     $collegeWithLab = College::query()->create([
-        'code' => '1001',
+        'college_code' => '1001',
         'name' => 'College With Lab',
         'has_computer_lab' => true,
         'desktop_count' => 20,
         'laptop_count' => 5,
     ]);
     $collegeWithoutLab = College::query()->create([
-        'code' => '1002',
+        'college_code' => '1002',
         'name' => 'College Without Lab',
         'has_computer_lab' => false,
     ]);
