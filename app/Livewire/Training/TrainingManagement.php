@@ -3,7 +3,6 @@
 namespace App\Livewire\Training;
 
 use App\Models\Training;
-use App\Models\User;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
@@ -25,9 +24,6 @@ class TrainingManagement extends Component
     public bool $hasCertificate = true;
     public string $status = 'Upcoming';
 
-    /** @var array<int, int|string> */
-    public array $eligibleTeacherIds = [];
-
     public function save(): void
     {
         $this->authorize('training-catalog.manage');
@@ -44,8 +40,6 @@ class TrainingManagement extends Component
             'capacity' => ['nullable', 'integer', 'min:1'],
             'hasCertificate' => ['boolean'],
             'status' => ['required', Rule::in(['Draft', 'Upcoming', 'Ongoing', 'Completed', 'Canceled'])],
-            'eligibleTeacherIds' => ['required', 'array', 'min:1'],
-            'eligibleTeacherIds.*' => ['integer', Rule::exists('users', 'id')],
         ]);
 
         $training = Training::query()->updateOrCreate(
@@ -65,16 +59,14 @@ class TrainingManagement extends Component
                 'status' => $validated['status'],
             ],
         );
-        $training->eligibleTeachers()->sync($validated['eligibleTeacherIds']);
-
         $this->resetForm();
-        Flux::toast(variant: 'success', text: __('Training and eligible teachers have been saved.'));
+        Flux::toast(variant: 'success', text: __('Training has been saved.'));
     }
 
     public function edit(int $trainingId): void
     {
         $this->authorize('training-catalog.manage');
-        $training = Training::query()->with('eligibleTeachers:id')->findOrFail($trainingId);
+        $training = Training::query()->findOrFail($trainingId);
 
         $this->editingTrainingId = $training->id;
         $this->title = $training->title;
@@ -88,7 +80,6 @@ class TrainingManagement extends Component
         $this->capacity = $training->capacity === null ? '' : (string) $training->capacity;
         $this->hasCertificate = $training->has_certificate;
         $this->status = $training->status;
-        $this->eligibleTeacherIds = $training->eligibleTeachers->modelKeys();
     }
 
     public function approve(int $trainingId, int $userId): void
@@ -130,9 +121,8 @@ class TrainingManagement extends Component
         $this->authorize('training-catalog.manage');
 
         return view('livewire.training.training-management', [
-            'teachers' => User::role('teacher')->whereHas('teacherProfile')->orderBy('name')->get(['id', 'name', 'email']),
             'trainings' => Training::query()
-                ->with(['eligibleTeachers:id,name', 'participants:id,name,email'])
+                ->with('participants:id,name,email')
                 ->withCount('participants')
                 ->latest('start_date')
                 ->get(),

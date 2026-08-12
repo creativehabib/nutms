@@ -7,7 +7,7 @@
         <flux:badge color="indigo" size="sm">{{ trans_choice(':count opportunity|:count opportunities', $trainings->count()) }}</flux:badge>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div class="grid gap-4">
         @forelse ($trainings as $training)
             @php
                 $registrationStatus = $registrations[$training->id] ?? null;
@@ -54,7 +54,7 @@
                 </div>
             </flux:card>
         @empty
-            <flux:card class="md:col-span-2 xl:col-span-3">
+            <flux:card>
                 <div class="flex flex-col items-center gap-2 py-8 text-center">
                     <flux:icon.calendar-days class="size-9 text-zinc-400" />
                     <flux:heading>{{ __('No upcoming training is scheduled.') }}</flux:heading>

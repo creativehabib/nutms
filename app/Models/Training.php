@@ -37,12 +37,6 @@ class Training extends Model
             ->withTimestamps();
     }
 
-    /** @return BelongsToMany<User, $this> */
-    public function eligibleTeachers(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'training_eligible_user')->withTimestamps();
-    }
-
     public function googleCalendarUrl(): string
     {
         return 'https://calendar.google.com/calendar/render?'.http_build_query([

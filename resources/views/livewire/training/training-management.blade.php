@@ -1,7 +1,7 @@
 <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 sm:p-6">
     <div>
         <flux:heading size="xl" class="font-bold">{{ __('Training Management') }}</flux:heading>
-        <flux:subheading>{{ __('Create upcoming training, choose eligible teachers, and review registrations.') }}</flux:subheading>
+        <flux:subheading>{{ __('Create upcoming training and review registrations from teachers of affiliated colleges.') }}</flux:subheading>
     </div>
 
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.8fr)]">
@@ -37,17 +37,9 @@
                     <div class="flex items-end pb-2"><flux:switch wire:model="hasCertificate" :label="__('Issue certificate after completion')" /></div>
                 </div>
 
-                <fieldset class="flex flex-col gap-3">
-                    <legend class="text-sm font-semibold text-zinc-900 dark:text-white">{{ __('Teachers eligible to register') }}</legend>
-                    <div class="grid max-h-64 gap-2 overflow-y-auto rounded-xl border border-zinc-200 p-3 dark:border-zinc-700 sm:grid-cols-2">
-                        @forelse ($teachers as $teacher)
-                            <flux:checkbox wire:key="eligible-teacher-{{ $teacher->id }}" wire:model="eligibleTeacherIds" value="{{ $teacher->id }}" :label="$teacher->name.' · '.$teacher->email" />
-                        @empty
-                            <flux:text>{{ __('No teacher profile is available.') }}</flux:text>
-                        @endforelse
-                    </div>
-                    @error('eligibleTeacherIds') <flux:text class="text-sm text-red-600">{{ $message }}</flux:text> @enderror
-                </fieldset>
+                <flux:callout variant="info" icon="user-group" :heading="__('Who can register?')">
+                    {{ __('Every approved, registered teacher from an active affiliated college can view and register for this training.') }}
+                </flux:callout>
 
                 <flux:button type="submit" variant="primary" icon="check">{{ __('Save Training') }}</flux:button>
             </form>
@@ -66,7 +58,6 @@
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <flux:badge color="indigo">{{ __($training->status) }}</flux:badge>
-                        <flux:badge color="zinc">{{ trans_choice(':count eligible teacher|:count eligible teachers', $training->eligibleTeachers->count()) }}</flux:badge>
                         <flux:badge color="zinc">{{ trans_choice(':count registration|:count registrations', $training->participants_count) }}</flux:badge>
                     </div>
 

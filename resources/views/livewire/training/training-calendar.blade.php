@@ -10,9 +10,8 @@
         </div>
     </div>
 
-    <livewire:training.upcoming-trainings :days="30" />
-
-    <flux:card class="overflow-hidden p-0 shadow-sm">
+    <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_24rem]">
+    <flux:card class="min-w-0 overflow-hidden p-0 shadow-sm">
         <div class="flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50/70 px-4 py-4 dark:border-zinc-700 dark:bg-zinc-800/50 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300">
@@ -80,4 +79,8 @@
             </div>
         </div>
     </flux:card>
+        <aside class="min-w-0 lg:sticky lg:top-6">
+            <livewire:training.upcoming-trainings :days="30" />
+        </aside>
+    </div>
 </div>

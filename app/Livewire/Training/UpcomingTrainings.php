@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Training;
 
+use App\Enums\ApprovalStatus;
 use App\Models\Training;
+use App\Models\User;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -14,11 +16,11 @@ class UpcomingTrainings extends Component
     public function enroll(int $trainingId): void
     {
         abort_unless(auth()->check(), 403);
+        abort_unless($this->isRegisteredAffiliatedCollegeTeacher(auth()->user()), 403);
 
         $training = Training::query()
             ->where('status', 'Upcoming')
             ->where('start_date', '>', now())
-            ->whereHas('eligibleTeachers', fn ($query) => $query->whereKey(auth()->id()))
             ->findOrFail($trainingId);
 
         if ($training->registration_deadline?->isPast()) {
@@ -53,10 +55,10 @@ class UpcomingTrainings extends Component
                 ])
                 ->where('status', 'Upcoming')
                 ->whereBetween('start_date', [now(), now()->addDays($this->days)->endOfDay()])
-                ->when(auth()->check(), fn ($query) => $query->whereHas(
-                    'eligibleTeachers',
-                    fn ($eligibleQuery) => $eligibleQuery->whereKey(auth()->id()),
-                ))
+                ->when(
+                    ! auth()->check() || ! $this->isRegisteredAffiliatedCollegeTeacher(auth()->user()),
+                    fn ($query) => $query->whereRaw('1 = 0'),
+                )
                 ->orderBy('start_date')
                 ->limit(6)
                 ->get(),
@@ -64,5 +66,16 @@ class UpcomingTrainings extends Component
                 ? auth()->user()->trainings()->pluck('training_user.status', 'trainings.id')->all()
                 : [],
         ]);
+    }
+
+    private function isRegisteredAffiliatedCollegeTeacher(User $user): bool
+    {
+        return $user->hasRole('teacher')
+            && $user->teacherProfile()
+                ->where('approval_status', ApprovalStatus::Approved)
+                ->whereHas('college', fn ($query) => $query
+                    ->where('approval_status', ApprovalStatus::Approved)
+                    ->where('is_active', true))
+                ->exists();
     }
 }

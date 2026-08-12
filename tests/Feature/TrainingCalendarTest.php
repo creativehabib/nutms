@@ -3,6 +3,8 @@
 use App\Livewire\Training\TrainingCalendar;
 use App\Livewire\Training\TrainingManagement;
 use App\Livewire\Training\UpcomingTrainings;
+use App\Enums\ApprovalStatus;
+use App\Models\College;
 use App\Models\Training;
 use App\Models\Teacher;
 use App\Models\User;
@@ -21,10 +23,8 @@ it('requires authentication to view the training calendar', function () {
     $this->get(route('training.calendar'))->assertRedirect(route('login'));
 });
 
-it('allows an admin to create a training for selected teachers', function () {
+it('allows an admin to create a training for all affiliated college teachers', function () {
     $admin = User::factory()->create();
-    $teacherUser = User::factory()->withRole('teacher')->create();
-    Teacher::query()->create(['user_id' => $teacherUser->id, 'name' => $teacherUser->name]);
 
     Livewire::actingAs($admin)->test(TrainingManagement::class)
         ->set('title', 'Outcome Based Education')
@@ -34,13 +34,11 @@ it('allows an admin to create a training for selected teachers', function () {
         ->set('registrationDeadline', '2026-08-18T23:59')
         ->set('type', 'Offline')
         ->set('capacity', '30')
-        ->set('eligibleTeacherIds', [$teacherUser->id])
         ->call('save')
         ->assertHasNoErrors();
 
     $training = Training::query()->where('title', 'Outcome Based Education')->firstOrFail();
-    expect($training->eligibleTeachers)->toHaveCount(1)
-        ->and($training->eligibleTeachers->first()->is($teacherUser))->toBeTrue();
+    expect($training->title)->toBe('Outcome Based Education');
 });
 
 it('shows published training sessions in the selected month', function () {
@@ -78,6 +76,7 @@ it('navigates between calendar months and returns to today', function () {
 });
 
 it('only lists upcoming training sessions in the configured window', function () {
+    $user = registeredAffiliatedTeacher();
     Training::factory()->create([
         'title' => 'Within Thirty Days',
         'start_date' => now()->addDays(10),
@@ -89,20 +88,18 @@ it('only lists upcoming training sessions in the configured window', function ()
         'end_date' => now()->addDays(31)->addHours(4),
     ]);
 
-    Livewire::test(UpcomingTrainings::class)
+    Livewire::actingAs($user)->test(UpcomingTrainings::class)
         ->assertSee('Within Thirty Days')
         ->assertDontSee('Outside Thirty Days');
 });
 
 it('allows an authenticated teacher to register only once', function () {
-    $user = User::factory()->create();
+    $user = registeredAffiliatedTeacher();
     $training = Training::factory()->create([
         'start_date' => now()->addDays(5),
         'end_date' => now()->addDays(5)->addHours(4),
         'registration_deadline' => now()->addDays(4),
     ]);
-    $training->eligibleTeachers()->attach($user);
-
     Livewire::actingAs($user)->test(UpcomingTrainings::class)
         ->call('enroll', $training->id)
         ->call('enroll', $training->id);
@@ -112,14 +109,12 @@ it('allows an authenticated teacher to register only once', function () {
 });
 
 it('does not register a teacher after the deadline', function () {
-    $user = User::factory()->create();
+    $user = registeredAffiliatedTeacher();
     $training = Training::factory()->create([
         'start_date' => now()->addDays(5),
         'end_date' => now()->addDays(5)->addHours(4),
         'registration_deadline' => now()->subMinute(),
     ]);
-    $training->eligibleTeachers()->attach($user);
-
     Livewire::actingAs($user)->test(UpcomingTrainings::class)
         ->call('enroll', $training->id);
 
@@ -128,15 +123,12 @@ it('does not register a teacher after the deadline', function () {
 
 it('lets an admin approve and complete a registration after the training ends', function () {
     $admin = User::factory()->create();
-    $teacherUser = User::factory()->withRole('teacher')->create();
-    Teacher::query()->create(['user_id' => $teacherUser->id, 'name' => $teacherUser->name]);
+    $teacherUser = registeredAffiliatedTeacher();
     $training = Training::factory()->create([
         'start_date' => now()->addDay(),
         'end_date' => now()->addDay()->addHours(4),
         'registration_deadline' => now()->addHours(12),
     ]);
-    $training->eligibleTeachers()->attach($teacherUser);
-
     Livewire::actingAs($teacherUser)->test(UpcomingTrainings::class)->call('enroll', $training->id);
     Livewire::actingAs($admin)->test(TrainingManagement::class)->call('approve', $training->id, $teacherUser->id);
 
@@ -148,6 +140,19 @@ it('lets an admin approve and complete a registration after the training ends', 
     $registration = $training->participants()->whereKey($teacherUser->id)->first()->pivot;
     expect($registration->status)->toBe('Completed')
         ->and($registration->certificate_number)->not->toBeNull();
+});
+
+it('hides trainings from teachers outside active affiliated colleges', function () {
+    $teacherUser = User::factory()->withRole('teacher')->create();
+    Teacher::query()->create([
+        'user_id' => $teacherUser->id,
+        'name' => $teacherUser->name,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    Training::factory()->create(['title' => 'Affiliated Teachers Only']);
+
+    Livewire::actingAs($teacherUser)->test(UpcomingTrainings::class)
+        ->assertDontSee('Affiliated Teachers Only');
 });
 
 it('allows only the completed participant to download a certificate', function () {
@@ -170,6 +175,24 @@ it('allows only the completed participant to download a certificate', function (
         ->get(route('trainings.certificate', $training))
         ->assertNotFound();
 });
+
+function registeredAffiliatedTeacher(): User
+{
+    $college = College::query()->create([
+        'name' => fake()->company(),
+        'approval_status' => ApprovalStatus::Approved,
+        'is_active' => true,
+    ]);
+    $user = User::factory()->withRole('teacher')->create(['college_id' => $college->id]);
+    Teacher::query()->create([
+        'user_id' => $user->id,
+        'college_id' => $college->id,
+        'name' => $user->name,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    return $user;
+}
 
 it('generates a Google Calendar event link', function () {
     $training = Training::factory()->create([
