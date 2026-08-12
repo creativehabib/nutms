@@ -45,23 +45,47 @@
 
                 <!-- Subject Filter -->
                 <div class="w-full">
-                    <flux:select wire:model.live="subjectFilter" label="{{ __('Subject') }}">
-                        <option value="">{{ __('All Subjects') }}</option>
-                        @foreach($subjects as $subject)
-                            <option value="{{ $subject }}">{{ $subject }}</option>
-                        @endforeach
-                    </flux:select>
+                    <flux:field>
+                        <flux:label>{{ __('Subject') }}</flux:label>
+                        <div wire:ignore>
+                            <select
+                                wire:model.live="subjectFilter"
+                                data-searchable-select
+                                data-teacher-filter
+                                data-placeholder="{{ __('All Subjects') }}"
+                                data-search-placeholder="{{ __('Search subjects') }}"
+                                data-no-results-text="{{ __('No subjects found') }}"
+                            >
+                                <option value="">{{ __('All Subjects') }}</option>
+                                @foreach($subjects as $subject)
+                                    <option value="{{ $subject }}">{{ $subject }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </flux:field>
                 </div>
 
                 @if($isAdmin)
                     <!-- College Code Filter -->
                     <div class="w-full">
-                        <flux:select wire:model.live="collegeCodeFilter" label="{{ __('College Code') }}">
-                            <option value="">{{ __('All College Codes') }}</option>
-                            @foreach($collegeCodes as $code)
-                                <option value="{{ $code }}">{{ $code }}</option>
-                            @endforeach
-                        </flux:select>
+                        <flux:field>
+                            <flux:label>{{ __('College Code') }}</flux:label>
+                            <div wire:ignore>
+                                <select
+                                    wire:model.live="collegeCodeFilter"
+                                    data-searchable-select
+                                    data-teacher-filter
+                                    data-placeholder="{{ __('All College Codes') }}"
+                                    data-search-placeholder="{{ __('Search college codes') }}"
+                                    data-no-results-text="{{ __('No college codes found') }}"
+                                >
+                                    <option value="">{{ __('All College Codes') }}</option>
+                                    @foreach($collegeCodes as $code)
+                                        <option value="{{ $code }}">{{ $code }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </flux:field>
                     </div>
 
                     <!-- Action Buttons -->

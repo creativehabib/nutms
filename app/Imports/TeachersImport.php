@@ -74,7 +74,7 @@ class TeachersImport implements ToCollection, WithStartRow, WithChunkReading
 
             $collegeName = $this->collegeName ?: $data['college_code'] ?: 'অনির্ধারিত কলেজ';
             $college = College::query()->firstOrCreate(
-                $data['college_code'] !== '' ? ['code' => $data['college_code']] : ['name' => $collegeName],
+                $data['college_code'] !== '' ? ['college_code' => $data['college_code']] : ['name' => $collegeName],
                 ['name' => $collegeName],
             );
 

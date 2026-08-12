@@ -116,7 +116,7 @@
                                     </div>
                                     <div class="flex flex-col">
                                         <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $college->name }}</span>
-                                        <span class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ __('Code: ') }}<span class="font-mono font-medium">{{ $college->code ?: 'N/A' }}</span></span>
+                                        <span class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ __('Code: ') }}<span class="font-mono font-medium">{{ $college->college_code ?: 'N/A' }}</span></span>
                                     </div>
                                 </div>
                             </flux:table.cell>

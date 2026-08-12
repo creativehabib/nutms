@@ -54,7 +54,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::registerView(fn () => view('pages::auth.register', [
             'colleges' => College::query()->where('is_active', true)
                 ->where('approval_status', ApprovalStatus::Approved)
-                ->orderBy('name')->get(['id', 'code', 'name']),
+                ->orderBy('name')->get(['id', 'college_code', 'name']),
         ]));
         Fortify::resetPasswordView(fn () => view('pages::auth.reset-password'));
         Fortify::requestPasswordResetLinkView(fn () => view('pages::auth.forgot-password'));

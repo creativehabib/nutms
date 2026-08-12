@@ -21,7 +21,7 @@ class AffiliatedCollegeSeeder extends Seeder
             ->throw()
             ->collect()
             ->map(fn (array $college): array => [
-                'college_code' => Arr::get($college, 'college_code'),
+                'college_code' => $this->normalizeCollegeCode(Arr::get($college, 'college_code')),
                 'name' => Arr::get($college, 'college_name'),
                 'college_email' => Arr::get($college, 'email'),
                 'is_active' => true,
@@ -29,15 +29,28 @@ class AffiliatedCollegeSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ])
-            ->filter(fn (array $college): bool => filled($college['code']) && filled($college['name']))
+            ->filter(fn (array $college): bool => filled($college['college_code']) && filled($college['name']))
             ->values();
 
         $colleges->chunk(500)->each(function (Collection $chunk): void {
             DB::table('colleges')->upsert(
                 $chunk->all(),
-                ['code'],
+                ['college_code'],
                 ['name', 'college_email', 'is_active', 'approval_status', 'updated_at'],
             );
         });
+    }
+
+    private function normalizeCollegeCode(mixed $collegeCode): ?string
+    {
+        $collegeCode = trim((string) $collegeCode);
+
+        if ($collegeCode === '') {
+            return null;
+        }
+
+        $normalizedCode = ltrim($collegeCode, '0');
+
+        return $normalizedCode === '' ? '0' : $normalizedCode;
     }
 }
