@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Carbon\Carbon;
+use App\Models\Course;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class CourseSeeder extends Seeder
 {
@@ -14,43 +13,25 @@ class CourseSeeder extends Seeder
     public function run(): void
     {
         $courses = [
-            // অনার্স কোর্স (Honours)
-            ['name' => 'Bachelor of Arts (B.A.) - Honours', 'category' => 'Honours'],
-            ['name' => 'Bachelor of Social Science (B.S.S.) - Honours', 'category' => 'Honours'],
-            ['name' => 'Bachelor of Science (B.Sc.) - Honours', 'category' => 'Honours'],
-            ['name' => 'Bachelor of Business Administration (B.B.A.) - Honours', 'category' => 'Honours'],
-
-            // ডিগ্রী পাস কোর্স (Degree Pass)
-            ['name' => 'Bachelor of Arts (B.A.) - Pass', 'category' => 'Degree Pass'],
-            ['name' => 'Bachelor of Social Science (B.S.S.) - Pass', 'category' => 'Degree Pass'],
-            ['name' => 'Bachelor of Science (B.Sc.) - Pass', 'category' => 'Degree Pass'],
-            ['name' => 'Bachelor of Business Studies (B.B.S.) - Pass', 'category' => 'Degree Pass'],
-
-            // মাস্টার্স কোর্স (Masters)
-            ['name' => 'Master of Arts (M.A.)', 'category' => 'Masters'],
-            ['name' => 'Master of Social Science (M.S.S.)', 'category' => 'Masters'],
-            ['name' => 'Master of Science (M.Sc.)', 'category' => 'Masters'],
-            ['name' => 'Master of Business Studies (M.B.S.)', 'category' => 'Masters'],
-
-            // প্রফেশনাল কোর্স (Professional)
-            ['name' => 'Computer Science and Engineering (CSE)', 'category' => 'Professional'],
-            ['name' => 'Bachelor of Business Administration (BBA) - Professional', 'category' => 'Professional'],
-            ['name' => 'Bachelor of Education (B.Ed)', 'category' => 'Professional'],
-            ['name' => 'Bachelor of Physical Education (BPEd)', 'category' => 'Professional'],
-            ['name' => 'Bachelor of Laws (LLB)', 'category' => 'Professional'],
-            ['name' => 'Tourism and Hospitality Management (THM)', 'category' => 'Professional'],
-            ['name' => 'Electronics and Communication Engineering (ECE)', 'category' => 'Professional'],
-            ['name' => 'Fashion Design and Technology (FDT)', 'category' => 'Professional'],
-            ['name' => 'Knitwear Manufacture & Technology (KMT)', 'category' => 'Professional'],
-            ['name' => 'Apparel Manufacture & Technology (AMT)', 'category' => 'Professional'],
+            ['name' => 'BA', 'level' => 'degree'],
+            ['name' => 'BSS', 'level' => 'degree'],
+            ['name' => 'BSc', 'level' => 'degree'],
+            ['name' => 'BBS', 'level' => 'degree'],
+            ['name' => 'Computer Science and Engineering (CSE)', 'level' => 'professional'],
+            ['name' => 'Bachelor of Business Administration (BBA)', 'level' => 'professional'],
+            ['name' => 'Bachelor of Education (B.Ed)', 'level' => 'professional'],
+            ['name' => 'Bachelor of Physical Education (BPEd)', 'level' => 'professional'],
+            ['name' => 'Bachelor of Laws (LLB)', 'level' => 'professional'],
+            ['name' => 'Tourism and Hospitality Management (THM)', 'level' => 'professional'],
+            ['name' => 'Electronics and Communication Engineering (ECE)', 'level' => 'professional'],
+            ['name' => 'Fashion Design and Technology (FDT)', 'level' => 'professional'],
+            ['name' => 'Knitwear Manufacture & Technology (KMT)', 'level' => 'professional'],
+            ['name' => 'Apparel Manufacture & Technology (AMT)', 'level' => 'professional'],
         ];
 
-        $now = Carbon::now();
-        foreach ($courses as &$course) {
-            $course['created_at'] = $now;
-            $course['updated_at'] = $now;
-        }
-
-        DB::table('courses')->insert($courses);
+        collect($courses)->each(fn (array $course) => Course::query()->updateOrCreate(
+            ['level' => $course['level'], 'name' => $course['name']],
+            ['is_active' => true],
+        ));
     }
 }

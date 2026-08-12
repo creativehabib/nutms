@@ -4,11 +4,13 @@ use App\Enums\ApprovalStatus;
 use App\Livewire\CollegeForm;
 use App\Livewire\CollegeManagement;
 use App\Models\College;
+use App\Models\Course;
 use App\Models\District;
 use App\Models\Division;
 use App\Models\ProgramLevel;
 use App\Models\Thana;
 use App\Models\User;
+use Database\Seeders\CourseSeeder;
 use Database\Seeders\ProgramLevelSeeder;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
@@ -16,6 +18,7 @@ use Livewire\Livewire;
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
     $this->seed(ProgramLevelSeeder::class);
+    $this->seed(CourseSeeder::class);
     $firstDivision = Division::query()->firstOrCreate(['name' => 'Test Division One'], ['country_id' => 1, 'bn_name' => 'টেস্ট বিভাগ এক']);
     $secondDivision = Division::query()->firstOrCreate(['name' => 'Test Division Two'], ['country_id' => 1, 'bn_name' => 'টেস্ট বিভাগ দুই']);
     District::query()->firstOrCreate(['name' => 'Test District One', 'division_id' => $firstDivision->id], ['bn_name' => 'টেস্ট জেলা এক']);
@@ -149,6 +152,10 @@ it('stores a complete college profile with multiple academic programs', function
     $division = Division::query()->where('name', 'Test Division One')->firstOrFail();
     $district = District::query()->whereBelongsTo($division)->firstOrFail();
     $thana = Thana::query()->whereBelongsTo($district)->firstOrFail();
+    \App\Models\Subject::query()->insert([
+        ['name' => 'বাংলা', 'is_active' => true],
+        ['name' => 'ইংরেজি', 'is_active' => true],
+    ]);
 
     Livewire::test(CollegeForm::class)
         ->set('college_code', '1201')
@@ -211,6 +218,27 @@ it('adds degree courses and honours subjects as unique tags', function () {
         ->assertSet('programs.1.names', ['বাংলা'])
         ->call('removeProgramTag', 0, 0)
         ->assertSet('programs.0.names', []);
+});
+
+it('only stores courses and subjects from the active affiliation catalogs', function () {
+    $division = Division::query()->where('name', 'Test Division One')->firstOrFail();
+    $district = District::query()->whereBelongsTo($division)->firstOrFail();
+    $thana = Thana::query()->whereBelongsTo($district)->firstOrFail();
+    Course::query()->where('name', 'BA')->update(['is_active' => false]);
+
+    Livewire::test(CollegeForm::class)
+        ->call('addProgram')
+        ->set('programs.0.names', ['BA'])
+        ->set('name', 'Catalog Validation College')
+        ->set('divisionId', (string) $division->id)
+        ->set('districtId', (string) $district->id)
+        ->set('thanaId', (string) $thana->id)
+        ->set('address', 'Catalog Road')
+        ->set('principalName', 'Catalog Principal')
+        ->set('collegeType', 'government')
+        ->set('hasComputerLab', '0')
+        ->call('save')
+        ->assertHasErrors(['programs.0.names']);
 });
 
 it('rejects a district and thana outside the selected administrative hierarchy', function () {

@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             AffiliatedCollegeSeeder::class,
             SubjectSeeder::class,
             ProgramLevelSeeder::class,
+            CourseSeeder::class,
         ]);
 
         $division = Division::query()->where('name', 'Dhaka')->firstOrFail();
