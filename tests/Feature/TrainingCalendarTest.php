@@ -65,6 +65,18 @@ it('uses the same training modal for editing a published training', function () 
     expect($training->refresh()->title)->toBe('Edited Published Training');
 });
 
+it('shows only the registered teacher count in training management', function () {
+    $admin = User::factory()->create();
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create();
+    $training->participants()->attach($teacherUser, ['status' => 'Pending']);
+
+    Livewire::actingAs($admin)->test(TrainingManagement::class)
+        ->assertSee('1')
+        ->assertDontSee($teacherUser->name)
+        ->assertDontSee($teacherUser->email);
+});
+
 it('prevents a teacher from registering for the same catalog training twice after completion', function () {
     $teacherUser = registeredAffiliatedTeacher();
     $trainingType = trainingCatalogItem('Digital Pedagogy');

@@ -33,21 +33,7 @@
                                 <p class="text-xs text-zinc-500">{{ $training->start_date->format('g:i A') }} – {{ $training->end_date->format('g:i A') }}</p>
                             </flux:table.cell>
                             <flux:table.cell>
-                                <div class="flex items-center gap-2">
-                                    <div class="flex -space-x-2">
-                                        @foreach ($training->participants->take(4) as $participant)
-                                            <flux:avatar wire:key="participant-avatar-{{ $training->id }}-{{ $participant->id }}" size="sm" :name="$participant->name" :title="$participant->name" />
-                                        @endforeach
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-semibold">{{ $training->participants_count }}</p>
-                                        @if ($training->participants->isNotEmpty())
-                                            <p class="max-w-48 truncate text-xs text-zinc-500">{{ $training->participants->pluck('name')->join(', ') }}</p>
-                                        @else
-                                            <p class="text-xs text-zinc-500">{{ __('No registrations') }}</p>
-                                        @endif
-                                    </div>
-                                </div>
+                                <span class="text-sm font-semibold tabular-nums text-zinc-900 dark:text-white">{{ number_format($training->participants_count) }}</span>
                             </flux:table.cell>
                             <flux:table.cell><flux:badge :color="match($training->type) { 'Online' => 'green', 'Hybrid' => 'amber', default => 'blue' }">{{ __($training->type) }}</flux:badge></flux:table.cell>
                             <flux:table.cell><flux:badge :color="match($training->status) { 'Upcoming' => 'blue', 'Ongoing' => 'amber', 'Completed' => 'green', 'Canceled' => 'red', default => 'zinc' }">{{ __($training->status) }}</flux:badge></flux:table.cell>

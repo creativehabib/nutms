@@ -153,7 +153,6 @@ class TrainingManagement extends Component
                 ->orderBy('name')
                 ->get(),
             'trainings' => Training::query()
-                ->with('participants:id,name,email')
                 ->withCount('participants')
                 ->latest('start_date')
                 ->paginate(10),
