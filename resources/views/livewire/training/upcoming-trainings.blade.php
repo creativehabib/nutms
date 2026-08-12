@@ -10,9 +10,10 @@
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         @forelse ($trainings as $training)
             @php
-                $isEnrolled = in_array($training->id, $enrolledTrainingIds, true);
+                $registrationStatus = $registrations[$training->id] ?? null;
+                $isEnrolled = $registrationStatus !== null;
                 $isClosed = $training->registration_deadline?->isPast() ?? false;
-                $isFull = $training->capacity !== null && $training->participants_count >= $training->capacity;
+                $isFull = $training->capacity !== null && $training->active_participants_count >= $training->capacity;
                 $badgeColor = match ($training->type) { 'Online' => 'green', 'Hybrid' => 'amber', default => 'blue' };
             @endphp
             <flux:card wire:key="upcoming-training-{{ $training->id }}" class="relative flex flex-col gap-4 overflow-hidden border-zinc-200 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-700">
@@ -38,7 +39,7 @@
                             <span class="flex items-center gap-1.5"><flux:icon.map-pin class="size-4" /><span class="truncate">{{ $training->location_or_link }}</span></span>
                         @endif
                         @if ($training->capacity)
-                            <span class="flex items-center gap-1.5"><flux:icon.user-group class="size-4" />{{ __(':available of :capacity seats available', ['available' => max(0, $training->capacity - $training->participants_count), 'capacity' => $training->capacity]) }}</span>
+                            <span class="flex items-center gap-1.5"><flux:icon.user-group class="size-4" />{{ __(':available of :capacity seats available', ['available' => max(0, $training->capacity - $training->active_participants_count), 'capacity' => $training->capacity]) }}</span>
                         @endif
                     </div>
                 </div>
@@ -48,7 +49,7 @@
                         {{ __('Add to calendar') }}
                     </flux:button>
                     <flux:button wire:click="enroll({{ $training->id }})" variant="primary" size="sm" icon="{{ $isEnrolled ? 'check' : 'academic-cap' }}" :disabled="$isEnrolled || $isClosed || $isFull">
-                        {{ $isEnrolled ? __('Registered') : ($isClosed ? __('Closed') : ($isFull ? __('Full') : __('Register'))) }}
+                        {{ $registrationStatus ? __($registrationStatus) : ($isClosed ? __('Closed') : ($isFull ? __('Full') : __('Register'))) }}
                     </flux:button>
                 </div>
             </flux:card>

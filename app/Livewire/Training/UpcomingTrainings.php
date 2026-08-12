@@ -18,6 +18,7 @@ class UpcomingTrainings extends Component
         $training = Training::query()
             ->where('status', 'Upcoming')
             ->where('start_date', '>', now())
+            ->whereHas('eligibleTeachers', fn ($query) => $query->whereKey(auth()->id()))
             ->findOrFail($trainingId);
 
         if ($training->registration_deadline?->isPast()) {
@@ -26,28 +27,41 @@ class UpcomingTrainings extends Component
             return;
         }
 
-        if ($training->capacity !== null && $training->participants()->count() >= $training->capacity) {
+        $activeRegistrationCount = $training->participants()
+            ->wherePivotIn('status', ['Pending', 'Approved', 'Completed'])
+            ->count();
+
+        if ($training->capacity !== null && $activeRegistrationCount >= $training->capacity) {
             Flux::toast(variant: 'warning', text: __('No seats are currently available.'));
 
             return;
         }
 
-        $training->participants()->syncWithoutDetaching([auth()->id()]);
-        Flux::toast(variant: 'success', text: __('You are registered for this training.'));
+        $training->participants()->syncWithoutDetaching([
+            auth()->id() => ['status' => 'Pending'],
+        ]);
+        Flux::toast(variant: 'success', text: __('Your registration is waiting for admin approval.'));
     }
 
     public function render(): View
     {
         return view('livewire.training.upcoming-trainings', [
             'trainings' => Training::query()
-                ->withCount('participants')
+                ->withCount([
+                    'participants as active_participants_count' => fn ($query) => $query
+                        ->whereIn('training_user.status', ['Pending', 'Approved', 'Completed']),
+                ])
                 ->where('status', 'Upcoming')
                 ->whereBetween('start_date', [now(), now()->addDays($this->days)->endOfDay()])
+                ->when(auth()->check(), fn ($query) => $query->whereHas(
+                    'eligibleTeachers',
+                    fn ($eligibleQuery) => $eligibleQuery->whereKey(auth()->id()),
+                ))
                 ->orderBy('start_date')
                 ->limit(6)
                 ->get(),
-            'enrolledTrainingIds' => auth()->check()
-                ? auth()->user()->trainings()->pluck('trainings.id')->all()
+            'registrations' => auth()->check()
+                ? auth()->user()->trainings()->pluck('training_user.status', 'trainings.id')->all()
                 : [],
         ]);
     }

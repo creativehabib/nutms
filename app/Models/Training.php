@@ -32,7 +32,15 @@ class Training extends Model
     /** @return BelongsToMany<User, $this> */
     public function participants(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)->withTimestamps();
+        return $this->belongsToMany(User::class)
+            ->withPivot(['status', 'approved_by', 'approved_at', 'completed_at', 'certificate_number'])
+            ->withTimestamps();
+    }
+
+    /** @return BelongsToMany<User, $this> */
+    public function eligibleTeachers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'training_eligible_user')->withTimestamps();
     }
 
     public function googleCalendarUrl(): string

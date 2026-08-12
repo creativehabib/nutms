@@ -100,7 +100,15 @@ class User extends Authenticatable implements PasskeyUser
     /** @return BelongsToMany<Training, $this> */
     public function trainings(): BelongsToMany
     {
-        return $this->belongsToMany(Training::class)->withTimestamps();
+        return $this->belongsToMany(Training::class)
+            ->withPivot(['status', 'approved_by', 'approved_at', 'completed_at', 'certificate_number'])
+            ->withTimestamps();
+    }
+
+    /** @return BelongsToMany<Training, $this> */
+    public function eligibleTrainings(): BelongsToMany
+    {
+        return $this->belongsToMany(Training::class, 'training_eligible_user')->withTimestamps();
     }
 
     public function teacherProfile(): HasOne
