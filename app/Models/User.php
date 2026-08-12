@@ -8,6 +8,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -94,6 +95,12 @@ class User extends Authenticatable implements PasskeyUser
     public function college(): BelongsTo
     {
         return $this->belongsTo(College::class);
+    }
+
+    /** @return BelongsToMany<Training, $this> */
+    public function trainings(): BelongsToMany
+    {
+        return $this->belongsToMany(Training::class)->withTimestamps();
     }
 
     public function teacherProfile(): HasOne
