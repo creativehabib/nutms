@@ -55,6 +55,7 @@ class TrainingRegistrationDashboard extends Component
 
         return view('livewire.training.training-registration-dashboard', [
             'trainings' => Training::query()
+                ->whereNotIn('status', ['Draft', 'Canceled'])
                 ->whereHas('participants', fn ($query) => $query
                     ->when($this->registrationStatus !== 'All', fn ($statusQuery) => $statusQuery
                         ->where('training_user.status', $this->registrationStatus)))

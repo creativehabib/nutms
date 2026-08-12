@@ -159,6 +159,12 @@ it('lets an admin approve and complete a registration after the training ends', 
     $registration = $training->participants()->whereKey($teacherUser->id)->first()->pivot;
     expect($registration->status)->toBe('Completed')
         ->and($registration->certificate_number)->not->toBeNull();
+
+    $this->actingAs($teacherUser)
+        ->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee($training->title)
+        ->assertSee(__('Certificate'));
 });
 
 it('lets an admin manage registrations and training status from the dashboard', function () {
