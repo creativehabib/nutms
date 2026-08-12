@@ -208,30 +208,4 @@ class DashboardController extends Controller
             ->values();
     }
 
-    /** @return Collection<int, array{id: int, name: string, completed_at: Carbon, certificate_number: string, download_url: string}> */
-    private function completedTrainingCertificates(Teacher $teacher): Collection
-    {
-        return Training::query()
-            ->where('has_certificate', true)
-            ->whereHas('participants', fn ($query) => $query
-                ->whereKey($teacher->user_id)
-                ->where('training_user.status', 'Completed')
-                ->whereNotNull('training_user.certificate_number'))
-            ->with(['participants' => fn ($query) => $query
-                ->whereKey($teacher->user_id)
-                ->where('training_user.status', 'Completed')])
-            ->orderByDesc('end_date')
-            ->get()
-            ->map(function (Training $training): array {
-                $participant = $training->participants->first();
-
-                return [
-                    'id' => $training->id,
-                    'name' => $training->title,
-                    'completed_at' => Carbon::parse($participant->pivot->completed_at),
-                    'certificate_number' => $participant->pivot->certificate_number,
-                    'download_url' => route('trainings.certificate', $training),
-                ];
-            });
-    }
 }

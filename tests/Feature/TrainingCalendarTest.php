@@ -216,7 +216,12 @@ it('lets an admin approve and complete a registration after the training ends', 
         ->get(route('dashboard'))
         ->assertSuccessful()
         ->assertSee($training->title)
-        ->assertSee(__('Training Certificates'))
+        ->assertDontSee(__('My Training Certificates'));
+
+    $this->actingAs($teacherUser)
+        ->get(route('training.certificates'))
+        ->assertSuccessful()
+        ->assertSee($training->title)
         ->assertSee(__('Download Certificate'))
         ->assertSee($registration->certificate_number);
 });

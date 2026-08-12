@@ -20,6 +20,7 @@ use App\Livewire\TeacherDetails;
 use App\Livewire\TeacherManagement;
 use App\Livewire\TeacherProfileForm;
 use App\Livewire\TeacherSurveyForm;
+use App\Livewire\Training\MyTrainingCertificates;
 use App\Livewire\Training\TrainingCalendar;
 use App\Livewire\Training\TrainingManagement;
 use App\Livewire\Training\TrainingRegistrationManagement;
@@ -51,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/training-calendar', TrainingCalendar::class)->name('training.calendar');
     Route::get('/training-management', TrainingManagement::class)->middleware('permission:training-catalog.manage')->name('training.manage');
     Route::get('/training-registrations', TrainingRegistrationManagement::class)->middleware('permission:training-catalog.manage')->name('training.registrations');
+    Route::get('/my-training-certificates', MyTrainingCertificates::class)->middleware('role:teacher')->name('training.certificates');
     Route::get('/trainings/{training}/certificate', TrainingCertificateController::class)->name('trainings.certificate');
     Route::get('/lab-summary', CollegeLabSummary::class)->middleware(['role:admin', 'permission:reports.view'])->name('lab.summary');
     Route::get('/ict-training-summary', IctTrainingSummary::class)->middleware(['role:admin', 'permission:reports.view'])->name('ict.summary');
