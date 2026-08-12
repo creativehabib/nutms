@@ -158,10 +158,16 @@
                     <flux:sidebar.item icon="identification" :href="route('reference-data.manage', 'employments')" :current="request()->routeIs('reference-data.manage') && request()->route('type') === 'employments'" wire:navigate>{{ __('Employment Type') }}</flux:sidebar.item>
                 </flux:sidebar.group>
                 @endcan
-                @can('training-catalog.manage')
-                    <flux:sidebar.item icon="presentation-chart-bar" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>{{ __('Training Catalog') }}</flux:sidebar.item>
-                    <flux:sidebar.item icon="calendar-days" :href="route('training.manage')" :current="request()->routeIs('training.manage')" wire:navigate>{{ __('Training Management') }}</flux:sidebar.item>
-                @endcan
+                <flux:sidebar.group expandable icon="academic-cap" :heading="__('Training')" :expanded="request()->routeIs('training.*', 'training-catalog.manage')" class="grid">
+                    <flux:sidebar.item icon="calendar-days" :href="route('training.calendar')" :current="request()->routeIs('training.calendar')" wire:navigate>{{ __('Training Calendar') }}</flux:sidebar.item>
+                    @can('training-catalog.manage')
+                        <flux:sidebar.item icon="presentation-chart-bar" :href="route('training.manage')" :current="request()->routeIs('training.manage')" wire:navigate>{{ __('Training Management') }}</flux:sidebar.item>
+                        <flux:sidebar.item icon="list-bullet" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>{{ __('Training Catalog') }}</flux:sidebar.item>
+                    @endcan
+                    @can('reports.view')
+                        <flux:sidebar.item icon="chart-bar" :href="route('ict.summary')" :current="request()->routeIs('ict.summary')" wire:navigate>{{ __('ICT Training Summary') }}</flux:sidebar.item>
+                    @endcan
+                </flux:sidebar.group>
                 @can('roles.manage')
                     <flux:sidebar.item icon="shield-check" :href="route('roles-permissions.manage')" :current="request()->routeIs('roles-permissions.manage')" wire:navigate>{{ __('Roles & Permissions') }}</flux:sidebar.item>
                     <flux:sidebar.item icon="cog-6-tooth" :href="route('system-settings.manage')" :current="request()->routeIs('system-settings.manage')" wire:navigate>{{ __('System Settings') }}</flux:sidebar.item>
@@ -171,9 +177,6 @@
                     {{ __('Lab Summary') }}
                 </flux:sidebar.item>
 
-                <flux:sidebar.item icon="academic-cap" :href="route('ict.summary')" :current="request()->routeIs('ict.summary')" wire:navigate>
-                    {{ __('ICT Training Summary') }}
-                </flux:sidebar.item>
                 @endcan
                 @if(auth()->user()->isAdmin() )
                     <flux:sidebar.item icon="language" :href="route('admin.language_settings')" :current="request()->routeIs('admin.language_settings')" wire:navigate>

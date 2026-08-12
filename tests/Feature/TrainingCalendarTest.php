@@ -2,6 +2,7 @@
 
 use App\Livewire\Training\TrainingCalendar;
 use App\Livewire\Training\TrainingManagement;
+use App\Livewire\Training\TrainingRegistrationDashboard;
 use App\Livewire\Training\UpcomingTrainings;
 use App\Enums\ApprovalStatus;
 use App\Models\College;
@@ -140,6 +141,26 @@ it('lets an admin approve and complete a registration after the training ends', 
     $registration = $training->participants()->whereKey($teacherUser->id)->first()->pivot;
     expect($registration->status)->toBe('Completed')
         ->and($registration->certificate_number)->not->toBeNull();
+});
+
+it('lets an admin manage registrations and training status from the dashboard', function () {
+    $admin = User::factory()->create();
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create([
+        'title' => 'Dashboard Managed Training',
+        'start_date' => now()->addDay(),
+        'end_date' => now()->addDay()->addHours(4),
+    ]);
+    $training->participants()->attach($teacherUser, ['status' => 'Pending']);
+
+    Livewire::actingAs($admin)->test(TrainingRegistrationDashboard::class)
+        ->assertSee('Dashboard Managed Training')
+        ->assertSee($teacherUser->name)
+        ->call('approve', $training->id, $teacherUser->id)
+        ->call('updateTrainingStatus', $training->id, 'Ongoing');
+
+    expect($training->refresh()->status)->toBe('Ongoing')
+        ->and($training->participants()->whereKey($teacherUser->id)->first()->pivot->status)->toBe('Approved');
 });
 
 it('hides trainings from teachers outside active affiliated colleges', function () {
