@@ -1,19 +1,76 @@
 <?php
 
 use App\Livewire\ReferenceDataManagement;
+use App\Models\College;
+use App\Models\Course;
 use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
+use Database\Seeders\ProgramLevelSeeder;
 use Livewire\Livewire;
 
 it('protects all reference data pages with authentication', function (string $type) {
     $this->get(route('reference-data.manage', $type))->assertRedirect(route('login'));
-})->with(['subjects', 'designations', 'teacher-levels', 'employments']);
+})->with(['subjects', 'courses', 'designations', 'teacher-levels', 'employments']);
+
+it('allows admins to create update and delete courses', function () {
+    $this->seed(ProgramLevelSeeder::class);
+
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'courses'])
+        ->call('openCreateModal')
+        ->set('name', 'Bachelor of Arts')
+        ->set('level', 'degree')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $course = Course::query()->where('name', 'Bachelor of Arts')->firstOrFail();
+
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'courses'])
+        ->call('edit', $course->id)
+        ->set('name', 'Bachelor of Arts Pass')
+        ->set('isActive', false)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($course->refresh()->name)->toBe('Bachelor of Arts Pass')->and($course->is_active)->toBeFalse();
+
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'courses'])
+        ->call('confirmDelete', $course->id)
+        ->call('deleteConfirmed');
+
+    expect($course->fresh())->toBeNull();
+});
+
+it('keeps affiliated course names synchronized and prevents deleting courses in use', function () {
+    $this->seed(ProgramLevelSeeder::class);
+    $course = Course::query()->create(['name' => 'BA', 'level' => 'degree']);
+    $college = College::query()->create(['name' => 'Course College']);
+    $program = $college->programs()->create(['level' => 'degree', 'name' => 'BA', 'items' => ['BA']]);
+
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'courses'])
+        ->call('edit', $course->id)
+        ->set('name', 'BA Pass')
+        ->call('save')
+        ->call('confirmDelete', $course->id)
+        ->assertSet('showDeleteModal', false);
+
+    expect($program->refresh()->items)->toBe(['BA Pass'])
+        ->and($program->name)->toBe('BA Pass')
+        ->and($course->fresh())->not->toBeNull();
+
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'courses'])
+        ->call('edit', $course->id)
+        ->set('level', 'professional')
+        ->call('save')
+        ->assertHasErrors(['level']);
+});
 
 it('creates and updates subject reference data', function () {
     Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
         ->call('openCreateModal')
         ->assertSet('showModal', true)
+        ->assertSee('Subject Code')
+        ->set('code', '2701')
         ->set('name', 'Physics')->call('save')->assertHasNoErrors()
         ->assertSet('showModal', false);
 
@@ -22,10 +79,25 @@ it('creates and updates subject reference data', function () {
     Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
         ->call('edit', $subject->id)
         ->assertSet('showModal', true)
+        ->assertSet('code', '2701')
+        ->set('code', '2702')
         ->set('name', 'Applied Physics')->set('isActive', false)->call('save')->assertHasNoErrors()
         ->assertSet('showModal', false);
 
-    expect($subject->refresh()->name)->toBe('Applied Physics')->and($subject->is_active)->toBeFalse();
+    expect($subject->refresh()->name)->toBe('Applied Physics')
+        ->and($subject->subject_code)->toBe('2702')
+        ->and($subject->is_active)->toBeFalse();
+});
+
+it('requires a unique subject code', function () {
+    Subject::query()->create(['subject_code' => '2701', 'name' => 'Physics']);
+
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
+        ->call('openCreateModal')
+        ->set('name', 'Chemistry')
+        ->set('code', '2701')
+        ->call('save')
+        ->assertHasErrors(['code']);
 });
 
 it('keeps teacher relationships synchronized when reference data changes', function () {
