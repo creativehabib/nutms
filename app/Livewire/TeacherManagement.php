@@ -617,7 +617,9 @@ class TeacherManagement extends Component
             'isAdmin' => $isAdmin,
             'collegeCount' => $isAdmin ? (clone $query)->whereNotNull('college_id')->distinct()->count('college_id') : null,
             'subjects' => $subjects,
-            'collegeCodes' => $isAdmin ? College::query()->where('is_active', true)->whereNotNull('college_code')->orderBy('college_code')->pluck('college_code') : collect(),
+            'collegeCodes' => $isAdmin
+                ? College::query()->where('is_active', true)->whereNotNull('college_code')->pluck('college_code')->sort(SORT_NATURAL)->values()
+                : collect(),
             'colleges' => College::query()->where('is_active', true)
                 ->when(! $isAdmin, fn (Builder $query): Builder => $query->whereKey($user->college_id))
                 ->orderBy('name')->get(['college_code', 'name']),

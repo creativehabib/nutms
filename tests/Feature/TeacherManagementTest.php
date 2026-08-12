@@ -227,6 +227,15 @@ it('clears teacher search and filters together', function () {
         ->assertDontSee('সক্রিয় সার্চ বা ফিল্টার অনুযায়ী ফলাফল দেখানো হচ্ছে।');
 });
 
+it('shows college codes in ascending order in the filter', function () {
+    College::query()->create(['college_code' => '2', 'name' => 'Lowest Code College']);
+    College::query()->create(['college_code' => '10', 'name' => 'Middle Code College']);
+    College::query()->create(['college_code' => '100', 'name' => 'Highest Code College']);
+    Livewire::test(TeacherManagement::class)
+        ->assertSeeInOrder(['2', '10', '100'])
+        ->assertDontSee('College Code Order');
+});
+
 it('gives principals a college-scoped teacher management interface', function () {
     $principalCollege = College::query()->create(['college_code' => 'OWN-001', 'name' => 'Principal College', 'approval_status' => ApprovalStatus::Approved]);
     $otherCollege = College::query()->create(['college_code' => 'OTHER-002', 'name' => 'Other College', 'approval_status' => ApprovalStatus::Approved]);
