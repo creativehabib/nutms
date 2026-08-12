@@ -2,7 +2,7 @@
 
 use App\Livewire\Training\TrainingCalendar;
 use App\Livewire\Training\TrainingManagement;
-use App\Livewire\Training\TrainingRegistrationDashboard;
+use App\Livewire\Training\TrainingRegistrationManagement;
 use App\Livewire\Training\UpcomingTrainings;
 use App\Enums\ApprovalStatus;
 use App\Models\College;
@@ -229,7 +229,7 @@ it('lets an admin manage registrations and training status from the registered t
     ]);
     $training->participants()->attach($teacherUser, ['status' => 'Pending']);
 
-    Livewire::actingAs($admin)->test(TrainingRegistrationDashboard::class)
+    Livewire::actingAs($admin)->test(TrainingRegistrationManagement::class)
         ->assertSee('Dashboard Managed Training')
         ->assertSee($teacherUser->name)
         ->call('updateRegistrationStatus', $training->id, $teacherUser->id, 'Approved');
@@ -243,7 +243,7 @@ it('shows registration details and lets an admin delete a registration', functio
     $training = Training::factory()->create();
     $training->participants()->attach($teacherUser, ['status' => 'Pending']);
 
-    Livewire::actingAs($admin)->test(TrainingRegistrationDashboard::class)
+    Livewire::actingAs($admin)->test(TrainingRegistrationManagement::class)
         ->call('viewRegistration', $training->id, $teacherUser->id)
         ->assertSet('showRegistrationModal', true)
         ->assertSee($teacherUser->email)
@@ -265,7 +265,7 @@ it('removes completed teachers from the registered teachers table', function () 
     ]);
     $training->participants()->attach($teacherUser, ['status' => 'Approved']);
 
-    Livewire::actingAs($admin)->test(TrainingRegistrationDashboard::class)
+    Livewire::actingAs($admin)->test(TrainingRegistrationManagement::class)
         ->assertSee($teacherUser->name)
         ->call('complete', $training->id, $teacherUser->id)
         ->assertDontSee($teacherUser->name);
@@ -277,7 +277,7 @@ it('protects the registered teachers menu page', function () {
     $this->actingAs(User::factory()->create())
         ->get(route('training.registrations'))
         ->assertSuccessful()
-        ->assertSee(__('Upcoming Training Registrations'));
+        ->assertSee(__('Registered Teachers'));
 });
 
 it('hides trainings from teachers outside active affiliated colleges', function () {
