@@ -227,21 +227,13 @@ it('clears teacher search and filters together', function () {
         ->assertDontSee('সক্রিয় সার্চ বা ফিল্টার অনুযায়ী ফলাফল দেখানো হচ্ছে।');
 });
 
-it('sorts teachers and the college code filter in either direction', function () {
-    $lowerCodeCollege = College::query()->create(['college_code' => '100', 'name' => 'Lower Code College']);
-    $higherCodeCollege = College::query()->create(['college_code' => '900', 'name' => 'Higher Code College']);
-    Teacher::query()->create(['college_id' => $higherCodeCollege->id, 'name' => 'Higher Code Teacher']);
-    Teacher::query()->create(['college_id' => $lowerCodeCollege->id, 'name' => 'Lower Code Teacher']);
-
+it('shows college codes in ascending order in the filter', function () {
+    College::query()->create(['college_code' => '2', 'name' => 'Lowest Code College']);
+    College::query()->create(['college_code' => '10', 'name' => 'Middle Code College']);
+    College::query()->create(['college_code' => '100', 'name' => 'Highest Code College']);
     Livewire::test(TeacherManagement::class)
-        ->assertSet('collegeCodeSort', 'asc')
-        ->assertSeeInOrder(['100', '900'])
-        ->assertSeeInOrder(['Lower Code Teacher', 'Higher Code Teacher'])
-        ->set('collegeCodeSort', 'desc')
-        ->assertSeeInOrder(['900', '100'])
-        ->assertSeeInOrder(['Higher Code Teacher', 'Lower Code Teacher'])
-        ->set('collegeCodeSort', 'invalid')
-        ->assertSet('collegeCodeSort', 'asc');
+        ->assertSeeInOrder(['2', '10', '100'])
+        ->assertDontSee('College Code Order');
 });
 
 it('gives principals a college-scoped teacher management interface', function () {
