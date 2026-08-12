@@ -69,7 +69,7 @@ class ReferenceDataManagement extends Component
         $record = $this->modelQuery()->findOrFail($id);
         $this->editingId = $record->getKey();
         $this->name = (string) $record->getAttribute('name');
-        $this->code = (string) ($record->getAttribute('code') ?? '');
+        $this->code = (string) ($record->getAttribute('subject_code') ?? '');
         $this->level = (string) ($record->getAttribute('level') ?? '');
         $this->isActive = (bool) $record->getAttribute('is_active');
         $this->showModal = true;
@@ -93,10 +93,13 @@ class ReferenceDataManagement extends Component
                 fn (QueryBuilder $query): QueryBuilder => $query->where('is_active', true)->whereIn('slug', ['degree', 'professional']),
             )];
         }
+        if ($this->isSubject()) {
+            $rules['code'] = ['nullable', 'string', 'max:255', Rule::unique($table, 'subject_code')->ignore($this->editingId)];
+        }
         $validated = $this->validate($rules, [
             'name.required' => 'নাম অবশ্যই দিতে হবে।',
             'name.unique' => 'এই নামটি ইতোমধ্যে আছে।',
-            'code.unique' => 'এই কলেজ কোডটি ইতোমধ্যে আছে।',
+            'code.unique' => 'এই সাবজেক্ট কোডটি ইতোমধ্যে আছে।',
         ]);
 
         if ($this->isCourse() && $this->editingId !== null) {
@@ -116,6 +119,7 @@ class ReferenceDataManagement extends Component
                 'name' => $validated['name'],
                 'is_active' => $validated['isActive'],
                 ...($this->isCourse() ? ['level' => $validated['level']] : []),
+                ...($this->isSubject() ? ['subject_code' => filled($validated['code']) ? $validated['code'] : null] : []),
             ]);
             $record->save();
 
@@ -174,13 +178,19 @@ class ReferenceDataManagement extends Component
     public function render(): View
     {
         $records = $this->modelQuery()
-            ->when($this->search !== '', fn ($query) => $query->where('name', 'like', "%{$this->search}%"))
+            ->when($this->search !== '', function (Builder $query): void {
+                $query->where(function (Builder $query): void {
+                    $query->where('name', 'like', "%{$this->search}%")
+                        ->when($this->isSubject(), fn (Builder $query): Builder => $query->orWhere('subject_code', 'like', "%{$this->search}%"));
+                });
+            })
             ->orderBy('name')->paginate(10);
 
         return view('livewire.reference-data-management', [
             'records' => $records,
             'title' => $this->configuration()['title'],
             'isCollege' => false,
+            'isSubject' => $this->isSubject(),
             'isCourse' => $this->isCourse(),
             'programLevels' => $this->isCourse() ? ProgramLevel::query()->where('is_active', true)->whereIn('slug', ['degree', 'professional'])->orderBy('sort_order')->get(['name', 'slug']) : collect(),
             'usageCounts' => $records->getCollection()->mapWithKeys(fn (Model $record): array => [$record->getKey() => $this->usageCount($record)]),
@@ -210,6 +220,11 @@ class ReferenceDataManagement extends Component
     private function isCourse(): bool
     {
         return $this->type === 'courses';
+    }
+
+    private function isSubject(): bool
+    {
+        return $this->type === 'subjects';
     }
 
     private function usageCount(Model $record): int

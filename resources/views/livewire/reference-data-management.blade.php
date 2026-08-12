@@ -27,8 +27,8 @@
         <div class="overflow-x-auto px-4 pb-4 sm:px-6 pt-2">
             <flux:table>
                 <flux:table.columns>
-                    @if ($isCollege)
-                        <flux:table.column>{{ __('Code') }}</flux:table.column>
+                    @if ($isCollege || $isSubject)
+                        <flux:table.column>{{ $isSubject ? __('Subject Code') : __('Code') }}</flux:table.column>
                     @endif
                     <flux:table.column>{{ __('Name') }}</flux:table.column>
                     @if ($isCourse)<flux:table.column>{{ __('Program Level') }}</flux:table.column>@endif
@@ -41,9 +41,9 @@
                     @forelse ($records as $record)
                         <flux:table.row wire:key="reference-{{ $type }}-{{ $record->id }}" class="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors duration-200">
 
-                            @if ($isCollege)
+                            @if ($isCollege || $isSubject)
                                 <flux:table.cell>
-                                    <span class="font-mono text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ $record->code ?: '—' }}</span>
+                                    <span class="font-mono text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ $isSubject ? ($record->subject_code ?: '—') : ($record->code ?: '—') }}</span>
                                 </flux:table.cell>
                             @endif
 
@@ -78,7 +78,7 @@
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="{{ $isCourse ? 5 : ($isCollege ? 5 : 4) }}">
+                            <flux:table.cell colspan="{{ ($isCourse || $isCollege || $isSubject) ? 5 : 4 }}">
                                 <div class="flex flex-col items-center justify-center py-12 text-zinc-500 dark:text-zinc-400">
                                     <div class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 mb-3">
                                         <flux:icon.document-text class="h-6 w-6 text-zinc-400" />
@@ -117,9 +117,9 @@
 
             <!-- Modal Body -->
             <div class="p-6 space-y-5 bg-white dark:bg-zinc-900">
-                @if ($isCollege)
+                @if ($isCollege || $isSubject)
                     <div class="space-y-1">
-                        <flux:input wire:model="code" :label="__('College Code')" :placeholder="__('Enter value')" />
+                        <flux:input wire:model="code" :label="$isSubject ? __('Subject Code') : __('College Code')" :placeholder="$isSubject ? __('Enter subject code') : __('Enter value')" />
                         @error('code') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
                     </div>
                 @endif

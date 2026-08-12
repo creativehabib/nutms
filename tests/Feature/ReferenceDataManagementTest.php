@@ -69,6 +69,8 @@ it('creates and updates subject reference data', function () {
     Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
         ->call('openCreateModal')
         ->assertSet('showModal', true)
+        ->assertSee('Subject Code')
+        ->set('code', '2701')
         ->set('name', 'Physics')->call('save')->assertHasNoErrors()
         ->assertSet('showModal', false);
 
@@ -77,10 +79,25 @@ it('creates and updates subject reference data', function () {
     Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
         ->call('edit', $subject->id)
         ->assertSet('showModal', true)
+        ->assertSet('code', '2701')
+        ->set('code', '2702')
         ->set('name', 'Applied Physics')->set('isActive', false)->call('save')->assertHasNoErrors()
         ->assertSet('showModal', false);
 
-    expect($subject->refresh()->name)->toBe('Applied Physics')->and($subject->is_active)->toBeFalse();
+    expect($subject->refresh()->name)->toBe('Applied Physics')
+        ->and($subject->subject_code)->toBe('2702')
+        ->and($subject->is_active)->toBeFalse();
+});
+
+it('requires a unique subject code', function () {
+    Subject::query()->create(['subject_code' => '2701', 'name' => 'Physics']);
+
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'subjects'])
+        ->call('openCreateModal')
+        ->set('name', 'Chemistry')
+        ->set('code', '2701')
+        ->call('save')
+        ->assertHasErrors(['code']);
 });
 
 it('keeps teacher relationships synchronized when reference data changes', function () {
