@@ -224,6 +224,7 @@ it('clears teacher search and filters together', function () {
         ->assertSet('search', '')
         ->assertSet('subjectFilter', '')
         ->assertSet('collegeCodeFilter', '')
+        ->assertDispatched('reset-teacher-filters')
         ->assertDontSee('সক্রিয় সার্চ বা ফিল্টার অনুযায়ী ফলাফল দেখানো হচ্ছে।');
 });
 
@@ -234,6 +235,20 @@ it('shows college codes in ascending order in the filter', function () {
     Livewire::test(TeacherManagement::class)
         ->assertSeeInOrder(['2', '10', '100'])
         ->assertDontSee('College Code Order');
+});
+
+it('uses searchable Choices selectors for subject and college code filters', function () {
+    Livewire::test(TeacherManagement::class)
+        ->assertSeeHtml('wire:model.live="subjectFilter"')
+        ->assertSeeHtml('wire:model.live="collegeCodeFilter"')
+        ->assertSeeHtml('data-searchable-select')
+        ->assertSeeHtml('data-teacher-filter')
+        ->assertSee('Search subjects')
+        ->assertSee('Search college codes');
+
+    expect(file_get_contents(resource_path('views/livewire/teacher-management.blade.php')))
+        ->toContain('wire:ignore')
+        ->toContain('data-searchable-select');
 });
 
 it('gives principals a college-scoped teacher management interface', function () {

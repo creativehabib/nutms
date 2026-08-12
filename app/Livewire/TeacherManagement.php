@@ -230,6 +230,7 @@ class TeacherManagement extends Component
     {
         $this->reset('search', 'subjectFilter', 'collegeCodeFilter');
         $this->resetFiltersAndSelection();
+        $this->dispatch('reset-teacher-filters');
     }
 
     public function confirmTeacherDeletion(int $teacherId): void
