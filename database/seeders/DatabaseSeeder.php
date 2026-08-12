@@ -61,7 +61,7 @@ class DatabaseSeeder extends Seeder
         $admin->syncRoles(['admin']);
 
         $college = College::query()->create([
-            'code' => 'DEMO-001',
+            'college_code' => 'DEMO-001',
             'name' => 'Demo Government College',
             'division_id' => $division->id,
             'district_id' => $district->id,

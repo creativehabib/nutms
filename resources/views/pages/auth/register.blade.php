@@ -45,7 +45,7 @@
             <flux:select name="college_id" :label="__('College Name')" required>
                 <option value="">{{ __('Select college') }}</option>
                 @foreach($colleges as $college)
-                    <option value="{{ $college->id }}" @selected((string) old('college_id') === (string) $college->id)>{{ $college->code ? $college->code.' — ' : '' }}{{ $college->name }}</option>
+                    <option value="{{ $college->id }}" @selected((string) old('college_id') === (string) $college->id)>{{ $college->college_code ? $college->college_code.' — ' : '' }}{{ $college->name }}</option>
                 @endforeach
             </flux:select>
 

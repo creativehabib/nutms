@@ -44,7 +44,7 @@ it('supports searchable soft-deleted colleges with Flux confirmation', function 
 
     $college = College::query()->create([
         'name' => 'Searchable College',
-        'code' => 'SEARCH-101',
+        'college_code' => 'SEARCH-101',
         'principal_name' => 'Professor Search',
         'address' => 'Search Road',
     ]);
@@ -151,7 +151,7 @@ it('stores a complete college profile with multiple academic programs', function
     $thana = Thana::query()->whereBelongsTo($district)->firstOrFail();
 
     Livewire::test(CollegeForm::class)
-        ->set('code', '1201')
+        ->set('college_code', '1201')
         ->set('name', 'Professional College')
         ->set('divisionId', (string) $division->id)
         ->set('districtId', (string) $district->id)
@@ -174,7 +174,7 @@ it('stores a complete college profile with multiple academic programs', function
         ->assertHasNoErrors()
         ->assertRedirect(route('colleges.manage'));
 
-    $college = College::query()->where('code', '1201')->firstOrFail();
+    $college = College::query()->where('college_code', '1201')->firstOrFail();
     expect($college->principal_name)->toBe('Professor Rahman')
         ->and($college->college_email)->toBe('info@professional.edu.bd')
         ->and($college->college_website)->toBe('https://professional.edu.bd')
@@ -316,7 +316,7 @@ it('allows authenticated users to open the college management page', function ()
 it('shows a concise college table and a separate full details page', function () {
     $college = College::query()->create([
         'name' => 'Details College',
-        'code' => 'DETAIL-1',
+        'college_code' => 'DETAIL-1',
         'address' => 'Complete College Address',
         'principal_name' => 'Principal Details',
         'college_email' => 'details@example.edu.bd',

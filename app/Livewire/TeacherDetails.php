@@ -20,7 +20,7 @@ class TeacherDetails extends Component
         abort_unless($user->isAdmin() || ($user->hasRole('principal') && $teacher->college_id === $user->college_id) || ($user->hasRole('teacher') && $teacher->user_id === $user->id && $teacher->approval_status === ApprovalStatus::Approved), 403);
         $this->teacher = $teacher->load([
             'user:id,name,email,mobile_no,picture,digital_signature',
-            'college:id,code,name', 'division:id,name,bn_name', 'district:id,name,bn_name', 'thana:id,name,bn_name',
+            'college:id,college_code,name', 'division:id,name,bn_name', 'district:id,name,bn_name', 'thana:id,name,bn_name',
             'subject:id,name', 'designation:id,name', 'teacherLevel:id,name', 'employment:id,name',
             'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute',
         ]);
