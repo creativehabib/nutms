@@ -7,6 +7,7 @@ use App\Models\Subject;
 use App\Models\SystemSetting;
 use App\Models\Teacher;
 use App\Models\TeacherOtherTraining;
+use App\Models\Training;
 use App\Models\TrainingType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -165,23 +166,41 @@ class DashboardController extends Controller
         ];
     }
 
-    /** @return Collection<int, array{name: string, institute: ?string, year: ?int}> */
+    /** @return Collection<int, array{name: string, institute: ?string, year: ?int, certificate_url: ?string}> */
     private function teacherTrainings(Teacher $teacher): Collection
     {
         $catalogTrainings = $teacher->trainingTypes->map(fn (TrainingType $training): array => [
             'name' => $training->name,
             'institute' => $training->trainingInstitute?->name,
             'year' => $training->pivot->training_year ? (int) $training->pivot->training_year : null,
+            'certificate_url' => null,
         ]);
 
         $otherTrainings = $teacher->otherTrainings->map(fn (TeacherOtherTraining $training): array => [
             'name' => $training->name,
             'institute' => $training->trainingInstitute?->name ?: $training->institute_name,
             'year' => $training->training_year,
+            'certificate_url' => null,
         ]);
+
+        $scheduledTrainings = Training::query()
+            ->whereHas('participants', fn ($query) => $query
+                ->whereKey($teacher->user_id)
+                ->where('training_user.status', 'Completed'))
+            ->orderByDesc('end_date')
+            ->get()
+            ->map(fn (Training $training): array => [
+                'name' => $training->title,
+                'institute' => $training->location_or_link,
+                'year' => $training->end_date->year,
+                'certificate_url' => $training->has_certificate
+                    ? route('trainings.certificate', $training)
+                    : null,
+            ]);
 
         return $catalogTrainings
             ->concat($otherTrainings)
+            ->concat($scheduledTrainings)
             ->unique(fn (array $training): string => mb_strtolower($training['name']).'|'.$training['year'])
             ->sortByDesc('year')
             ->values();

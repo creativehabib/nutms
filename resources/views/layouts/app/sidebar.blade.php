@@ -160,6 +160,7 @@
                 @endcan
                 @can('training-catalog.manage')
                     <flux:sidebar.item icon="presentation-chart-bar" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>{{ __('Training Catalog') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar-days" :href="route('training.manage')" :current="request()->routeIs('training.manage')" wire:navigate>{{ __('Training Management') }}</flux:sidebar.item>
                 @endcan
                 @can('roles.manage')
                     <flux:sidebar.item icon="shield-check" :href="route('roles-permissions.manage')" :current="request()->routeIs('roles-permissions.manage')" wire:navigate>{{ __('Roles & Permissions') }}</flux:sidebar.item>
@@ -185,10 +186,10 @@
                     <flux:sidebar.item icon="identification" :href="route('admission.summary')" :current="request()->routeIs('admission.summary')" wire:navigate>
                         {{ __('Admission Summary') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item :href="route('training.calendar')" wire:navigate icon="rocket-launch">
-                        {{ __('Training Calendar') }}
-                    </flux:sidebar.item>
                 @endif
+                <flux:sidebar.item :href="route('training.calendar')" :current="request()->routeIs('training.calendar')" wire:navigate icon="rocket-launch">
+                    {{ __('Training Calendar') }}
+                </flux:sidebar.item>
                 @if(auth()->user()->hasRole('principal') && auth()->user()->isApproved())
                     <flux:sidebar.item icon="building-library" :href="route('colleges.show', auth()->user()->college_id)" :current="request()->routeIs('colleges.show', 'colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>{{ __('College Profile') }}</flux:sidebar.item>
                 @elseif(auth()->user()->hasRole('principal'))
