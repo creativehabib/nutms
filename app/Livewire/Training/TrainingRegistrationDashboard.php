@@ -6,6 +6,7 @@ use App\Models\Training;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,6 +15,16 @@ class TrainingRegistrationDashboard extends Component
     use WithPagination;
 
     public string $registrationStatus = 'All';
+
+    public bool $showRegistrationModal = false;
+
+    public bool $showDeleteModal = false;
+
+    #[Locked]
+    public ?int $selectedTrainingId = null;
+
+    #[Locked]
+    public ?int $selectedUserId = null;
 
     public function updatedRegistrationStatus(): void
     {
@@ -46,15 +57,48 @@ class TrainingRegistrationDashboard extends Component
         Flux::toast(variant: 'success', text: __('Training marked as completed.'));
     }
 
-    public function updateTrainingStatus(int $trainingId, string $status): void
+    public function updateRegistrationStatus(int $trainingId, int $userId, string $status): void
     {
         $this->authorize('training-catalog.manage');
         validator(['status' => $status], [
-            'status' => ['required', Rule::in(['Draft', 'Upcoming', 'Ongoing', 'Completed', 'Canceled'])],
+            'status' => ['required', Rule::in(['Pending', 'Approved', 'Rejected'])],
         ])->validate();
 
-        Training::query()->findOrFail($trainingId)->update(['status' => $status]);
-        Flux::toast(variant: 'success', text: __('Training status updated.'));
+        $training = Training::query()->findOrFail($trainingId);
+        $participant = $training->participants()->whereKey($userId)->firstOrFail();
+        $training->participants()->updateExistingPivot($participant->id, [
+            'status' => $status,
+            'approved_by' => $status === 'Pending' ? null : auth()->id(),
+            'approved_at' => $status === 'Pending' ? null : now(),
+        ]);
+        Flux::toast(variant: 'success', text: __('Registration status updated.'));
+    }
+
+    public function viewRegistration(int $trainingId, int $userId): void
+    {
+        $this->authorize('training-catalog.manage');
+        $this->setSelectedRegistration($trainingId, $userId);
+        $this->showRegistrationModal = true;
+    }
+
+    public function confirmDelete(int $trainingId, int $userId): void
+    {
+        $this->authorize('training-catalog.manage');
+        $this->setSelectedRegistration($trainingId, $userId);
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteRegistration(): void
+    {
+        $this->authorize('training-catalog.manage');
+        abort_if($this->selectedTrainingId === null || $this->selectedUserId === null, 404);
+
+        Training::query()->findOrFail($this->selectedTrainingId)
+            ->participants()
+            ->detach($this->selectedUserId);
+
+        $this->resetSelection();
+        Flux::toast(variant: 'success', text: __('Registration deleted.'));
     }
 
     public function render(): View
@@ -79,6 +123,7 @@ class TrainingRegistrationDashboard extends Component
                 ])
                 ->latest('start_date')
                 ->paginate(10),
+            'selectedRegistration' => $this->selectedRegistration(),
         ])->layout('layouts.app', ['title' => __('Registered Teachers')]);
     }
 
@@ -94,5 +139,29 @@ class TrainingRegistrationDashboard extends Component
             'approved_at' => now(),
         ]);
         Flux::toast(variant: 'success', text: __('Registration status updated.'));
+    }
+
+    private function setSelectedRegistration(int $trainingId, int $userId): void
+    {
+        Training::query()->whereHas('participants', fn ($query) => $query->whereKey($userId))->findOrFail($trainingId);
+        $this->selectedTrainingId = $trainingId;
+        $this->selectedUserId = $userId;
+    }
+
+    private function selectedRegistration(): ?array
+    {
+        if ($this->selectedTrainingId === null || $this->selectedUserId === null) {
+            return null;
+        }
+
+        $training = Training::query()->find($this->selectedTrainingId);
+        $participant = $training?->participants()->with('teacherProfile.college:id,name')->whereKey($this->selectedUserId)->first();
+
+        return $training !== null && $participant !== null ? ['training' => $training, 'participant' => $participant] : null;
+    }
+
+    public function resetSelection(): void
+    {
+        $this->reset('showRegistrationModal', 'showDeleteModal', 'selectedTrainingId', 'selectedUserId');
     }
 }

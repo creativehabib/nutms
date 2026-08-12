@@ -220,11 +220,27 @@ it('lets an admin manage registrations and training status from the registered t
     Livewire::actingAs($admin)->test(TrainingRegistrationDashboard::class)
         ->assertSee('Dashboard Managed Training')
         ->assertSee($teacherUser->name)
-        ->call('approve', $training->id, $teacherUser->id)
-        ->call('updateTrainingStatus', $training->id, 'Ongoing');
+        ->call('updateRegistrationStatus', $training->id, $teacherUser->id, 'Approved');
 
-    expect($training->refresh()->status)->toBe('Ongoing')
-        ->and($training->participants()->whereKey($teacherUser->id)->first()->pivot->status)->toBe('Approved');
+    expect($training->participants()->whereKey($teacherUser->id)->first()->pivot->status)->toBe('Approved');
+});
+
+it('shows registration details and lets an admin delete a registration', function () {
+    $admin = User::factory()->create();
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create();
+    $training->participants()->attach($teacherUser, ['status' => 'Pending']);
+
+    Livewire::actingAs($admin)->test(TrainingRegistrationDashboard::class)
+        ->call('viewRegistration', $training->id, $teacherUser->id)
+        ->assertSet('showRegistrationModal', true)
+        ->assertSee($teacherUser->email)
+        ->call('confirmDelete', $training->id, $teacherUser->id)
+        ->assertSet('showDeleteModal', true)
+        ->call('deleteRegistration')
+        ->assertDontSee($teacherUser->name);
+
+    expect($training->participants()->whereKey($teacherUser->id)->exists())->toBeFalse();
 });
 
 it('removes completed teachers from the registered teachers table', function () {
