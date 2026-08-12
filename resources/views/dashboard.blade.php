@@ -98,7 +98,7 @@
                 <div class="grid gap-5 lg:grid-cols-3">
                     <flux:card class="lg:col-span-2">
                         <div class="flex items-start justify-between gap-4"><div><flux:heading size="lg">{{ __('ICT Training Records') }}</flux:heading><flux:text class="mt-1">{{ __('Review the training courses recorded for your profile.') }}</flux:text></div><div class="rounded-lg bg-emerald-50 p-2.5 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300"><flux:icon.academic-cap class="size-6" /></div></div>
-                        <div class="mt-5 grid gap-3">@forelse($teacherStats['trainings'] as $training)<div class="flex flex-col justify-between gap-2 rounded-xl border border-zinc-200 px-4 py-3 sm:flex-row sm:items-center dark:border-zinc-700"><div><p class="font-semibold text-zinc-950 dark:text-white">{{ $training['name'] }}</p><p class="text-sm text-zinc-500 dark:text-zinc-400">{{ $training['institute'] ?: __('Institute not specified') }}</p></div>@if($training['year'])<flux:badge color="emerald">{{ $training['year'] }}</flux:badge>@endif</div>@empty<flux:callout variant="warning">{{ __('No training records have been added yet.') }}</flux:callout>@endforelse</div>
+                        <div class="mt-5 grid gap-3">@forelse($teacherStats['trainings'] as $training)<div class="flex flex-col justify-between gap-2 rounded-xl border border-zinc-200 px-4 py-3 sm:flex-row sm:items-center dark:border-zinc-700"><div><p class="font-semibold text-zinc-950 dark:text-white">{{ $training['name'] }}</p><p class="text-sm text-zinc-500 dark:text-zinc-400">{{ $training['institute'] ?: __('Institute not specified') }}</p></div><div class="flex items-center gap-2">@if($training['year'])<flux:badge color="emerald">{{ $training['year'] }}</flux:badge>@endif @if($training['certificate_url'])<flux:button size="sm" variant="primary" icon="arrow-down-tray" :href="$training['certificate_url']">{{ __('Certificate') }}</flux:button>@endif</div></div>@empty<flux:callout variant="warning">{{ __('No training records have been added yet.') }}</flux:callout>@endforelse</div>
                     </flux:card>
                     <flux:card class="flex flex-col">
                         <div class="flex items-center gap-3"><div class="rounded-lg bg-indigo-50 p-2.5 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300"><flux:icon.identification class="size-6" /></div><flux:heading size="lg">{{ __('My Profile') }}</flux:heading></div>
@@ -106,6 +106,22 @@
                         @if($teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved && auth()->user()->can('teachers.view'))<flux:button class="mt-6" variant="primary" :href="route('teachers.show', $teacherStats['profile'])" wire:navigate>{{ __('View Profile') }}</flux:button>@endif
                     </flux:card>
                 </div>
+                <flux:card>
+                    <div class="flex items-start justify-between gap-4">
+                        <div><flux:heading size="lg">{{ __('Training Certificates') }}</flux:heading><flux:text class="mt-1">{{ __('Download certificates for your completed trainings.') }}</flux:text></div>
+                        <div class="rounded-lg bg-amber-50 p-2.5 text-amber-600 dark:bg-amber-950 dark:text-amber-300"><flux:icon.trophy class="size-6" /></div>
+                    </div>
+                    <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                        @forelse ($teacherStats['completedTrainingCertificates'] as $certificate)
+                            <div class="flex flex-col justify-between gap-4 rounded-xl border border-zinc-200 p-4 sm:flex-row sm:items-center dark:border-zinc-700">
+                                <div><p class="font-semibold text-zinc-950 dark:text-white">{{ $certificate['name'] }}</p><p class="mt-1 text-xs text-zinc-500">{{ __('Completed') }}: {{ $certificate['completed_at']->format('d M Y') }} · {{ $certificate['certificate_number'] }}</p></div>
+                                <flux:button variant="primary" size="sm" icon="arrow-down-tray" :href="$certificate['download_url']">{{ __('Download Certificate') }}</flux:button>
+                            </div>
+                        @empty
+                            <flux:callout class="sm:col-span-2" variant="info">{{ __('Certificates will appear here after an approved training is marked completed.') }}</flux:callout>
+                        @endforelse
+                    </div>
+                </flux:card>
             @else
                 <flux:card><flux:heading size="lg">{{ __('Create Teacher Profile') }}</flux:heading><flux:text class="mt-2">{{ __('Start by creating your teacher profile and linking it to your college.') }}</flux:text>@cannot('teachers.update')<flux:callout class="mt-4" variant="warning">{{ __('প্রোফাইলটি তৈরি ও জমা দেওয়ার পর আপনি নিজে আর সম্পাদনা করতে পারবেন না। জমা দেওয়ার আগে সব তথ্য ভালোভাবে যাচাই করুন।') }}</flux:callout>@endcannot @can('teachers.create')<flux:button class="mt-4" variant="primary" :href="route('teachers.create')" wire:navigate>{{ __('Create Profile') }}</flux:button>@else<flux:callout class="mt-4" variant="danger">{{ __('শিক্ষক প্রোফাইল তৈরির অনুমতি আপনার নেই। কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।') }}</flux:callout>@endcan</flux:card>
             @endif
