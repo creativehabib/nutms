@@ -167,7 +167,7 @@ it('lets an admin approve and complete a registration after the training ends', 
         ->assertSee(__('Certificate'));
 });
 
-it('lets an admin manage registrations and training status from the dashboard', function () {
+it('lets an admin manage registrations and training status from the registered teachers page', function () {
     $admin = User::factory()->create();
     $teacherUser = registeredAffiliatedTeacher();
     $training = Training::factory()->create([
@@ -185,6 +185,31 @@ it('lets an admin manage registrations and training status from the dashboard', 
 
     expect($training->refresh()->status)->toBe('Ongoing')
         ->and($training->participants()->whereKey($teacherUser->id)->first()->pivot->status)->toBe('Approved');
+});
+
+it('removes completed teachers from the registered teachers table', function () {
+    $admin = User::factory()->create();
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create([
+        'title' => 'Finished Registration',
+        'start_date' => now()->subDays(2),
+        'end_date' => now()->subDay(),
+    ]);
+    $training->participants()->attach($teacherUser, ['status' => 'Approved']);
+
+    Livewire::actingAs($admin)->test(TrainingRegistrationDashboard::class)
+        ->assertSee($teacherUser->name)
+        ->call('complete', $training->id, $teacherUser->id)
+        ->assertDontSee($teacherUser->name);
+});
+
+it('protects the registered teachers menu page', function () {
+    $this->get(route('training.registrations'))->assertRedirect(route('login'));
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('training.registrations'))
+        ->assertSuccessful()
+        ->assertSee(__('Upcoming Training Registrations'));
 });
 
 it('hides trainings from teachers outside active affiliated colleges', function () {

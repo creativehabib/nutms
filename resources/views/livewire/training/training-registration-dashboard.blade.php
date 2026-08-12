@@ -1,3 +1,4 @@
+<div class="mx-auto w-full p-4 sm:p-6">
 <flux:card class="overflow-hidden p-0">
     <div class="flex flex-col justify-between gap-4 border-b border-zinc-200 bg-zinc-50/50 p-5 dark:border-zinc-700 dark:bg-zinc-900/40 sm:flex-row sm:items-end">
         <div>
@@ -6,7 +7,7 @@
         </div>
         <div class="flex flex-wrap items-end gap-2">
             <flux:select wire:model.live="registrationStatus" size="sm" :label="__('Registration status')">
-                @foreach (['All', 'Pending', 'Approved', 'Rejected', 'Completed'] as $status)
+                @foreach (['All', 'Pending', 'Approved', 'Rejected'] as $status)
                     <option value="{{ $status }}">{{ __($status) }}</option>
                 @endforeach
             </flux:select>
@@ -61,8 +62,6 @@
                                         <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="reject({{ $training->id }}, {{ $participant->id }})">{{ __('Reject') }}</flux:button>
                                     @elseif ($participant->pivot->status === 'Approved' && $training->end_date->isPast())
                                         <flux:button size="sm" variant="primary" icon="academic-cap" wire:click="complete({{ $training->id }}, {{ $participant->id }})">{{ __('Complete Training') }}</flux:button>
-                                    @elseif ($participant->pivot->status === 'Completed')
-                                        <flux:badge color="green" icon="check-circle">{{ __('Added to profile') }}</flux:badge>
                                     @else
                                         <span class="text-xs text-zinc-500">{{ __('No action available') }}</span>
                                     @endif
@@ -76,4 +75,8 @@
             </flux:table.rows>
         </flux:table>
     </div>
+    @if ($trainings->hasPages())
+        <div class="border-t border-zinc-200 p-4 dark:border-zinc-700">{{ $trainings->links() }}</div>
+    @endif
 </flux:card>
+</div>

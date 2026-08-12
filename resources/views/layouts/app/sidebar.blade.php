@@ -162,6 +162,7 @@
                     <flux:sidebar.item icon="calendar-days" :href="route('training.calendar')" :current="request()->routeIs('training.calendar')" wire:navigate>{{ __('Training Calendar') }}</flux:sidebar.item>
                     @can('training-catalog.manage')
                         <flux:sidebar.item icon="presentation-chart-bar" :href="route('training.manage')" :current="request()->routeIs('training.manage')" wire:navigate>{{ __('Training Management') }}</flux:sidebar.item>
+                        <flux:sidebar.item icon="user-group" :href="route('training.registrations')" :current="request()->routeIs('training.registrations')" wire:navigate>{{ __('Registered Teachers') }}</flux:sidebar.item>
                         <flux:sidebar.item icon="list-bullet" :href="route('training-catalog.manage')" :current="request()->routeIs('training-catalog.manage')" wire:navigate>{{ __('Training Catalog') }}</flux:sidebar.item>
                     @endcan
                     @can('reports.view')

@@ -7,10 +7,18 @@ use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class TrainingRegistrationDashboard extends Component
 {
+    use WithPagination;
+
     public string $registrationStatus = 'All';
+
+    public function updatedRegistrationStatus(): void
+    {
+        $this->resetPage();
+    }
 
     public function approve(int $trainingId, int $userId): void
     {
@@ -57,9 +65,11 @@ class TrainingRegistrationDashboard extends Component
             'trainings' => Training::query()
                 ->whereNotIn('status', ['Draft', 'Canceled'])
                 ->whereHas('participants', fn ($query) => $query
+                    ->where('training_user.status', '!=', 'Completed')
                     ->when($this->registrationStatus !== 'All', fn ($statusQuery) => $statusQuery
                         ->where('training_user.status', $this->registrationStatus)))
                 ->with(['participants' => fn ($query) => $query
+                    ->where('training_user.status', '!=', 'Completed')
                     ->when($this->registrationStatus !== 'All', fn ($statusQuery) => $statusQuery
                         ->where('training_user.status', $this->registrationStatus))
                     ->with('teacherProfile.college:id,name')])
@@ -68,9 +78,8 @@ class TrainingRegistrationDashboard extends Component
                     'participants as approved_registrations_count' => fn ($query) => $query->where('training_user.status', 'Approved'),
                 ])
                 ->latest('start_date')
-                ->limit(8)
-                ->get(),
-        ]);
+                ->paginate(10),
+        ])->layout('layouts.app', ['title' => __('Registered Teachers')]);
     }
 
     private function updateRegistration(int $trainingId, int $userId, string $status): void
