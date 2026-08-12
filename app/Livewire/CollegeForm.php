@@ -2,8 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Enums\ApprovalStatus;
 use App\Models\College;
 use App\Models\CollegeProgram;
+use App\Models\Course;
 use App\Models\District;
 use App\Models\Division;
 use App\Models\ProgramLevel;
@@ -11,12 +13,11 @@ use App\Models\Subject;
 use App\Models\Thana;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
-use App\Enums\ApprovalStatus;
 
 class CollegeForm extends Component
 {
@@ -198,6 +199,8 @@ class CollegeForm extends Component
             throw ValidationException::withMessages(['thanaId' => 'নির্বাচিত থানা এই জেলার অন্তর্ভুক্ত নয়।']);
         }
 
+        $this->validateAcademicAffiliations($validated['programs']);
+
         DB::transaction(function () use ($validated): void {
             $user = auth()->user();
             $college = College::query()->updateOrCreate(['id' => $this->editingId], [
@@ -247,9 +250,31 @@ class CollegeForm extends Component
             'districts' => District::query()->where('division_id', $this->divisionId ?: 0)->where('status', true)->orderBy('name')->get(['id', 'name', 'bn_name']),
             'thanas' => Thana::query()->where('district_id', $this->districtId ?: 0)->where('status', true)->orderBy('name')->get(['id', 'name', 'bn_name']),
             'subjectSuggestions' => Subject::query()->where('is_active', true)->orderBy('name')->pluck('name'),
-            'degreeCourseSuggestions' => collect(['BA', 'BSS', 'BBS', 'BSc']),
+            'courseSuggestions' => Course::query()->where('is_active', true)->orderBy('name')->get(['name', 'level'])->groupBy('level')->map->pluck('name'),
             'programLevels' => ProgramLevel::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'slug']),
         ]);
+    }
+
+    /** @param array<int, array{level: string, names: array<int, string>, new_name: string}> $programs */
+    private function validateAcademicAffiliations(array $programs): void
+    {
+        $activeSubjects = Subject::query()->where('is_active', true)->pluck('name')->map(fn (string $name): string => mb_strtolower($name));
+        $activeCourses = Course::query()->where('is_active', true)->get(['name', 'level'])->groupBy('level')
+            ->map(fn (Collection $courses): Collection => $courses->pluck('name')->map(fn (string $name): string => mb_strtolower($name)));
+
+        foreach ($programs as $index => $program) {
+            $allowedNames = in_array($program['level'], ['degree', 'professional'], true)
+                ? $activeCourses->get($program['level'], collect())
+                : $activeSubjects;
+
+            foreach ($program['names'] as $name) {
+                if (! $allowedNames->contains(mb_strtolower(trim($name)))) {
+                    throw ValidationException::withMessages([
+                        "programs.{$index}.names" => 'শুধু সক্রিয় মাস্টার তালিকা থেকে অধিভুক্ত কোর্স অথবা বিষয় নির্বাচন করুন।',
+                    ]);
+                }
+            }
+        }
     }
 
     private function inferLabEquipmentType(?int $desktopCount, ?int $laptopCount): string

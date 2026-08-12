@@ -2,14 +2,18 @@
 
 namespace App\Livewire;
 
+use App\Models\CollegeProgram;
+use App\Models\Course;
 use App\Models\Designation;
 use App\Models\Employment;
+use App\Models\ProgramLevel;
 use App\Models\Subject;
 use App\Models\TeacherLevel;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
@@ -27,6 +31,7 @@ class ReferenceDataManagement extends Component
     public ?int $editingId = null;
     public string $name = '';
     public string $code = '';
+    public string $level = '';
     public bool $isActive = true;
     public bool $showModal = false;
     public bool $showDeleteModal = false;
@@ -36,6 +41,7 @@ class ReferenceDataManagement extends Component
     /** @var array<string, array{model: class-string<Model>, title: string}> */
     private const TYPES = [
         'subjects' => ['model' => Subject::class, 'title' => 'সাবজেক্ট'],
+        'courses' => ['model' => Course::class, 'title' => 'কোর্স'],
         'designations' => ['model' => Designation::class, 'title' => 'পদবি'],
         'teacher-levels' => ['model' => TeacherLevel::class, 'title' => 'শিক্ষক স্তর'],
         'employments' => ['model' => Employment::class, 'title' => 'চাকরির ধরন'],
@@ -64,6 +70,7 @@ class ReferenceDataManagement extends Component
         $this->editingId = $record->getKey();
         $this->name = (string) $record->getAttribute('name');
         $this->code = (string) ($record->getAttribute('code') ?? '');
+        $this->level = (string) ($record->getAttribute('level') ?? '');
         $this->isActive = (bool) $record->getAttribute('is_active');
         $this->showModal = true;
     }
@@ -72,20 +79,49 @@ class ReferenceDataManagement extends Component
     {
         $modelClass = $this->configuration()['model'];
         $table = (new $modelClass)->getTable();
+        $nameRule = Rule::unique($table, 'name')->ignore($this->editingId);
+        if ($this->isCourse()) {
+            $nameRule->where('level', $this->level);
+        }
+
         $rules = [
-            'name' => ['required', 'string', 'max:255', Rule::unique($table, 'name')->ignore($this->editingId)],
+            'name' => ['required', 'string', 'max:255', $nameRule],
             'isActive' => ['boolean'],
         ];
+        if ($this->isCourse()) {
+            $rules['level'] = ['required', Rule::exists((new ProgramLevel)->getTable(), 'slug')->where(
+                fn (QueryBuilder $query): QueryBuilder => $query->where('is_active', true)->whereIn('slug', ['degree', 'professional']),
+            )];
+        }
         $validated = $this->validate($rules, [
             'name.required' => 'নাম অবশ্যই দিতে হবে।',
             'name.unique' => 'এই নামটি ইতোমধ্যে আছে।',
             'code.unique' => 'এই কলেজ কোডটি ইতোমধ্যে আছে।',
         ]);
 
+        if ($this->isCourse() && $this->editingId !== null) {
+            $course = $this->modelQuery()->findOrFail($this->editingId);
+            if ($course->getAttribute('level') !== $validated['level'] && $this->usageCount($course) > 0) {
+                $this->addError('level', 'কলেজের সাথে অধিভুক্ত কোর্সের প্রোগ্রাম লেভেল পরিবর্তন করা যাবে না।');
+
+                return;
+            }
+        }
+
         DB::transaction(function () use ($validated, $modelClass): void {
             $record = $this->editingId === null ? new $modelClass : $this->modelQuery()->findOrFail($this->editingId);
-            $record->fill(['name' => $validated['name'], 'is_active' => $validated['isActive']]);
+            $previousName = (string) $record->getAttribute('name');
+            $previousLevel = (string) $record->getAttribute('level');
+            $record->fill([
+                'name' => $validated['name'],
+                'is_active' => $validated['isActive'],
+                ...($this->isCourse() ? ['level' => $validated['level']] : []),
+            ]);
             $record->save();
+
+            if ($this->isCourse() && $record->wasChanged(['name', 'level'])) {
+                $this->synchronizeCourseAffiliations($previousName, $previousLevel, $validated['name']);
+            }
         });
 
         $this->resetForm();
@@ -95,9 +131,9 @@ class ReferenceDataManagement extends Component
 
     public function confirmDelete(int $id): void
     {
-        $record = $this->modelQuery()->withCount('teachers')->findOrFail($id);
-        if ($record->getAttribute('teachers_count') > 0) {
-            Flux::toast(variant: 'warning', text: 'শিক্ষকের সাথে যুক্ত থাকায় তথ্যটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।');
+        $record = $this->modelQuery()->findOrFail($id);
+        if ($this->usageCount($record) > 0) {
+            Flux::toast(variant: 'warning', text: $this->isCourse() ? 'কলেজের সাথে অধিভুক্ত থাকায় কোর্সটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।' : 'শিক্ষকের সাথে যুক্ত থাকায় তথ্যটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।');
             return;
         }
 
@@ -112,10 +148,10 @@ class ReferenceDataManagement extends Component
             return;
         }
 
-        $record = $this->modelQuery()->withCount('teachers')->findOrFail($this->deletingId);
-        if ($record->getAttribute('teachers_count') > 0) {
+        $record = $this->modelQuery()->findOrFail($this->deletingId);
+        if ($this->usageCount($record) > 0) {
             $this->cancelDelete();
-            Flux::toast(variant: 'warning', text: 'শিক্ষকের সাথে যুক্ত থাকায় তথ্যটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।');
+            Flux::toast(variant: 'warning', text: $this->isCourse() ? 'কলেজের সাথে অধিভুক্ত থাকায় কোর্সটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।' : 'শিক্ষকের সাথে যুক্ত থাকায় তথ্যটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।');
             return;
         }
 
@@ -137,7 +173,7 @@ class ReferenceDataManagement extends Component
 
     public function render(): View
     {
-        $records = $this->modelQuery()->withCount('teachers')
+        $records = $this->modelQuery()
             ->when($this->search !== '', fn ($query) => $query->where('name', 'like', "%{$this->search}%"))
             ->orderBy('name')->paginate(10);
 
@@ -145,10 +181,13 @@ class ReferenceDataManagement extends Component
             'records' => $records,
             'title' => $this->configuration()['title'],
             'isCollege' => false,
+            'isCourse' => $this->isCourse(),
+            'programLevels' => $this->isCourse() ? ProgramLevel::query()->where('is_active', true)->whereIn('slug', ['degree', 'professional'])->orderBy('sort_order')->get(['name', 'slug']) : collect(),
+            'usageCounts' => $records->getCollection()->mapWithKeys(fn (Model $record): array => [$record->getKey() => $this->usageCount($record)]),
         ]);
     }
 
-    /** @return array{model: class-string<Model>, title: string, legacy: string, foreign_key: string} */
+    /** @return array{model: class-string<Model>, title: string} */
     private function configuration(): array
     {
         return self::TYPES[$this->type];
@@ -163,8 +202,39 @@ class ReferenceDataManagement extends Component
 
     private function resetForm(): void
     {
-        $this->reset('editingId', 'name', 'code');
+        $this->reset('editingId', 'name', 'code', 'level');
         $this->isActive = true;
         $this->resetValidation();
+    }
+
+    private function isCourse(): bool
+    {
+        return $this->type === 'courses';
+    }
+
+    private function usageCount(Model $record): int
+    {
+        if (! $this->isCourse()) {
+            return $record->teachers()->count();
+        }
+
+        return CollegeProgram::query()->where('level', $record->getAttribute('level'))->get(['items'])
+            ->filter(fn (CollegeProgram $program): bool => collect($program->items)->containsStrict($record->getAttribute('name')))
+            ->count();
+    }
+
+    private function synchronizeCourseAffiliations(string $previousName, string $previousLevel, string $name): void
+    {
+        CollegeProgram::query()->where('level', $previousLevel)->get()->each(function (CollegeProgram $program) use ($previousName, $name): void {
+            $items = collect($program->items);
+            if (! $items->containsStrict($previousName)) {
+                return;
+            }
+
+            $program->update([
+                'name' => $program->name === $previousName ? $name : $program->name,
+                'items' => $items->map(fn (string $item): string => $item === $previousName ? $name : $item)->values()->all(),
+            ]);
+        });
     }
 }
