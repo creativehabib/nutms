@@ -11,6 +11,7 @@ return new class extends Migration
         foreach (['subjects', 'designations', 'teacher_levels', 'employments'] as $tableName) {
             Schema::create($tableName, function (Blueprint $table): void {
                 $table->id();
+                $table->string('subject_code')->unique()->nullable();
                 $table->string('name')->unique();
                 $table->boolean('is_active')->default(true)->index();
                 $table->timestamps();
