@@ -6,18 +6,37 @@ use App\Livewire\CollegeManagement;
 use App\Models\College;
 use App\Models\District;
 use App\Models\Division;
+use App\Models\ProgramLevel;
 use App\Models\Thana;
 use App\Models\User;
+use Database\Seeders\ProgramLevelSeeder;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
+    $this->seed(ProgramLevelSeeder::class);
     $firstDivision = Division::query()->firstOrCreate(['name' => 'Test Division One'], ['country_id' => 1, 'bn_name' => 'টেস্ট বিভাগ এক']);
     $secondDivision = Division::query()->firstOrCreate(['name' => 'Test Division Two'], ['country_id' => 1, 'bn_name' => 'টেস্ট বিভাগ দুই']);
     District::query()->firstOrCreate(['name' => 'Test District One', 'division_id' => $firstDivision->id], ['bn_name' => 'টেস্ট জেলা এক']);
     District::query()->firstOrCreate(['name' => 'Test District Two', 'division_id' => $secondDivision->id], ['bn_name' => 'টেস্ট জেলা দুই']);
     District::query()->get()->each(fn (District $district) => Thana::query()->firstOrCreate(['name' => "Test Thana {$district->id}", 'district_id' => $district->id], ['bn_name' => "টেস্ট থানা {$district->id}"]));
+});
+
+it('loads program levels dynamically from active database records', function () {
+    ProgramLevel::query()->create([
+        'name' => 'Postgraduate Diploma',
+        'slug' => 'postgraduate-diploma',
+        'sort_order' => 15,
+        'is_active' => true,
+    ]);
+    ProgramLevel::query()->where('slug', 'professional')->update(['is_active' => false]);
+
+    Livewire::test(CollegeForm::class)
+        ->assertSee('Postgraduate Diploma')
+        ->assertDontSeeHtml('<option value="professional">')
+        ->call('addProgram')
+        ->assertSet('programs.0.level', 'degree');
 });
 
 it('supports searchable soft-deleted colleges with Flux confirmation', function () {
