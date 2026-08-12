@@ -216,7 +216,9 @@ it('lets an admin approve and complete a registration after the training ends', 
         ->get(route('dashboard'))
         ->assertSuccessful()
         ->assertSee($training->title)
-        ->assertSee(__('Certificate'));
+        ->assertSee(__('Training Certificates'))
+        ->assertSee(__('Download Certificate'))
+        ->assertSee($registration->certificate_number);
 });
 
 it('lets an admin manage registrations and training status from the registered teachers page', function () {

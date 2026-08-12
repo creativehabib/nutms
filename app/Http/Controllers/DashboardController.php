@@ -117,6 +117,7 @@ class DashboardController extends Controller
         $retirementDate = $teacher->birth_date?->copy()->addYears($retirementAge);
         $today = now()->startOfDay();
         $trainings = $this->teacherTrainings($teacher);
+        $completedTrainingCertificates = $this->completedTrainingCertificates($teacher);
 
         return [
             'profile' => $teacher,
@@ -126,6 +127,7 @@ class DashboardController extends Controller
             'daysUntilRetirement' => $retirementDate === null ? null : (int) $today->diffInDays($retirementDate, false),
             'lastUpdatedAt' => $teacher->updated_at?->format('d M Y, h:i A'),
             'trainings' => $trainings,
+            'completedTrainingCertificates' => $completedTrainingCertificates,
             'completeness' => $this->teacherProfileCompleteness($teacher, $trainings->isNotEmpty()),
         ];
     }
@@ -204,5 +206,32 @@ class DashboardController extends Controller
             ->unique(fn (array $training): string => mb_strtolower($training['name']).'|'.$training['year'])
             ->sortByDesc('year')
             ->values();
+    }
+
+    /** @return Collection<int, array{id: int, name: string, completed_at: Carbon, certificate_number: string, download_url: string}> */
+    private function completedTrainingCertificates(Teacher $teacher): Collection
+    {
+        return Training::query()
+            ->where('has_certificate', true)
+            ->whereHas('participants', fn ($query) => $query
+                ->whereKey($teacher->user_id)
+                ->where('training_user.status', 'Completed')
+                ->whereNotNull('training_user.certificate_number'))
+            ->with(['participants' => fn ($query) => $query
+                ->whereKey($teacher->user_id)
+                ->where('training_user.status', 'Completed')])
+            ->orderByDesc('end_date')
+            ->get()
+            ->map(function (Training $training): array {
+                $participant = $training->participants->first();
+
+                return [
+                    'id' => $training->id,
+                    'name' => $training->title,
+                    'completed_at' => Carbon::parse($participant->pivot->completed_at),
+                    'certificate_number' => $participant->pivot->certificate_number,
+                    'download_url' => route('trainings.certificate', $training),
+                ];
+            });
     }
 }
