@@ -29,7 +29,7 @@ it('seeds affiliated colleges from the National University data source', functio
     $this->seed(AffiliatedCollegeSeeder::class);
 
     $this->assertDatabaseHas('colleges', [
-        'code' => '0101',
+        'college_code' => '101',
         'name' => 'GOVT. P. C. COLLEGE',
         'college_email' => 'c0101@nu.ac.bd',
         'is_active' => true,
@@ -37,7 +37,7 @@ it('seeds affiliated colleges from the National University data source', functio
     ]);
 
     $this->assertDatabaseHas('colleges', [
-        'code' => '0102',
+        'college_code' => '102',
         'name' => 'SHERE BANGLA COLLEGE',
         'college_email' => 'c0102@nu.ac.bd',
     ]);

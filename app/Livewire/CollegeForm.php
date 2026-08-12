@@ -6,6 +6,7 @@ use App\Models\College;
 use App\Models\CollegeProgram;
 use App\Models\District;
 use App\Models\Division;
+use App\Models\ProgramLevel;
 use App\Models\Subject;
 use App\Models\Thana;
 use Flux\Flux;
@@ -67,7 +68,11 @@ class CollegeForm extends Component
 
     public function addProgram(): void
     {
-        $this->programs[] = ['level' => 'degree', 'names' => [], 'new_name' => ''];
+        $level = ProgramLevel::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->value('slug');
+
+        if ($level !== null) {
+            $this->programs[] = ['level' => $level, 'names' => [], 'new_name' => ''];
+        }
     }
 
     public function removeProgram(int $index): void
@@ -165,7 +170,7 @@ class CollegeForm extends Component
             'laptopCount' => [Rule::requiredIf($this->hasComputerLab === '1' && in_array($this->labEquipmentType, ['laptop', 'both'], true)), 'nullable', 'integer', 'min:1', 'max:100000'],
             'isActive' => ['boolean'],
             'programs' => ['array'],
-            'programs.*.level' => ['required', 'distinct', Rule::in(['degree', 'honours', 'masters', 'professional', 'other'])],
+            'programs.*.level' => ['required', 'distinct', Rule::exists('program_levels', 'slug')->where('is_active', true)],
             'programs.*.names' => ['required', 'array', 'min:1'],
             'programs.*.names.*' => ['required', 'string', 'max:255'],
             'programs.*.new_name' => ['nullable', 'string', 'max:255'],
@@ -243,6 +248,7 @@ class CollegeForm extends Component
             'thanas' => Thana::query()->where('district_id', $this->districtId ?: 0)->where('status', true)->orderBy('name')->get(['id', 'name', 'bn_name']),
             'subjectSuggestions' => Subject::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'degreeCourseSuggestions' => collect(['BA', 'BSS', 'BBS', 'BSc']),
+            'programLevels' => ProgramLevel::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'slug']),
         ]);
     }
 

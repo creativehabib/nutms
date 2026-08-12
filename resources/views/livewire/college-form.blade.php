@@ -113,11 +113,9 @@
 
                             <div class="grid gap-5 pr-8 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-start">
                                 <flux:select wire:model.live="programs.{{ $index }}.level" :label="__('Program Level')">
-                                    <option value="degree">{{ __('Degree') }}</option>
-                                    <option value="honours">{{ __('Honours') }}</option>
-                                    <option value="masters">{{ __('Masters') }}</option>
-                                    <option value="professional">{{ __('Professional') }}</option>
-                                    <option value="other">{{ __('Other') }}</option>
+                                    @foreach($programLevels as $programLevel)
+                                        <option wire:key="program-level-{{ $programLevel->id }}" value="{{ $programLevel->slug }}">{{ $programLevel->name }}</option>
+                                    @endforeach
                                 </flux:select>
 
                                 <div class="flex flex-col gap-1.5">
