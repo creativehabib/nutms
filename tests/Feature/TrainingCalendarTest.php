@@ -28,6 +28,8 @@ it('allows an admin to create a training for all affiliated college teachers', f
     $admin = User::factory()->create();
 
     Livewire::actingAs($admin)->test(TrainingManagement::class)
+        ->call('create')
+        ->assertSet('showTrainingModal', true)
         ->set('title', 'Outcome Based Education')
         ->set('description', 'Detailed workshop information')
         ->set('startDate', '2026-08-20T10:00')
@@ -40,6 +42,22 @@ it('allows an admin to create a training for all affiliated college teachers', f
 
     $training = Training::query()->where('title', 'Outcome Based Education')->firstOrFail();
     expect($training->title)->toBe('Outcome Based Education');
+});
+
+it('uses the same training modal for editing a published training', function () {
+    $admin = User::factory()->create();
+    $training = Training::factory()->create(['title' => 'Published Training']);
+
+    Livewire::actingAs($admin)->test(TrainingManagement::class)
+        ->call('edit', $training->id)
+        ->assertSet('showTrainingModal', true)
+        ->assertSet('editingTrainingId', $training->id)
+        ->assertSet('title', 'Published Training')
+        ->set('title', 'Edited Published Training')
+        ->call('save')
+        ->assertSet('showTrainingModal', false);
+
+    expect($training->refresh()->title)->toBe('Edited Published Training');
 });
 
 it('shows published training sessions in the selected month', function () {

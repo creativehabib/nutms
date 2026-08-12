@@ -8,9 +8,13 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class TrainingManagement extends Component
 {
+    use WithPagination;
+
+    public bool $showTrainingModal = false;
     public ?int $editingTrainingId = null;
     public string $title = '';
     public string $description = '';
@@ -42,11 +46,8 @@ class TrainingManagement extends Component
             'status' => ['required', Rule::in(['Draft', 'Upcoming', 'Ongoing', 'Completed', 'Canceled'])],
         ]);
 
-        $training = Training::query()->updateOrCreate(
-            ['id' => $this->editingTrainingId],
-            [
+        $attributes = [
                 'title' => $validated['title'],
-                'slug' => Str::slug($validated['title']).'-'.Str::lower(Str::random(6)),
                 'description' => $validated['description'],
                 'start_date' => $validated['startDate'],
                 'end_date' => $validated['endDate'],
@@ -57,8 +58,13 @@ class TrainingManagement extends Component
                 'capacity' => $validated['capacity'] === '' ? null : (int) $validated['capacity'],
                 'has_certificate' => $validated['hasCertificate'],
                 'status' => $validated['status'],
-            ],
-        );
+        ];
+
+        if ($this->editingTrainingId === null) {
+            $attributes['slug'] = Str::slug($validated['title']).'-'.Str::lower(Str::random(6));
+        }
+
+        Training::query()->updateOrCreate(['id' => $this->editingTrainingId], $attributes);
         $this->resetForm();
         Flux::toast(variant: 'success', text: __('Training has been saved.'));
     }
@@ -80,6 +86,14 @@ class TrainingManagement extends Component
         $this->capacity = $training->capacity === null ? '' : (string) $training->capacity;
         $this->hasCertificate = $training->has_certificate;
         $this->status = $training->status;
+        $this->showTrainingModal = true;
+    }
+
+    public function create(): void
+    {
+        $this->authorize('training-catalog.manage');
+        $this->resetForm();
+        $this->showTrainingModal = true;
     }
 
     public function approve(int $trainingId, int $userId): void
@@ -110,7 +124,11 @@ class TrainingManagement extends Component
 
     public function resetForm(): void
     {
-        $this->reset();
+        $this->reset([
+            'editingTrainingId', 'title', 'description', 'startDate', 'endDate',
+            'registrationDeadline', 'locationOrLink', 'instructorName', 'capacity',
+            'showTrainingModal',
+        ]);
         $this->type = 'Offline';
         $this->status = 'Upcoming';
         $this->hasCertificate = true;
@@ -125,7 +143,7 @@ class TrainingManagement extends Component
                 ->with('participants:id,name,email')
                 ->withCount('participants')
                 ->latest('start_date')
-                ->get(),
+                ->paginate(10),
         ])->layout('layouts.app', ['title' => __('Training Management')]);
     }
 
