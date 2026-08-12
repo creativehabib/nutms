@@ -26,6 +26,15 @@ it('requires authentication to view the training calendar', function () {
     $this->get(route('training.calendar'))->assertRedirect(route('login'));
 });
 
+it('renders the teacher dashboard without the removed certificate dashboard method', function () {
+    $teacherUser = registeredAffiliatedTeacher();
+
+    $this->actingAs($teacherUser)
+        ->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertDontSee(__('My Training Certificates'));
+});
+
 it('allows an admin to create a training for all affiliated college teachers', function () {
     $admin = User::factory()->create();
     $trainingType = trainingCatalogItem('Outcome Based Education');
