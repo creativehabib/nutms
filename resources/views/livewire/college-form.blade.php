@@ -120,7 +120,7 @@
 
                                 <div class="flex flex-col gap-1.5">
                                     <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                        {{ $program['level'] === 'degree' ? __('Degree Courses') : __('Subjects / Programs') }}
+                                        {{ in_array($program['level'], ['degree', 'professional'], true) ? __('Affiliated Courses') : __('Affiliated Subjects') }}
                                     </label>
 
                                     <!-- Elevated Pillbox Input -->
@@ -144,7 +144,7 @@
                                         >
                                     </div>
                                     <datalist id="program-suggestions-{{ $index }}">
-                                        @foreach($program['level'] === 'degree' ? $degreeCourseSuggestions : $subjectSuggestions as $suggestion)
+                                        @foreach(in_array($program['level'], ['degree', 'professional'], true) ? ($courseSuggestions->get($program['level']) ?? collect()) : $subjectSuggestions as $suggestion)
                                             <option value="{{ $suggestion }}"></option>
                                         @endforeach
                                     </datalist>
