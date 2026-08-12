@@ -31,7 +31,8 @@
                         <flux:table.column>{{ __('Code') }}</flux:table.column>
                     @endif
                     <flux:table.column>{{ __('Name') }}</flux:table.column>
-                    <flux:table.column>{{ __('Teachers Count') }}</flux:table.column>
+                    @if ($isCourse)<flux:table.column>{{ __('Program Level') }}</flux:table.column>@endif
+                    <flux:table.column>{{ $isCourse ? __('Affiliated Colleges') : __('Teachers Count') }}</flux:table.column>
                     <flux:table.column>{{ __('Status') }}</flux:table.column>
                     <flux:table.column class="text-right">{{ __('Action') }}</flux:table.column>
                 </flux:table.columns>
@@ -50,10 +51,14 @@
                                 {{ $record->name }}
                             </flux:table.cell>
 
+                            @if ($isCourse)
+                                <flux:table.cell>{{ $programLevels->firstWhere('slug', $record->level)?->name ?? $record->level }}</flux:table.cell>
+                            @endif
+
                             <flux:table.cell>
                                 <div class="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
                                     <flux:icon.users variant="micro" class="text-zinc-400" />
-                                    <span>{{ $record->teachers_count }} teachers</span>
+                                    <span>{{ $usageCounts->get($record->id, 0) }} {{ $isCourse ? __('colleges') : __('teachers') }}</span>
                                 </div>
                             </flux:table.cell>
 
@@ -73,7 +78,7 @@
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="{{ $isCollege ? 5 : 4 }}">
+                            <flux:table.cell colspan="{{ $isCourse ? 5 : ($isCollege ? 5 : 4) }}">
                                 <div class="flex flex-col items-center justify-center py-12 text-zinc-500 dark:text-zinc-400">
                                     <div class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 mb-3">
                                         <flux:icon.document-text class="h-6 w-6 text-zinc-400" />
@@ -123,6 +128,18 @@
                     <flux:input wire:model="name" :label="$title.__('Name')" :placeholder="__('Enter value')" required />
                     @error('name') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
                 </div>
+
+                @if ($isCourse)
+                    <div class="space-y-1">
+                        <flux:select wire:model="level" :label="__('Program Level')" required>
+                            <option value="">{{ __('Select') }}</option>
+                            @foreach ($programLevels as $programLevel)
+                                <option wire:key="course-level-{{ $programLevel->slug }}" value="{{ $programLevel->slug }}">{{ $programLevel->name }}</option>
+                            @endforeach
+                        </flux:select>
+                        @error('level') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
+                    </div>
+                @endif
 
                 <div class="pt-2">
                     <flux:switch wire:model="isActive" :label="__('Keep active')" :description="__('Inactive records are hidden from selection lists.')" />
