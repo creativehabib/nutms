@@ -19,6 +19,7 @@ use App\Livewire\TeacherDetails;
 use App\Livewire\TeacherManagement;
 use App\Livewire\TeacherProfileForm;
 use App\Livewire\TeacherSurveyForm;
+use App\Livewire\Training\TrainingCalendar;
 use App\Livewire\TrainingCatalogManagement;
 use App\Models\AdmissionInfo;
 use Illuminate\Support\Facades\Route;
@@ -49,7 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/survey/report', SurveyReport::class)->name('admin.survey.report');
 });
 
-//Survey Route
+// Survey Route
 Route::get('/survey/teacher', TeacherSurveyForm::class)->name('survey.teacher');
 Route::get('/survey/student', StudentSurveyForm::class)->name('survey.student');
 Route::get('/survey/report/print', [ReportExportController::class, 'printReport'])->name('survey.report.print');
@@ -71,5 +72,8 @@ Route::get('/admission/print/{college_code}', function ($college_code) {
 
     return view('pages.admission-print', compact('records', 'collegeInfo', 'totalStudents'));
 })->name('admission.print');
+
+// Teacher Training Calendar
+Route::get('/training-calendar', TrainingCalendar::class)->name('training.calendar');
 
 require __DIR__.'/settings.php';
