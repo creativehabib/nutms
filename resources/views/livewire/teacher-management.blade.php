@@ -49,9 +49,9 @@
                         <flux:label>{{ __('Subject') }}</flux:label>
                         <div wire:ignore>
                             <select
-                                wire:model.live="subjectFilter"
                                 data-searchable-select
                                 data-teacher-filter
+                                data-livewire-model="subjectFilter"
                                 data-placeholder="{{ __('All Subjects') }}"
                                 data-search-placeholder="{{ __('Search subjects') }}"
                                 data-no-results-text="{{ __('No subjects found') }}"
@@ -72,9 +72,9 @@
                             <flux:label>{{ __('College Code') }}</flux:label>
                             <div wire:ignore>
                                 <select
-                                    wire:model.live="collegeCodeFilter"
                                     data-searchable-select
                                     data-teacher-filter
+                                    data-livewire-model="collegeCodeFilter"
                                     data-placeholder="{{ __('All College Codes') }}"
                                     data-search-placeholder="{{ __('Search college codes') }}"
                                     data-no-results-text="{{ __('No college codes found') }}"

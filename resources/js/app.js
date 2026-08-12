@@ -21,6 +21,17 @@ const initializeSearchableSelects = () => {
         });
 
         searchableSelects.set(select, choices);
+
+        if (select.dataset.livewireModel) {
+            select.addEventListener('change', () => {
+                const componentElement = select.closest('[wire\\:id]');
+
+                if (componentElement) {
+                    window.Livewire.find(componentElement.getAttribute('wire:id'))
+                        ?.set(select.dataset.livewireModel, select.value);
+                }
+            });
+        }
     });
 };
 

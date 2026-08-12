@@ -239,8 +239,8 @@ it('shows college codes in ascending order in the filter', function () {
 
 it('uses searchable Choices selectors for subject and college code filters', function () {
     Livewire::test(TeacherManagement::class)
-        ->assertSeeHtml('wire:model.live="subjectFilter"')
-        ->assertSeeHtml('wire:model.live="collegeCodeFilter"')
+        ->assertSeeHtml('data-livewire-model="subjectFilter"')
+        ->assertSeeHtml('data-livewire-model="collegeCodeFilter"')
         ->assertSeeHtml('data-searchable-select')
         ->assertSeeHtml('data-teacher-filter')
         ->assertSee('Search subjects')
@@ -248,7 +248,12 @@ it('uses searchable Choices selectors for subject and college code filters', fun
 
     expect(file_get_contents(resource_path('views/livewire/teacher-management.blade.php')))
         ->toContain('wire:ignore')
-        ->toContain('data-searchable-select');
+        ->toContain('data-searchable-select')
+        ->not->toContain('wire:model.live="subjectFilter"')
+        ->not->toContain('wire:model.live="collegeCodeFilter"');
+
+    expect(file_get_contents(resource_path('js/app.js')))
+        ->toContain("?.set(select.dataset.livewireModel, select.value);");
 });
 
 it('gives principals a college-scoped teacher management interface', function () {
