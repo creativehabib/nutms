@@ -117,6 +117,7 @@ class DashboardController extends Controller
         $retirementDate = $teacher->birth_date?->copy()->addYears($retirementAge);
         $today = now()->startOfDay();
         $trainings = $this->teacherTrainings($teacher);
+        $completedTrainingCertificates = $this->completedTrainingCertificates($teacher);
 
         return [
             'profile' => $teacher,
@@ -126,6 +127,7 @@ class DashboardController extends Controller
             'daysUntilRetirement' => $retirementDate === null ? null : (int) $today->diffInDays($retirementDate, false),
             'lastUpdatedAt' => $teacher->updated_at?->format('d M Y, h:i A'),
             'trainings' => $trainings,
+            'completedTrainingCertificates' => $completedTrainingCertificates,
             'completeness' => $this->teacherProfileCompleteness($teacher, $trainings->isNotEmpty()),
         ];
     }
