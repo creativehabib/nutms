@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subject extends Model
 {
-    protected $fillable = ['name', 'is_active'];
+    protected $fillable = ['subject_code', 'name', 'is_active'];
 
     protected function casts(): array
     {
