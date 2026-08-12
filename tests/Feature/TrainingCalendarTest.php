@@ -26,7 +26,7 @@ it('requires authentication to view the training calendar', function () {
     $this->get(route('training.calendar'))->assertRedirect(route('login'));
 });
 
-it('renders the teacher dashboard without the removed certificate dashboard method', function () {
+it('renders the teacher dashboard with certificate compatibility data', function () {
     $teacherUser = registeredAffiliatedTeacher();
 
     $this->actingAs($teacherUser)

@@ -208,4 +208,24 @@ class DashboardController extends Controller
             ->values();
     }
 
+    /**
+     * Keep certificate data available for cached dashboard views while the
+     * dedicated My Certificates page remains the primary certificate UI.
+     *
+     * @return Collection<int, Training>
+     */
+    private function completedTrainingCertificates(Teacher $teacher): Collection
+    {
+        return Training::query()
+            ->where('has_certificate', true)
+            ->whereHas('participants', fn ($query) => $query
+                ->whereKey($teacher->user_id)
+                ->where('training_user.status', 'Completed')
+                ->whereNotNull('training_user.certificate_number'))
+            ->with(['participants' => fn ($query) => $query
+                ->whereKey($teacher->user_id)
+                ->where('training_user.status', 'Completed')])
+            ->orderByDesc('end_date')
+            ->get();
+    }
 }
