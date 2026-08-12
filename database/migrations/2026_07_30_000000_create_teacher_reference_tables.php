@@ -19,7 +19,7 @@ return new class extends Migration
 
         Schema::create('colleges', function (Blueprint $table): void {
             $table->id();
-            $table->string('code')->nullable()->unique();
+            $table->string('college_code')->nullable()->unique();
             $table->string('name');
             $table->foreignId('division_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('district_id')->nullable()->constrained()->nullOnDelete();

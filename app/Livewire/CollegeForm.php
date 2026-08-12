@@ -20,7 +20,7 @@ use App\Enums\ApprovalStatus;
 class CollegeForm extends Component
 {
     public ?int $editingId = null;
-    public string $code = '';
+    public string $college_code = '';
     public string $name = '';
     public string $divisionId = '';
     public string $districtId = '';
@@ -122,7 +122,7 @@ class CollegeForm extends Component
     {
         $college->load('programs');
         $this->editingId = $college->id;
-        $this->code = (string) ($college->code ?? '');
+        $this->college_code = (string) ($college->college_code ?? '');
         $this->name = $college->name;
         $this->divisionId = (string) ($college->division_id ?? '');
         $this->districtId = (string) ($college->district_id ?? '');
@@ -149,7 +149,7 @@ class CollegeForm extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'code' => ['nullable', 'string', 'max:255', Rule::unique('colleges', 'code')->ignore($this->editingId)],
+            'college_code' => ['nullable', 'string', 'max:255', Rule::unique('colleges', 'college_code')->ignore($this->editingId)],
             'name' => ['required', 'string', 'max:255', Rule::unique('colleges', 'name')->ignore($this->editingId)],
             'divisionId' => ['required', Rule::exists('divisions', 'id')],
             'districtId' => ['required', Rule::exists('districts', 'id')],
@@ -196,7 +196,7 @@ class CollegeForm extends Component
         DB::transaction(function () use ($validated): void {
             $user = auth()->user();
             $college = College::query()->updateOrCreate(['id' => $this->editingId], [
-                'code' => blank($validated['code']) ? null : $validated['code'],
+                'college_code' => blank($validated['college_code']) ? null : $validated['college_code'],
                 'name' => $validated['name'],
                 'division_id' => $validated['divisionId'],
                 'district_id' => $validated['districtId'],

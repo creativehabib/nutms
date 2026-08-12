@@ -503,7 +503,7 @@ class TeacherProfileForm extends Component
             'colleges' => College::query()->where('is_active', true)->where('approval_status', ApprovalStatus::Approved)
                 ->when(auth()->user()->hasRole('principal'), fn ($query) => $query->whereKey(auth()->user()->college_id))
                 ->when(auth()->user()->hasRole('teacher'), fn ($query) => $query->whereKey(auth()->user()->college_id))
-                ->orderBy('name')->get(['id', 'code', 'name']),
+                ->orderBy('name')->get(['id', 'college_code', 'name']),
             'designations' => Designation::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'subjects' => Subject::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'teacherLevels' => TeacherLevel::query()->where('is_active', true)->orderBy('name')->pluck('name'),

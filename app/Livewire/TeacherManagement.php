@@ -430,7 +430,7 @@ class TeacherManagement extends Component
 
         // ফর্মের ইনপুটে বর্তমান ডেটা সেট করা
         $this->editForm = [
-            'college_code' => $teacher->college?->code,
+            'college_code' => $teacher->college?->college_code,
             'college_name' => $teacher->college?->name,
             'name' => $teacher->display_name,
             'designation' => $teacher->designation?->name,
@@ -552,7 +552,7 @@ class TeacherManagement extends Component
                 $teacherData['college_id'] = $collegeCode === '' && $collegeName === ''
                     ? null
                     : College::query()->firstOrCreate(
-                        $collegeCode !== '' ? ['code' => $collegeCode] : ['name' => $collegeName],
+                        $collegeCode !== '' ? ['college_code' => $collegeCode] : ['name' => $collegeName],
                         ['name' => $collegeName !== '' ? $collegeName : $collegeCode],
                     )->id;
                 unset(
@@ -610,17 +610,17 @@ class TeacherManagement extends Component
         return view('livewire.teacher-management', [
             'teachers' => $query->with([
                 'user:id,name,email,mobile_no,picture',
-                'college:id,code,name',
+                'college:id,college_code,name',
                 'subject:id,name',
                 'designation:id,name',
             ])->latest()->paginate(10),
             'isAdmin' => $isAdmin,
             'collegeCount' => $isAdmin ? (clone $query)->whereNotNull('college_id')->distinct()->count('college_id') : null,
             'subjects' => $subjects,
-            'collegeCodes' => $isAdmin ? College::query()->where('is_active', true)->whereNotNull('code')->orderBy('code')->pluck('code') : collect(),
+            'collegeCodes' => $isAdmin ? College::query()->where('is_active', true)->whereNotNull('college_code')->orderBy('college_code')->pluck('college_code') : collect(),
             'colleges' => College::query()->where('is_active', true)
                 ->when(! $isAdmin, fn (Builder $query): Builder => $query->whereKey($user->college_id))
-                ->orderBy('name')->get(['code', 'name']),
+                ->orderBy('name')->get(['college_code', 'name']),
             'designations' => Designation::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'teacherLevels' => TeacherLevel::query()->where('is_active', true)->orderBy('name')->pluck('name'),
             'employments' => Employment::query()->where('is_active', true)->orderBy('name')->pluck('name'),
@@ -677,7 +677,7 @@ class TeacherManagement extends Component
                         ->orWhere('mobile_no', 'like', $searchPattern))
                     ->orWhereHas('college', fn (Builder $collegeQuery): Builder => $collegeQuery
                         ->where('name', 'like', $searchPattern)
-                        ->orWhere('code', 'like', $searchPattern));
+                        ->orWhere('college_code', 'like', $searchPattern));
             });
         }
 
@@ -688,7 +688,7 @@ class TeacherManagement extends Component
 
         // কলেজ কোড অনুযায়ী ফিল্টার
         if (auth()->user()->isAdmin() && $this->collegeCodeFilter !== '') {
-            $query->whereHas('college', fn (Builder $collegeQuery): Builder => $collegeQuery->where('code', $this->collegeCodeFilter));
+            $query->whereHas('college', fn (Builder $collegeQuery): Builder => $collegeQuery->where('college_code', $this->collegeCodeFilter));
         }
 
         return $query;

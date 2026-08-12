@@ -48,7 +48,7 @@
                         @forelse ($colleges as $college)
                             <tr class="hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors">
                                 <td class="px-6 py-3 whitespace-nowrap text-gray-900 dark:text-slate-100 border">{{ $colleges->firstItem() + $loop->index }}</td>
-                                <td class="px-6 py-3 whitespace-nowrap font-bold text-gray-900 dark:text-slate-100 border">{{ $college->code }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap font-bold text-gray-900 dark:text-slate-100 border">{{ $college->college_code }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap text-gray-700 dark:text-slate-300 font-medium border">{{ $college->name }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-green-700 dark:text-green-300">
                                     {{ $college->total_computers ?? 0 }} items
@@ -82,7 +82,7 @@
                         @forelse ($colleges as $college)
                             <tr class="hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
                                 <td class="px-6 py-3 whitespace-nowrap text-gray-900 dark:text-slate-100 border">{{ $colleges->firstItem() + $loop->index }}</td>
-                                <td class="px-6 py-3 whitespace-nowrap font-bold text-gray-900 dark:text-slate-100 border">{{ $college->code }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap font-bold text-gray-900 dark:text-slate-100 border">{{ $college->college_code }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap text-gray-700 dark:text-slate-300 font-medium border">{{ $college->name }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap text-center border font-bold text-red-600 dark:text-red-300">{{ __('There is no lab.') }}</td>
                             </tr>

@@ -33,7 +33,7 @@ class CollegeLabSummary extends Component
                 $this->colleges(true)->map(
                     fn (College $college, int $index): array => [
                         $index + 1,
-                        $college->code,
+                        $college->college_code,
                         $college->name,
                         (int) $college->total_computers,
                     ],
@@ -45,7 +45,7 @@ class CollegeLabSummary extends Component
                 $this->colleges(false)->map(
                     fn (College $college, int $index): array => [
                         $index + 1,
-                        $college->code,
+                        $college->college_code,
                         $college->name,
                         'ল্যাব নেই',
                     ],
@@ -72,11 +72,11 @@ class CollegeLabSummary extends Component
     private function collegesQuery(bool $hasLab): Builder
     {
         return College::query()
-            ->select(['id', 'code', 'name'])
+            ->select(['id', 'college_code', 'name'])
             ->selectRaw('(COALESCE(desktop_count, 0) + COALESCE(laptop_count, 0)) as total_computers')
             ->where('is_active', true)
             ->where('has_computer_lab', $hasLab)
-            ->orderBy('code')
+            ->orderBy('college_code')
             ->orderBy('name');
     }
 

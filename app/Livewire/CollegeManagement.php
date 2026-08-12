@@ -213,7 +213,7 @@ class CollegeManagement extends Component
             $searchPattern = "%{$searchTerm}%";
             $query->where(function (Builder $query) use ($searchPattern): void {
                 $query->where('name', 'like', $searchPattern)
-                    ->orWhere('code', 'like', $searchPattern)
+                    ->orWhere('college_code', 'like', $searchPattern)
                     ->orWhere('principal_name', 'like', $searchPattern)
                     ->orWhere('address', 'like', $searchPattern)
                     ->orWhereHas('division', fn (Builder $relation): Builder => $relation->where('name', 'like', $searchPattern))

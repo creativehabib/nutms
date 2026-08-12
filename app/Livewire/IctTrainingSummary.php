@@ -36,7 +36,7 @@ class IctTrainingSummary extends Component
                     fn (Collection $teachers): Collection => $teachers->values()->map(
                         fn (Teacher $teacher, int $index): array => [
                             $index + 1,
-                            $teacher->college?->code ?? '-',
+                            $teacher->college?->college_code ?? '-',
                             $teacher->college?->name ?? '-',
                             $teacher->display_name ?: '-',
                             $this->trainingDetails($teacher),
@@ -53,7 +53,7 @@ class IctTrainingSummary extends Component
                     fn (Collection $teachers): Collection => $teachers->values()->map(
                         fn (Teacher $teacher, int $index): array => [
                             $index + 1,
-                            $teacher->college?->code ?? '-',
+                            $teacher->college?->college_code ?? '-',
                             $teacher->college?->name ?? '-',
                             $teacher->display_name ?: '-',
                             $teacher->subject?->name ?: 'উল্লেখ নেই',
@@ -88,7 +88,7 @@ class IctTrainingSummary extends Component
     private function teachersWithIctQuery(): Builder
     {
         return Teacher::query()
-            ->with(['user:id,name', 'college:id,code,name', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
+            ->with(['user:id,name', 'college:id,college_code,name', 'trainingTypes.trainingInstitute', 'otherTrainings.trainingInstitute'])
             ->where(fn (Builder $query): Builder => $query->whereHas('trainingTypes')->orWhereHas('otherTrainings'))
             ->orderBy('college_id')
             ->orderBy('name')
@@ -98,7 +98,7 @@ class IctTrainingSummary extends Component
     private function teachersWithoutIctQuery(): Builder
     {
         return Teacher::query()
-            ->with(['user:id,name', 'college:id,code,name', 'subject:id,name', 'designation:id,name', 'teacherLevel:id,name', 'employment:id,name'])
+            ->with(['user:id,name', 'college:id,college_code,name', 'subject:id,name', 'designation:id,name', 'teacherLevel:id,name', 'employment:id,name'])
             ->doesntHave('trainingTypes')
             ->doesntHave('otherTrainings')
             ->orderBy('college_id')

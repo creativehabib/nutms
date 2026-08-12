@@ -52,7 +52,7 @@
                             <!-- College header row -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
                                 <td colspan="5" class="px-4 py-2 font-bold text-indigo-800 dark:text-indigo-300 border text-center college-header text-base">
-                                    College code: {{ $collegeTeachers->first()->college?->code ?? __('Not specified') }} - {{ $collegeTeachers->first()->college?->name ?? __('No records found') }}
+                                    {{ $collegeTeachers->first()->college?->college_code ?? __('Not specified') }} - {{ $collegeTeachers->first()->college?->name ?? __('No records found') }}
                                 </td>
                             </tr>
 
@@ -100,7 +100,7 @@
                             <!-- College header row -->
                             <tr class="bg-gray-100 dark:bg-slate-800 print:bg-gray-200">
                                 <td colspan="7" class="px-4 py-2 font-bold text-red-800 dark:text-red-300 border text-center college-header text-base">
-                                    College code: {{ $collegeTeachers->first()->college?->code ?? __('Not specified') }} - {{ $collegeTeachers->first()->college?->name ?? __('No records found') }}
+                                    {{ $collegeTeachers->first()->college?->college_code ?? __('Not specified') }} - {{ $collegeTeachers->first()->college?->name ?? __('No records found') }}
                                 </td>
                             </tr>
 

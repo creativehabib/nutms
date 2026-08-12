@@ -21,7 +21,7 @@ class AffiliatedCollegeSeeder extends Seeder
             ->throw()
             ->collect()
             ->map(fn (array $college): array => [
-                'code' => Arr::get($college, 'college_code'),
+                'college_code' => Arr::get($college, 'college_code'),
                 'name' => Arr::get($college, 'college_name'),
                 'college_email' => Arr::get($college, 'email'),
                 'is_active' => true,

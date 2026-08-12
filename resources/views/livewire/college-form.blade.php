@@ -27,7 +27,7 @@
 
             <div class="p-6">
                 <div class="grid gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="code"  :label="__('College Code')" :placeholder="__('Enter college code')" />
+                    <flux:input wire:model="college_code"  :label="__('College Code')" :placeholder="__('Enter college code')" />
                     <flux:input wire:model="name"  :label="__('College Name')" :placeholder="__('Enter college name')" required />
                     <flux:input wire:model="principalName" :label="__('Principal Name')" :placeholder="__('Enter principal name')" required />
                     <flux:input wire:model="collegeEmail" type="email" :label="__('College Email')" :placeholder="__('college@example.com')" />
