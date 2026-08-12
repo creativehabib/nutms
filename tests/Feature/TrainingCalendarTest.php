@@ -280,6 +280,20 @@ it('protects the registered teachers menu page', function () {
         ->assertSee(__('Registered Teachers'));
 });
 
+it('does not render training registrations on the admin dashboard', function () {
+    $admin = User::factory()->create();
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create(['title' => 'Dashboard Hidden Training']);
+    $training->participants()->attach($teacherUser, ['status' => 'Pending']);
+
+    $this->actingAs($admin)
+        ->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertDontSee('Dashboard Hidden Training')
+        ->assertDontSee(__('Registered Teachers'))
+        ->assertDontSee(__('Review and verify teacher registrations before training participation.'));
+});
+
 it('hides trainings from teachers outside active affiliated colleges', function () {
     $teacherUser = User::factory()->withRole('teacher')->create();
     Teacher::query()->create([
