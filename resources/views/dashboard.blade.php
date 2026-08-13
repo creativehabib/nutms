@@ -95,11 +95,16 @@
                     </flux:callout>
                 @endif
 
-                <div class="grid gap-5 lg:grid-cols-3">
-                    <flux:card class="lg:col-span-2">
+                <div class="grid items-start gap-5 xl:grid-cols-3">
+                    <flux:card>
                         <div class="flex items-start justify-between gap-4"><div><flux:heading size="lg">{{ __('ICT Training Records') }}</flux:heading><flux:text class="mt-1">{{ __('Review the training courses recorded for your profile.') }}</flux:text></div><div class="rounded-lg bg-emerald-50 p-2.5 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300"><flux:icon.academic-cap class="size-6" /></div></div>
                         <div class="mt-5 grid gap-3">@forelse($teacherStats['trainings'] as $training)<div class="flex flex-col justify-between gap-2 rounded-xl border border-zinc-200 px-4 py-3 sm:flex-row sm:items-center dark:border-zinc-700"><div><p class="font-semibold text-zinc-950 dark:text-white">{{ $training['name'] }}</p><p class="text-sm text-zinc-500 dark:text-zinc-400">{{ $training['institute'] ?: __('Institute not specified') }}</p></div><div class="flex items-center gap-2">@if($training['year'])<flux:badge color="emerald">{{ $training['year'] }}</flux:badge>@endif @if($training['certificate_url'])<flux:button size="sm" variant="primary" icon="arrow-down-tray" :href="$training['certificate_url']">{{ __('Certificate') }}</flux:button>@endif</div></div>@empty<flux:callout variant="warning">{{ __('No training records have been added yet.') }}</flux:callout>@endforelse</div>
                     </flux:card>
+                    @if($teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved)
+                        <section aria-label="{{ __('Training Opportunities') }}">
+                            <livewire:training.upcoming-trainings :days="30" :compact="true" wire:key="teacher-dashboard-upcoming-trainings" />
+                        </section>
+                    @endif
                     <flux:card class="flex flex-col">
                         <div class="flex items-center gap-3"><div class="rounded-lg bg-indigo-50 p-2.5 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300"><flux:icon.identification class="size-6" /></div><flux:heading size="lg">{{ __('My Profile') }}</flux:heading></div>
                         <div class="mt-4 grid gap-3 text-sm"><div class="flex justify-between gap-3"><span class="text-zinc-500 dark:text-zinc-400">{{ __('Subject') }}</span><span class="font-medium text-zinc-950 dark:text-white">{{ $teacherStats['profile']->subject?->name ?: __('Not added') }}</span></div><div class="flex justify-between gap-3"><span class="text-zinc-500 dark:text-zinc-400">{{ __('Designation') }}</span><span class="font-medium text-zinc-950 dark:text-white">{{ $teacherStats['profile']->designation?->name ?: __('Not added') }}</span></div><div class="flex justify-between gap-3"><span class="text-zinc-500 dark:text-zinc-400">{{ __('Retirement Age') }}</span><span class="font-medium text-zinc-950 dark:text-white">{{ $teacherStats['retirementAge'] }} years</span></div></div>

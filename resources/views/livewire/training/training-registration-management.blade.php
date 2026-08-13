@@ -43,8 +43,8 @@
                             <flux:table.cell>{{ \Illuminate\Support\Carbon::parse($participant->pivot->created_at)->format('d M Y, g:i A') }}</flux:table.cell>
                             <flux:table.cell>
                                 <flux:select wire:change="updateRegistrationStatus({{ $training->id }}, {{ $participant->id }}, $event.target.value)" size="sm" :aria-label="__('Registration status')">
-                                    @foreach (['Pending', 'Approved', 'Rejected'] as $status)
-                                        <option value="{{ $status }}" @selected($participant->pivot->status === $status)>{{ __($status) }}</option>
+                                    @foreach (\App\Enums\TrainingRegistrationStatus::from($participant->pivot->status)->reviewOptions() as $status)
+                                        <option value="{{ $status->value }}" @selected($participant->pivot->status === $status->value)>{{ __($status->value) }}</option>
                                     @endforeach
                                 </flux:select>
                             </flux:table.cell>
