@@ -160,9 +160,11 @@
                 </flux:sidebar.group>
                 @endcan
                 <flux:sidebar.group expandable icon="academic-cap" :heading="__('Training')" :expanded="request()->routeIs('training.*', 'training-catalog.manage')" class="grid">
-                    <flux:sidebar.item icon="calendar-days" :href="route('training.calendar')" :current="request()->routeIs('training.calendar')" wire:navigate>{{ __('Training Calendar') }}</flux:sidebar.item>
                     @if(auth()->user()->hasRole('teacher'))
+                        <flux:sidebar.item icon="calendar-days" :href="route('training.calendar')" :current="request()->routeIs('training.calendar')" wire:navigate>{{ __('Training Calendar & Registration') }}</flux:sidebar.item>
                         <flux:sidebar.item icon="trophy" :href="route('training.certificates')" :current="request()->routeIs('training.certificates')" wire:navigate>{{ __('My Certificates') }}</flux:sidebar.item>
+                    @else
+                        <flux:sidebar.item icon="calendar-days" :href="route('training.calendar')" :current="request()->routeIs('training.calendar')" wire:navigate>{{ __('Training Calendar') }}</flux:sidebar.item>
                     @endif
                     @can('training-catalog.manage')
                         <flux:sidebar.item icon="presentation-chart-bar" :href="route('training.manage')" :current="request()->routeIs('training.manage')" wire:navigate>{{ __('Training Management') }}</flux:sidebar.item>
