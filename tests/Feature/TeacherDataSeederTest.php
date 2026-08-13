@@ -14,7 +14,7 @@ it('seeds teacher profiles and login accounts from the teacher spreadsheet', fun
     $spreadsheet->getActiveSheet()->fromArray([
         ['College Code', 'College Name', 'College Category', 'Name', 'TTIS ID', 'Designation', 'Subject', 'Date of Birth', 'Mobile', 'Email', 'Role', 'Category'],
         ['0101', 'Example College (101)', 'Govt', 'FIRST TEACHER', '17535', 'Professor', 'MANAGEMENT', '1961-12-18', '1712345678', 'shared@example.com', 'Principal', 'Honours'],
-        ['0101', 'Example College (101)', 'Govt', 'SECOND TEACHER', '17536', 'Lecturer', 'BBA', '1980-01-02', '01812345678', 'shared@example.com', 'Teacher', 'Degree'],
+        ['0101', 'Example College (101)', 'Govt', 'MOHAMMAD REDUANUL HOQUE Lecturer BANGLA 39 y, 7 m, 24 d 12 year, 9 Non Priority 01832757466 reduan@example.com Teacher Degree NATIONAL UNIVERSITY GAZIPUR-1704, BANGLADESH Teachers Training Information System College Wise Principal/Vice Principal/Teacher Report '.str_repeat('invalid report data ', 10), '17536', 'Lecturer', 'BBA', '1980-01-02', '01812345678', 'shared@example.com', 'Teacher', 'Degree'],
         ['9999', 'Missing College', 'Govt', 'SKIPPED TEACHER', '17537', 'Lecturer', 'BANGLA', '1985-01-02', '01912345678', 'skipped@example.com', 'Teacher', 'Degree'],
     ]);
     (new Xlsx($spreadsheet))->save($sourcePath);
@@ -38,6 +38,7 @@ it('seeds teacher profiles and login accounts from the teacher spreadsheet', fun
             ->and($principal->mobile_no)->toBe('01712345678')
             ->and($principal->hasRole('principal'))->toBeTrue()
             ->and($teacher->hasRole('teacher'))->toBeTrue()
+            ->and($teacher->name)->toBe('Teacher 17536')
             ->and($firstProfile->college->college_code)->toBe('101')
             ->and($college->fresh()->name)->toBe('Existing College Name')
             ->and($college->fresh()->college_type)->toBe('government')

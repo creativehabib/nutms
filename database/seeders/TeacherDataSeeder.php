@@ -93,7 +93,7 @@ class TeacherDataSeeder extends Seeder
                     ?? $this->uniqueEmail((string) ($row['J'] ?? ''), $ttisId, $usedEmails);
                 $mobile = $existingTeacher?->user?->mobile_no
                     ?? $this->uniqueMobile((string) ($row['I'] ?? ''), $ttisId, $usedMobiles);
-                $name = trim((string) $row['D']);
+                $name = $this->normalizeTeacherName($row['D'] ?? null, $ttisId);
 
                 $user = User::query()->updateOrCreate(['email' => $email], [
                     'name' => $name,
@@ -143,6 +143,21 @@ class TeacherDataSeeder extends Seeder
             'non-govt', 'non government', 'non-government', 'private' => 'private',
             default => null,
         };
+    }
+
+    private function normalizeTeacherName(mixed $name, string $ttisId): string
+    {
+        $name = Str::of((string) $name)->squish()->toString();
+
+        if (
+            $name === ''
+            || Str::length($name) > 255
+            || Str::contains($name, ['Teachers Training Information System', 'College Wise Principal/Vice Principal/Teacher Report'])
+        ) {
+            return "Teacher {$ttisId}";
+        }
+
+        return $name;
     }
 
     /** @param array<string, bool> $usedEmails */
