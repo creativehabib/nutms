@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Course;
+use App\Models\Designation;
 use Illuminate\Database\Seeder;
 
 class DesignationSeeder extends Seeder
@@ -12,7 +12,7 @@ class DesignationSeeder extends Seeder
      */
     public function run(): void
     {
-        $courses = [
+        $designations = [
             ['name' => 'Professor'],
             ['name' => 'Associate Professor'],
             ['name' => 'Assistant Professor'],
@@ -20,7 +20,8 @@ class DesignationSeeder extends Seeder
             ['name' => 'Demonstrator'],
         ];
 
-        collect($courses)->each(fn (array $course) => Course::query()->updateOrCreate(
+        collect($designations)->each(fn (array $designation) => Designation::query()->updateOrCreate(
+            ['name' => $designation['name']],
             ['is_active' => true],
         ));
     }
