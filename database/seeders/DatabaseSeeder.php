@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             AffiliatedCollegeSeeder::class,
             SubjectSeeder::class,
             DesignationSeeder::class,
+            TeacherLevelSeeder::class,
             ProgramLevelSeeder::class,
             CourseSeeder::class,
         ]);
@@ -40,9 +41,9 @@ class DatabaseSeeder extends Seeder
         $district = District::query()->where('division_id', $division->id)->where('name', 'Dhaka')->firstOrFail();
         $thana = Thana::query()->where('district_id', $district->id)->firstOrFail();
 
-        $subject = Subject::query()->create(['name' => 'Information and Communication Technology']);
-        $designation = Designation::query()->create(['name' => 'Lecturer']);
-        $teacherLevel = TeacherLevel::query()->create(['name' => 'College']);
+        $subject = Subject::query()->updateOrCreate(['name' => 'Information and Communication Technology']);
+        $designation = Designation::query()->where('name', 'Lecturer')->firstOrFail();
+        $teacherLevel = TeacherLevel::query()->updateOrCreate(['name' => 'College']);
         $employment = Employment::query()->create(['name' => 'Permanent']);
         $trainingInstitute = TrainingInstitute::query()->create(['name' => 'National Academy for Educational Management']);
         $trainingType = TrainingType::query()->create([
@@ -104,6 +105,8 @@ class DatabaseSeeder extends Seeder
 
         $college->update(['submitted_by' => $principal->id]);
         $college->programs()->create(['level' => 'honours', 'name' => 'Honours', 'items' => ['Information and Communication Technology']]);
+
+        $this->call(TeacherDataSeeder::class);
     }
 
     private function createDemoUser(string $name, string $email, string $mobileNumber, string $role, College $college, User $admin): User
