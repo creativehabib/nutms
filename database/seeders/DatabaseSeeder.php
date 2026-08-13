@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             UnionSeeder::class,
             AffiliatedCollegeSeeder::class,
             SubjectSeeder::class,
+            DesignationSeeder::class,
             ProgramLevelSeeder::class,
             CourseSeeder::class,
         ]);
