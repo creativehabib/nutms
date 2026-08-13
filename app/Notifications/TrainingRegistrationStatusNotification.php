@@ -20,7 +20,9 @@ class TrainingRegistrationStatusNotification extends Notification implements Sho
     /** @return array<int, string> */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return config('mail.training_notifications_enabled', false)
+            ? ['database', 'mail']
+            : ['database'];
     }
 
     public function toMail(object $notifiable): MailMessage

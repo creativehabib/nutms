@@ -191,6 +191,46 @@ it('allows an authenticated teacher to register only once', function () {
         ->and($training->participants()->whereKey($user->id)->first()->pivot->status)->toBe('Pending');
 });
 
+it('accepts applications beyond capacity but never selects beyond capacity', function () {
+    $admin = User::factory()->create();
+    $firstTeacher = registeredAffiliatedTeacher();
+    $secondTeacher = registeredAffiliatedTeacher();
+    $training = Training::factory()->create([
+        'capacity' => 1,
+        'start_date' => now()->addDays(5),
+        'end_date' => now()->addDays(5)->addHours(4),
+        'registration_deadline' => now()->addDays(4),
+    ]);
+
+    Livewire::actingAs($firstTeacher)->test(UpcomingTrainings::class)->call('enroll', $training->id);
+    Livewire::actingAs($secondTeacher)->test(UpcomingTrainings::class)->call('enroll', $training->id);
+
+    expect($training->participants()->wherePivot('status', 'Pending')->count())->toBe(2);
+
+    Livewire::actingAs($admin)->test(TrainingRegistrationManagement::class)
+        ->call('approve', $training->id, $firstTeacher->id)
+        ->call('approve', $training->id, $secondTeacher->id)
+        ->assertHasErrors('registrationStatus');
+
+    expect($training->participants()->wherePivot('status', 'Approved')->count())->toBe(1);
+});
+
+it('enforces registration lifecycle transitions', function () {
+    $admin = User::factory()->create();
+    $teacher = registeredAffiliatedTeacher();
+    $training = Training::factory()->create([
+        'start_date' => now()->addDay(),
+        'end_date' => now()->addDay()->addHours(4),
+    ]);
+    $training->participants()->attach($teacher, ['status' => 'Pending']);
+
+    Livewire::actingAs($admin)->test(TrainingRegistrationManagement::class)
+        ->call('complete', $training->id, $teacher->id)
+        ->assertHasErrors('registrationStatus');
+
+    expect($training->participants()->whereKey($teacher->id)->first()->pivot->status)->toBe('Pending');
+});
+
 it('does not register a teacher after the deadline', function () {
     $user = registeredAffiliatedTeacher();
     $training = Training::factory()->create([
@@ -253,6 +293,7 @@ it('queues training status notifications for database and email delivery', funct
     $teacherUser = registeredAffiliatedTeacher();
     $training = Training::factory()->create();
     $training->participants()->attach($teacherUser, ['status' => 'Pending']);
+    config(['mail.training_notifications_enabled' => true]);
     Notification::fake();
 
     Livewire::actingAs($admin)->test(TrainingManagement::class)

@@ -2,7 +2,8 @@
 
 namespace App\Livewire\Training;
 
-use App\Actions\Training\AddCompletedTrainingToTeacherProfile;
+use App\Actions\Training\ChangeTrainingRegistrationStatus;
+use App\Enums\TrainingRegistrationStatus;
 use App\Models\Training;
 use App\Models\TrainingType;
 use App\Models\User;
@@ -106,31 +107,19 @@ class TrainingManagement extends Component
         $this->showTrainingModal = true;
     }
 
-    public function approve(int $trainingId, int $userId): void
+    public function approve(int $trainingId, int $userId, ChangeTrainingRegistrationStatus $changeStatus): void
     {
-        $this->updateRegistration($trainingId, $userId, 'Approved');
+        $this->changeRegistrationStatus($trainingId, $userId, TrainingRegistrationStatus::Approved, $changeStatus);
     }
 
-    public function reject(int $trainingId, int $userId): void
+    public function reject(int $trainingId, int $userId, ChangeTrainingRegistrationStatus $changeStatus): void
     {
-        $this->updateRegistration($trainingId, $userId, 'Rejected');
+        $this->changeRegistrationStatus($trainingId, $userId, TrainingRegistrationStatus::Rejected, $changeStatus);
     }
 
-    public function complete(int $trainingId, int $userId): void
+    public function complete(int $trainingId, int $userId, ChangeTrainingRegistrationStatus $changeStatus): void
     {
-        $this->authorize('training-catalog.manage');
-        $training = Training::query()->where('end_date', '<=', now())->findOrFail($trainingId);
-        $registration = $training->participants()->whereKey($userId)->wherePivot('status', 'Approved')->firstOrFail();
-
-        $training->participants()->updateExistingPivot($registration->id, [
-            'status' => 'Completed',
-            'completed_at' => now(),
-            'certificate_number' => $training->has_certificate
-                ? 'NU-TC-'.$training->id.'-'.$registration->id.'-'.now()->format('Y')
-                : null,
-        ]);
-        app(AddCompletedTrainingToTeacherProfile::class)->handle($registration, $training);
-        $registration->notify(new TrainingRegistrationStatusNotification($training, 'Completed'));
+        $this->changeRegistrationStatus($trainingId, $userId, TrainingRegistrationStatus::Completed, $changeStatus);
         Flux::toast(variant: 'success', text: __('The training was added to the teacher profile.'));
     }
 
@@ -164,19 +153,13 @@ class TrainingManagement extends Component
         ])->layout('layouts.app', ['title' => __('Training Management')]);
     }
 
-    private function updateRegistration(int $trainingId, int $userId, string $status): void
+    private function changeRegistrationStatus(int $trainingId, int $userId, TrainingRegistrationStatus $status, ChangeTrainingRegistrationStatus $changeStatus): void
     {
         $this->authorize('training-catalog.manage');
         $training = Training::query()->findOrFail($trainingId);
-        $registration = $training->participants()->whereKey($userId)->wherePivot('status', 'Pending')->firstOrFail();
-
-        $training->participants()->updateExistingPivot($registration->id, [
-            'status' => $status,
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-        ]);
-        $this->notifyParticipant($registration, $training, $status);
-        Flux::toast(variant: 'success', text: __("Registration {$status}."));
+        $participant = $training->participants()->whereKey($userId)->firstOrFail();
+        $changeStatus->handle($training, $participant, $status, auth()->user());
+        Flux::toast(variant: 'success', text: __('Registration status updated.'));
     }
 
     private function notifyParticipant(User $participant, Training $training, string $status): void
