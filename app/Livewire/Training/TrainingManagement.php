@@ -2,8 +2,11 @@
 
 namespace App\Livewire\Training;
 
+use App\Actions\Training\AddCompletedTrainingToTeacherProfile;
 use App\Models\Training;
 use App\Models\TrainingType;
+use App\Models\User;
+use App\Notifications\TrainingRegistrationStatusNotification;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
@@ -126,6 +129,8 @@ class TrainingManagement extends Component
                 ? 'NU-TC-'.$training->id.'-'.$registration->id.'-'.now()->format('Y')
                 : null,
         ]);
+        app(AddCompletedTrainingToTeacherProfile::class)->handle($registration, $training);
+        $registration->notify(new TrainingRegistrationStatusNotification($training, 'Completed'));
         Flux::toast(variant: 'success', text: __('The training was added to the teacher profile.'));
     }
 
@@ -170,6 +175,15 @@ class TrainingManagement extends Component
             'approved_by' => auth()->id(),
             'approved_at' => now(),
         ]);
+        $this->notifyParticipant($registration, $training, $status);
         Flux::toast(variant: 'success', text: __("Registration {$status}."));
     }
+
+    private function notifyParticipant(User $participant, Training $training, string $status): void
+    {
+        if (in_array($status, ['Approved', 'Rejected'], true)) {
+            $participant->notify(new TrainingRegistrationStatusNotification($training, $status));
+        }
+    }
+
 }

@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Training;
 
+use App\Actions\Training\AddCompletedTrainingToTeacherProfile;
 use App\Models\Training;
+use App\Models\User;
+use App\Notifications\TrainingRegistrationStatusNotification;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
@@ -54,6 +57,8 @@ class TrainingRegistrationManagement extends Component
                 ? 'NU-TC-'.$training->id.'-'.$participant->id.'-'.now()->format('Y')
                 : null,
         ]);
+        app(AddCompletedTrainingToTeacherProfile::class)->handle($participant, $training);
+        $participant->notify(new TrainingRegistrationStatusNotification($training, 'Completed'));
         Flux::toast(variant: 'success', text: __('Training marked as completed.'));
     }
 
@@ -71,6 +76,7 @@ class TrainingRegistrationManagement extends Component
             'approved_by' => $status === 'Pending' ? null : auth()->id(),
             'approved_at' => $status === 'Pending' ? null : now(),
         ]);
+        $this->notifyParticipant($participant, $training, $status);
         Flux::toast(variant: 'success', text: __('Registration status updated.'));
     }
 
@@ -138,7 +144,15 @@ class TrainingRegistrationManagement extends Component
             'approved_by' => auth()->id(),
             'approved_at' => now(),
         ]);
+        $this->notifyParticipant($participant, $training, $status);
         Flux::toast(variant: 'success', text: __('Registration status updated.'));
+    }
+
+    private function notifyParticipant(User $participant, Training $training, string $status): void
+    {
+        if (in_array($status, ['Approved', 'Rejected'], true)) {
+            $participant->notify(new TrainingRegistrationStatusNotification($training, $status));
+        }
     }
 
     private function setSelectedRegistration(int $trainingId, int $userId): void
