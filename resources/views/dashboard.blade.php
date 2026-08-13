@@ -22,12 +22,6 @@
             </div>
         </header>
 
-        @if(auth()->user()->hasRole('teacher') && $teacherStats && $teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved)
-            <section aria-label="{{ __('Training Opportunities') }}">
-                <livewire:training.upcoming-trainings :days="30" :compact="true" wire:key="teacher-dashboard-upcoming-trainings" />
-            </section>
-        @endif
-
         @if(auth()->user()->hasRole('principal') && ! auth()->user()->isApproved())
             <flux:card><flux:heading size="lg">{{ __('Approval Pending') }}</flux:heading><flux:callout class="mt-4" variant="warning" :heading="__('Account awaiting approval')">{{ __('Your principal account must be approved before you can manage college records.') }}</flux:callout></flux:card>
         @elseif(auth()->user()->hasRole('principal'))
@@ -122,7 +116,7 @@
             @endif
         @elseif(auth()->user()->isAdmin())
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="rounded-xl border border-zinc-200 bg-white p-5 shaাdow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <div class="flex items-center justify-between gap-4">
                     <div class="rounded-lg bg-indigo-50 p-2.5 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300"><flux:icon.building-library class="size-6" /></div>
                     <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('All Institutions') }}</span>
