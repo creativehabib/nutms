@@ -12,16 +12,23 @@ use Livewire\Component;
 
 class UpcomingTrainings extends Component
 {
+    private RegisterTeacherForTraining $registerTeacherForTraining;
+
     public int $days = 30;
 
     public bool $compact = false;
 
-    public function enroll(int $trainingId, RegisterTeacherForTraining $registerTeacher): void
+    public function boot(RegisterTeacherForTraining $registerTeacherForTraining): void
+    {
+        $this->registerTeacherForTraining = $registerTeacherForTraining;
+    }
+
+    public function enroll(int $trainingId): void
     {
         abort_unless(auth()->check(), 403);
         abort_unless($this->isRegisteredAffiliatedCollegeTeacher(auth()->user()), 403);
 
-        $registerTeacher->handle(Training::query()->findOrFail($trainingId), auth()->user());
+        $this->registerTeacherForTraining->handle(Training::query()->findOrFail($trainingId), auth()->user());
         Flux::toast(variant: 'success', text: __('Your registration is waiting for admin approval.'));
     }
 

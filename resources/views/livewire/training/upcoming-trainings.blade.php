@@ -1,3 +1,4 @@
+<div>
 @if ($compact)
 <flux:card class="overflow-hidden border-zinc-200 p-0 shadow-sm dark:border-zinc-700">
     <div class="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/70 px-5 py-4 dark:border-zinc-700 dark:bg-zinc-900/50 sm:flex-row sm:items-center sm:justify-between">
@@ -115,3 +116,4 @@
     </div>
 </section>
 @endif
+</div>

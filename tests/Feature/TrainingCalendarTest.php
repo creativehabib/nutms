@@ -191,6 +191,12 @@ it('allows an authenticated teacher to register only once', function () {
         ->and($training->participants()->whereKey($user->id)->first()->pivot->status)->toBe('Pending');
 });
 
+it('exposes the enroll action from the upcoming trainings component', function () {
+    expect(method_exists(UpcomingTrainings::class, 'enroll'))->toBeTrue()
+        ->and((new ReflectionMethod(UpcomingTrainings::class, 'enroll'))->isPublic())->toBeTrue()
+        ->and((new ReflectionMethod(UpcomingTrainings::class, 'enroll'))->getNumberOfParameters())->toBe(1);
+});
+
 it('accepts applications beyond capacity but never selects beyond capacity', function () {
     $admin = User::factory()->create();
     $firstTeacher = registeredAffiliatedTeacher();
