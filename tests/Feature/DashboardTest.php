@@ -250,6 +250,17 @@ test('approved teachers see upcoming training and calendar actions prominently o
         ->assertSee(route('training.calendar'), false);
 });
 
+test('places upcoming trainings between ICT records and the teacher profile', function () {
+    $dashboard = file_get_contents(resource_path('views/dashboard.blade.php'));
+    $ictRecordsPosition = strpos($dashboard, "__('ICT Training Records')");
+    $upcomingTrainingsPosition = strpos($dashboard, 'teacher-dashboard-upcoming-trainings');
+    $profilePosition = strpos($dashboard, "__('My Profile')", $ictRecordsPosition);
+
+    expect($ictRecordsPosition)->not->toBeFalse()
+        ->and($upcomingTrainingsPosition)->toBeGreaterThan($ictRecordsPosition)
+        ->and($profilePosition)->toBeGreaterThan($upcomingTrainingsPosition);
+});
+
 test('sidebar menu items use icons that match their destinations', function () {
     $sidebar = file_get_contents(resource_path('views/layouts/app/sidebar.blade.php'));
 

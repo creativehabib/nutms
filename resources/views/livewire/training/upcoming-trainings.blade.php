@@ -22,11 +22,11 @@
                 $isClosed = $training->registration_deadline?->isPast() ?? false;
                 $badgeColor = match ($training->type) { 'Online' => 'green', 'Hybrid' => 'amber', default => 'blue' };
             @endphp
-            <article wire:key="dashboard-training-{{ $training->id }}" class="grid gap-3 px-5 py-4 transition hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 sm:grid-cols-[5rem_minmax(0,1fr)_auto] sm:items-center">
-                <div class="flex items-center gap-2 sm:block">
+            <article wire:key="dashboard-training-{{ $training->id }}" class="grid gap-3 px-5 py-4 transition hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40">
+                <div class="flex items-center gap-2">
                     <p class="text-lg font-bold leading-none text-indigo-600 dark:text-indigo-300">{{ $training->start_date->format('d') }}</p>
                     <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ $training->start_date->format('M, Y') }}</p>
-                    <p class="text-xs text-zinc-400 sm:mt-1">{{ $training->start_date->format('g:i A') }}</p>
+                    <p class="text-xs text-zinc-400">{{ $training->start_date->format('g:i A') }}</p>
                 </div>
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
@@ -36,7 +36,7 @@
                     </div>
                     <p class="mt-1 truncate text-sm text-zinc-500 dark:text-zinc-400">{{ $training->location_or_link ?: __('Venue will be announced') }}</p>
                 </div>
-                <flux:button wire:click="enroll({{ $training->id }})" variant="{{ $registrationStatus ? 'outline' : 'primary' }}" size="sm" icon="{{ $registrationStatus ? 'check' : 'academic-cap' }}" :disabled="$registrationStatus !== null || $isClosed">
+                <flux:button class="w-full" wire:click="enroll({{ $training->id }})" variant="{{ $registrationStatus ? 'outline' : 'primary' }}" size="sm" icon="{{ $registrationStatus ? 'check' : 'academic-cap' }}" :disabled="$registrationStatus !== null || $isClosed">
                     {{ $registrationStatus ? __($registrationStatus) : ($isClosed ? __('Closed') : __('Register')) }}
                 </flux:button>
             </article>
