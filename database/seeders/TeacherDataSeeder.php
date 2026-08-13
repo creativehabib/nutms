@@ -65,21 +65,30 @@ class TeacherDataSeeder extends Seeder
         $subjects = Subject::query()->get()->keyBy(fn (Subject $subject): string => Str::upper($subject->name));
         $designations = Designation::query()->get()->keyBy(fn (Designation $designation): string => Str::upper($designation->name));
         $teacherLevels = TeacherLevel::query()->get()->keyBy(fn (TeacherLevel $teacherLevel): string => Str::upper($teacherLevel->name));
+        $colleges = College::query()->get()->keyBy(fn (College $college): string => $this->normalizeCollegeCode($college->college_code));
         $usedEmails = User::query()->pluck('email')->mapWithKeys(fn (string $email): array => [Str::lower($email) => true])->all();
         $usedMobiles = User::query()->pluck('mobile_no')->mapWithKeys(fn (string $mobile): array => [$mobile => true])->all();
         $password = Hash::make('12345678');
+        $skippedRows = 0;
 
-        $rows->chunk(250)->each(function (Collection $chunk) use ($subjects, $designations, $teacherLevels, &$usedEmails, &$usedMobiles, $password): void {
+        $rows->chunk(250)->each(function (Collection $chunk) use ($subjects, $designations, $teacherLevels, $colleges, &$usedEmails, &$usedMobiles, $password, &$skippedRows): void {
             foreach ($chunk as $row) {
                 $ttisId = trim((string) $row['E']);
+                $college = $colleges->get($this->normalizeCollegeCode($row['A'] ?? null));
+
+                if (! $college instanceof College) {
+                    $skippedRows++;
+
+                    continue;
+                }
+
+                $collegeType = $this->normalizeCollegeType($row['C'] ?? null);
+
+                if ($collegeType !== null && $college->college_type !== $collegeType) {
+                    $college->update(['college_type' => $collegeType]);
+                }
+
                 $existingTeacher = Teacher::withTrashed()->where('ttis_id', $ttisId)->first();
-                $college = College::query()->updateOrCreate(
-                    ['college_code' => $this->normalizeCollegeCode($row['A'] ?? null)],
-                    [
-                        'name' => trim((string) ($row['B'] ?? '')) ?: 'অনির্ধারিত কলেজ',
-                        'college_type' => $this->normalizeCollegeType($row['C'] ?? null),
-                    ],
-                );
                 $email = $existingTeacher?->user?->email
                     ?? $this->uniqueEmail((string) ($row['J'] ?? ''), $ttisId, $usedEmails);
                 $mobile = $existingTeacher?->user?->mobile_no
@@ -96,10 +105,6 @@ class TeacherDataSeeder extends Seeder
                     'approved_at' => now(),
                 ]);
                 $user->syncRoles([Str::lower(trim((string) ($row['K'] ?? ''))) === 'principal' ? 'principal' : 'teacher']);
-
-                if (Str::lower(trim((string) ($row['K'] ?? ''))) === 'principal') {
-                    $college->update(['principal_name' => $name]);
-                }
 
                 $subjectName = self::SUBJECT_ALIASES[Str::upper(trim((string) ($row['G'] ?? '')))]
                     ?? trim((string) ($row['G'] ?? ''));
@@ -118,6 +123,10 @@ class TeacherDataSeeder extends Seeder
                 $teacher->restore();
             }
         });
+
+        if ($skippedRows > 0) {
+            $this->command?->warn("Skipped {$skippedRows} teacher rows because their college codes do not exist.");
+        }
     }
 
     private function normalizeCollegeCode(mixed $collegeCode): string

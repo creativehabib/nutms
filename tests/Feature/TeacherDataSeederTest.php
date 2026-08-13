@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\College;
 use App\Models\Teacher;
 use App\Models\User;
 use Database\Seeders\TeacherDataSeeder;
@@ -14,10 +15,16 @@ it('seeds teacher profiles and login accounts from the teacher spreadsheet', fun
         ['College Code', 'College Name', 'College Category', 'Name', 'TTIS ID', 'Designation', 'Subject', 'Date of Birth', 'Mobile', 'Email', 'Role', 'Category'],
         ['0101', 'Example College (101)', 'Govt', 'FIRST TEACHER', '17535', 'Professor', 'MANAGEMENT', '1961-12-18', '1712345678', 'shared@example.com', 'Principal', 'Honours'],
         ['0101', 'Example College (101)', 'Govt', 'SECOND TEACHER', '17536', 'Lecturer', 'BBA', '1980-01-02', '01812345678', 'shared@example.com', 'Teacher', 'Degree'],
+        ['9999', 'Missing College', 'Govt', 'SKIPPED TEACHER', '17537', 'Lecturer', 'BANGLA', '1985-01-02', '01912345678', 'skipped@example.com', 'Teacher', 'Degree'],
     ]);
     (new Xlsx($spreadsheet))->save($sourcePath);
 
     try {
+        $college = College::query()->create([
+            'college_code' => '101',
+            'name' => 'Existing College Name',
+            'college_type' => null,
+        ]);
         $seeder = (new TeacherDataSeeder($sourcePath))->setContainer($this->app);
         $seeder->run();
         $seeder->run();
@@ -32,8 +39,8 @@ it('seeds teacher profiles and login accounts from the teacher spreadsheet', fun
             ->and($principal->hasRole('principal'))->toBeTrue()
             ->and($teacher->hasRole('teacher'))->toBeTrue()
             ->and($firstProfile->college->college_code)->toBe('101')
-            ->and($firstProfile->college->college_type)->toBe('government')
-            ->and($firstProfile->college->principal_name)->toBe('FIRST TEACHER')
+            ->and($college->fresh()->name)->toBe('Existing College Name')
+            ->and($college->fresh()->college_type)->toBe('government')
             ->and($firstProfile->designation->name)->toBe('Professor')
             ->and($firstProfile->subject->name)->toBe('Management')
             ->and($firstProfile->teacherLevel->name)->toBe('Honours')
@@ -41,7 +48,9 @@ it('seeds teacher profiles and login accounts from the teacher spreadsheet', fun
             ->and($secondProfile->subject->name)->toBe('Business Administration (BBA)')
             ->and($secondProfile->teacherLevel->name)->toBe('Degree')
             ->and(Teacher::query()->count())->toBe(2)
-            ->and(User::query()->count())->toBe(2);
+            ->and(User::query()->count())->toBe(2)
+            ->and(College::query()->count())->toBe(1)
+            ->and(User::query()->where('email', 'skipped@example.com')->doesntExist())->toBeTrue();
     } finally {
         if (is_file($sourcePath)) {
             unlink($sourcePath);
