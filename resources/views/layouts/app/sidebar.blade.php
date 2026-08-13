@@ -55,6 +55,7 @@
         <flux:spacer />
         <flux:navbar class="me-4">
             <flux:navbar.item icon="magnifying-glass" href="#" label="Search" />
+            <livewire:layout.notification-menu wire:key="header-notification-menu" />
             <livewire:layout.language-switcher wire:key="header-language-switcher" />
             <flux:navbar.item icon="globe-alt" :href="route('home')" target="_blank" label="{{ __('Visit Website') }}" />
             <flux:button type="button" variant="ghost" icon="cog-6-tooth" class="max-lg:hidden" x-on:click="settingsOpen = true" aria-label="{{ __('Open settings') }}" />
