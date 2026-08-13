@@ -222,6 +222,45 @@ test('teacher dashboard shows personal retirement training and update informatio
         ->assertSee('Lecturer');
 });
 
+test('approved teachers see upcoming training and calendar actions prominently on the dashboard', function () {
+    $college = College::query()->create([
+        'name' => 'Training Opportunity College',
+        'approval_status' => ApprovalStatus::Approved,
+        'is_active' => true,
+    ]);
+    $teacher = User::factory()->withRole('teacher')->create(['college_id' => $college->id]);
+    Teacher::query()->create([
+        'user_id' => $teacher->id,
+        'college_id' => $college->id,
+        'name' => $teacher->name,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    \App\Models\Training::factory()->create([
+        'title' => 'Visible Dashboard Training',
+        'start_date' => now()->addDays(5),
+        'end_date' => now()->addDays(5)->addHours(4),
+        'registration_deadline' => now()->addDays(4),
+    ]);
+
+    $this->actingAs($teacher)->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee(__('Training Opportunities'))
+        ->assertSee('Visible Dashboard Training')
+        ->assertSee(__('Calendar & all trainings'))
+        ->assertSee(route('training.calendar'), false);
+});
+
+test('places upcoming trainings between ICT records and the teacher profile', function () {
+    $dashboard = file_get_contents(resource_path('views/dashboard.blade.php'));
+    $ictRecordsPosition = strpos($dashboard, "__('ICT Training Records')");
+    $upcomingTrainingsPosition = strpos($dashboard, 'teacher-dashboard-upcoming-trainings');
+    $profilePosition = strpos($dashboard, "__('My Profile')", $ictRecordsPosition);
+
+    expect($ictRecordsPosition)->not->toBeFalse()
+        ->and($upcomingTrainingsPosition)->toBeGreaterThan($ictRecordsPosition)
+        ->and($profilePosition)->toBeGreaterThan($upcomingTrainingsPosition);
+});
+
 test('sidebar menu items use icons that match their destinations', function () {
     $sidebar = file_get_contents(resource_path('views/layouts/app/sidebar.blade.php'));
 
