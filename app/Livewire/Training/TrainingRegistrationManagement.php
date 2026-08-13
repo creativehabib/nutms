@@ -5,6 +5,8 @@ namespace App\Livewire\Training;
 use App\Actions\Training\ChangeTrainingRegistrationStatus;
 use App\Enums\TrainingRegistrationStatus;
 use App\Models\Training;
+use App\Models\User;
+use App\Notifications\TrainingRegistrationStatusNotification;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
@@ -117,6 +119,13 @@ class TrainingRegistrationManagement extends Component
         $participant = $training->participants()->whereKey($userId)->firstOrFail();
         $changeStatus->handle($training, $participant, $status, auth()->user());
         Flux::toast(variant: 'success', text: __('Registration status updated.'));
+    }
+
+    private function notifyParticipant(User $participant, Training $training, string $status): void
+    {
+        if (in_array($status, ['Approved', 'Rejected'], true)) {
+            $participant->notify(new TrainingRegistrationStatusNotification($training, $status));
+        }
     }
 
     private function setSelectedRegistration(int $trainingId, int $userId): void
