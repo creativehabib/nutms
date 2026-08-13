@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Carbon\Carbon;
+use App\Models\Subject;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class SubjectSeeder extends Seeder
 {
@@ -60,12 +59,9 @@ class SubjectSeeder extends Seeder
             ['subject_code' => '6005', 'name' => 'AMT'],
         ];
 
-        $now = Carbon::now();
-        foreach ($subjects as &$subject) {
-            $subject['created_at'] = $now;
-            $subject['updated_at'] = $now;
-        }
-
-        DB::table('subjects')->insert($subjects);
+        collect($subjects)->each(fn (array $subject) => Subject::query()->updateOrCreate(
+            ['subject_code' => $subject['subject_code']],
+            ['name' => $subject['name'], 'is_active' => true],
+        ));
     }
 }
