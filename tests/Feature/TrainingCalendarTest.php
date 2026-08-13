@@ -1,17 +1,20 @@
 <?php
 
+use App\Enums\ApprovalStatus;
+use App\Livewire\Layout\NotificationMenu;
 use App\Livewire\Training\TrainingCalendar;
 use App\Livewire\Training\TrainingManagement;
 use App\Livewire\Training\TrainingRegistrationManagement;
 use App\Livewire\Training\UpcomingTrainings;
-use App\Enums\ApprovalStatus;
 use App\Models\College;
 use App\Models\Training;
 use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Notifications\TrainingRegistrationStatusNotification;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -204,7 +207,9 @@ it('does not register a teacher after the deadline', function () {
 it('lets an admin approve and complete a registration after the training ends', function () {
     $admin = User::factory()->create();
     $teacherUser = registeredAffiliatedTeacher();
+    $trainingType = trainingCatalogItem('Profile Training');
     $training = Training::factory()->create([
+        'training_type_id' => $trainingType->id,
         'start_date' => now()->addDay(),
         'end_date' => now()->addDay()->addHours(4),
         'registration_deadline' => now()->addHours(12),
@@ -213,13 +218,21 @@ it('lets an admin approve and complete a registration after the training ends', 
     Livewire::actingAs($admin)->test(TrainingManagement::class)->call('approve', $training->id, $teacherUser->id);
 
     expect($training->participants()->whereKey($teacherUser->id)->first()->pivot->status)->toBe('Approved');
+    expect($teacherUser->unreadNotifications()->count())->toBe(1)
+        ->and($teacherUser->unreadNotifications()->first()->data['status'])->toBe('Approved');
 
     Carbon::setTestNow('2026-08-14 09:00:00');
     Livewire::actingAs($admin)->test(TrainingManagement::class)->call('complete', $training->id, $teacherUser->id);
 
     $registration = $training->participants()->whereKey($teacherUser->id)->first()->pivot;
     expect($registration->status)->toBe('Completed')
-        ->and($registration->certificate_number)->not->toBeNull();
+        ->and($registration->certificate_number)->not->toBeNull()
+        ->and($teacherUser->unreadNotifications()->count())->toBe(2)
+        ->and($teacherUser->unreadNotifications()->latest()->first()->data['status'])->toBe('Completed');
+    expect($teacherUser->teacherProfile->fresh()->trainingTypes()
+        ->whereKey($trainingType->id)
+        ->wherePivot('training_year', 2026)
+        ->exists())->toBeTrue();
 
     $this->actingAs($teacherUser)
         ->get(route('dashboard'))
@@ -233,6 +246,38 @@ it('lets an admin approve and complete a registration after the training ends', 
         ->assertSee($training->title)
         ->assertSee(__('Download Certificate'))
         ->assertSee($registration->certificate_number);
+});
+
+it('queues training status notifications for database and email delivery', function () {
+    $admin = User::factory()->create();
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create();
+    $training->participants()->attach($teacherUser, ['status' => 'Pending']);
+    Notification::fake();
+
+    Livewire::actingAs($admin)->test(TrainingManagement::class)
+        ->call('approve', $training->id, $teacherUser->id);
+
+    Notification::assertSentTo(
+        $teacherUser,
+        TrainingRegistrationStatusNotification::class,
+        fn (TrainingRegistrationStatusNotification $notification, array $channels): bool => $notification->status === 'Approved'
+            && $channels === ['database', 'mail'],
+    );
+});
+
+it('lets a teacher read a training notification from the header', function () {
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create();
+    $teacherUser->notify(new TrainingRegistrationStatusNotification($training, 'Approved'));
+    $notification = $teacherUser->unreadNotifications()->firstOrFail();
+
+    Livewire::actingAs($teacherUser)->test(NotificationMenu::class)
+        ->assertSee($training->title)
+        ->call('open', $notification->id)
+        ->assertRedirect(route('training.calendar'));
+
+    expect($notification->fresh()->read_at)->not->toBeNull();
 });
 
 it('lets an admin manage registrations and training status from the registered teachers page', function () {
