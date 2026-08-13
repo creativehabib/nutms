@@ -246,7 +246,7 @@ test('approved teachers see upcoming training and calendar actions prominently o
         ->assertSuccessful()
         ->assertSee(__('Training Opportunities'))
         ->assertSee('Visible Dashboard Training')
-        ->assertSee(__('Open Training Calendar'))
+        ->assertSee(__('Calendar & all trainings'))
         ->assertSee(route('training.calendar'), false);
 });
 

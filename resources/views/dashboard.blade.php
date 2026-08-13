@@ -23,34 +23,8 @@
         </header>
 
         @if(auth()->user()->hasRole('teacher') && $teacherStats && $teacherStats['profile']->approval_status === \App\Enums\ApprovalStatus::Approved)
-            <section aria-labelledby="teacher-training-opportunities" class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]">
-                <flux:card class="overflow-hidden border-indigo-200 bg-linear-to-br from-white via-indigo-50/60 to-sky-50 p-0 shadow-sm dark:border-indigo-900 dark:from-zinc-900 dark:via-indigo-950/30 dark:to-sky-950/20">
-                    <div class="flex flex-col gap-4 border-b border-indigo-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between dark:border-indigo-900/70">
-                        <div class="flex items-center gap-3">
-                            <div class="rounded-xl bg-indigo-600 p-3 text-white shadow-sm"><flux:icon.academic-cap class="size-6" /></div>
-                            <div>
-                                <flux:heading id="teacher-training-opportunities" size="xl">{{ __('Training Opportunities') }}</flux:heading>
-                                <flux:text class="mt-1">{{ __('Review current notices and apply before the registration deadline.') }}</flux:text>
-                            </div>
-                        </div>
-                        <flux:button :href="route('training.calendar')" wire:navigate variant="outline" icon="calendar-days">
-                            {{ __('Open Training Calendar') }}
-                        </flux:button>
-                    </div>
-                    <div class="p-5">
-                        <livewire:training.upcoming-trainings :days="30" wire:key="teacher-dashboard-upcoming-trainings" />
-                    </div>
-                </flux:card>
-
-                <a href="{{ route('training.calendar') }}" wire:navigate class="group relative overflow-hidden rounded-2xl bg-indigo-700 p-6 text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:ring-offset-zinc-800">
-                    <div class="absolute -right-12 -top-12 size-36 rounded-full bg-white/10"></div>
-                    <div class="relative flex h-full min-h-52 flex-col">
-                        <div class="flex size-12 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20"><flux:icon.calendar-days class="size-7" /></div>
-                        <h2 class="mt-5 text-xl font-bold">{{ __('Training Calendar') }}</h2>
-                        <p class="mt-2 text-sm leading-6 text-indigo-100">{{ __('See all published training dates, delivery modes, venues, and registration schedules in one place.') }}</p>
-                        <span class="mt-auto flex items-center gap-2 pt-6 text-sm font-semibold">{{ __('View full calendar') }}<flux:icon.arrow-right class="size-4 transition group-hover:translate-x-1" /></span>
-                    </div>
-                </a>
+            <section aria-label="{{ __('Training Opportunities') }}">
+                <livewire:training.upcoming-trainings :days="30" :compact="true" wire:key="teacher-dashboard-upcoming-trainings" />
             </section>
         @endif
 

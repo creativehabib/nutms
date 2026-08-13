@@ -14,6 +14,8 @@ class UpcomingTrainings extends Component
 {
     public int $days = 30;
 
+    public bool $compact = false;
+
     public function enroll(int $trainingId, RegisterTeacherForTraining $registerTeacher): void
     {
         abort_unless(auth()->check(), 403);
@@ -38,7 +40,7 @@ class UpcomingTrainings extends Component
                     fn ($query) => $query->whereRaw('1 = 0'),
                 )
                 ->orderBy('start_date')
-                ->limit(6)
+                ->limit($this->compact ? 3 : 6)
                 ->get(),
             'registrations' => auth()->check()
                 ? auth()->user()->trainings()->pluck('training_user.status', 'trainings.id')->all()
