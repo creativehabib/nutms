@@ -52,9 +52,11 @@ class TeacherDataSeeder extends Seeder
             TeacherLevelSeeder::class,
         ]);
 
-        $rows = collect(IOFactory::load($sourcePath)->getActiveSheet()->toArray(null, true, true, true))
+        $spreadsheet = IOFactory::load($sourcePath);
+
+        $rows = collect($spreadsheet->getActiveSheet()->toArray(null, true, true, true))
             ->skip(1)
-            ->filter(fn (array $row): bool => filled($row['D'] ?? null) && filled($row['E'] ?? null));
+            ->filter(fn (array $row): bool => filled($row['D'] ?? null));
 
         $this->seedRows($rows);
     }
@@ -66,14 +68,41 @@ class TeacherDataSeeder extends Seeder
         $designations = Designation::query()->get()->keyBy(fn (Designation $designation): string => Str::upper($designation->name));
         $teacherLevels = TeacherLevel::query()->get()->keyBy(fn (TeacherLevel $teacherLevel): string => Str::upper($teacherLevel->name));
         $colleges = College::query()->get()->keyBy(fn (College $college): string => $this->normalizeCollegeCode($college->college_code));
+        $existingTtisIds = Teacher::withTrashed()
+            ->pluck('ttis_id')
+            ->filter(fn (mixed $ttisId): bool => filled($ttisId))
+            ->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])
+            ->all();
+        $existingTeachersByImportKey = Teacher::withTrashed()
+            ->with('user:id,email,mobile_no')
+            ->get(['id', 'user_id', 'college_id', 'ttis_id', 'name'])
+            ->mapWithKeys(fn (Teacher $teacher): array => [
+                $this->teacherImportKey(
+                    (int) $teacher->college_id,
+                    $teacher->name,
+                    $teacher->user?->email,
+                    $teacher->user?->mobile_no,
+                ) => $teacher,
+            ]);
         $usedEmails = User::query()->pluck('email')->mapWithKeys(fn (string $email): array => [Str::lower($email) => true])->all();
         $usedMobiles = User::query()->pluck('mobile_no')->mapWithKeys(fn (string $mobile): array => [$mobile => true])->all();
         $password = Hash::make('12345678');
         $skippedRows = 0;
+        $skippedExistingRows = 0;
+        $seededRows = 0;
+        $processedRows = 0;
+        $updatedTtisRows = 0;
 
-        $rows->chunk(250)->each(function (Collection $chunk) use ($subjects, $designations, $teacherLevels, $colleges, &$usedEmails, &$usedMobiles, $password, &$skippedRows): void {
+        $rows->chunk(250)->each(function (Collection $chunk) use ($subjects, $designations, $teacherLevels, $colleges, &$existingTtisIds, $existingTeachersByImportKey, &$usedEmails, &$usedMobiles, $password, &$skippedRows, &$skippedExistingRows, &$seededRows, &$processedRows, &$updatedTtisRows, $rows): void {
             foreach ($chunk as $row) {
                 $ttisId = trim((string) $row['E']);
+
+                if ($ttisId !== '' && isset($existingTtisIds[$ttisId])) {
+                    $skippedExistingRows++;
+
+                    continue;
+                }
+
                 $college = $colleges->get($this->normalizeCollegeCode($row['A'] ?? null));
 
                 if (! $college instanceof College) {
@@ -88,11 +117,26 @@ class TeacherDataSeeder extends Seeder
                     $college->update(['college_type' => $collegeType]);
                 }
 
-                $existingTeacher = Teacher::withTrashed()->where('ttis_id', $ttisId)->first();
-                $email = $existingTeacher?->user?->email
-                    ?? $this->uniqueEmail((string) ($row['J'] ?? ''), $ttisId, $usedEmails);
-                $mobile = $existingTeacher?->user?->mobile_no
-                    ?? $this->uniqueMobile((string) ($row['I'] ?? ''), $ttisId, $usedMobiles);
+                $importKey = $this->teacherImportKey($college->id, $row['D'] ?? null, $row['J'] ?? null, $row['I'] ?? null);
+                $existingImportedTeacher = $existingTeachersByImportKey->get($importKey);
+
+                if ($ttisId === '' && $existingImportedTeacher instanceof Teacher) {
+                    $skippedExistingRows++;
+
+                    continue;
+                }
+
+                if ($ttisId !== '' && $existingImportedTeacher instanceof Teacher && blank($existingImportedTeacher->ttis_id)) {
+                    $existingImportedTeacher->update(['ttis_id' => $ttisId]);
+                    $existingTtisIds[$ttisId] = true;
+                    $updatedTtisRows++;
+
+                    continue;
+                }
+
+                $accountIdentifier = $ttisId !== '' ? $ttisId : substr(hash('sha256', $importKey), 0, 12);
+                $email = $this->uniqueEmail((string) ($row['J'] ?? ''), $accountIdentifier, $usedEmails);
+                $mobile = $this->uniqueMobile((string) ($row['I'] ?? ''), $accountIdentifier, $usedMobiles);
                 $name = $this->normalizeTeacherName($row['D'] ?? null, $ttisId);
 
                 $user = User::query()->updateOrCreate(['email' => $email], [
@@ -109,7 +153,7 @@ class TeacherDataSeeder extends Seeder
                 $subjectName = self::SUBJECT_ALIASES[Str::upper(trim((string) ($row['G'] ?? '')))]
                     ?? trim((string) ($row['G'] ?? ''));
 
-                $teacher = Teacher::withTrashed()->updateOrCreate(['ttis_id' => $ttisId], [
+                $teacherAttributes = [
                     'user_id' => $user->id,
                     'college_id' => $college->id,
                     'name' => $name,
@@ -119,14 +163,43 @@ class TeacherDataSeeder extends Seeder
                     'birth_date' => filled($row['H'] ?? null) ? $row['H'] : null,
                     'approval_status' => ApprovalStatus::Approved,
                     'approved_at' => now(),
-                ]);
+                ];
+                $teacher = $ttisId === ''
+                    ? Teacher::withoutEvents(fn (): Teacher => Teacher::query()->create([...$teacherAttributes, 'ttis_id' => null]))
+                    : Teacher::withTrashed()->updateOrCreate(['ttis_id' => $ttisId], $teacherAttributes);
                 $teacher->restore();
+
+                if ($ttisId !== '') {
+                    $existingTtisIds[$ttisId] = true;
+                }
+
+                $existingTeachersByImportKey->put($importKey, $teacher);
+                $seededRows++;
             }
+
+            $processedRows += $chunk->count();
+            $this->command?->info("Processed {$processedRows}/{$rows->count()} teacher rows; seeded {$seededRows}, TTIS updated {$updatedTtisRows}, skipped existing {$skippedExistingRows}, missing college {$skippedRows}.");
         });
 
         if ($skippedRows > 0) {
             $this->command?->warn("Skipped {$skippedRows} teacher rows because their college codes do not exist.");
         }
+
+        $this->command?->info("Teacher seeding complete: {$seededRows} seeded, {$updatedTtisRows} TTIS IDs updated, {$skippedExistingRows} already existed, {$skippedRows} skipped for missing colleges.");
+    }
+
+    private function teacherImportKey(int $collegeId, mixed $name, mixed $email, mixed $mobile): string
+    {
+        $normalizedEmail = Str::lower(trim((string) $email));
+        $normalizedMobile = preg_replace('/\D+/', '', (string) $mobile) ?? '';
+        $identity = $normalizedEmail !== '' || $normalizedMobile !== ''
+            ? "{$normalizedEmail}|{$normalizedMobile}"
+            : Str::lower(Str::squish((string) $name));
+
+        return implode('|', [
+            $collegeId,
+            $identity,
+        ]);
     }
 
     private function normalizeCollegeCode(mixed $collegeCode): string
