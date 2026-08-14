@@ -6,7 +6,9 @@ use Laravel\Fortify\Features;
 test('login screen can be rendered', function () {
     $response = $this->get(route('login'));
 
-    $response->assertOk();
+    $response
+        ->assertOk()
+        ->assertSee(__('Email address or mobile number'));
 });
 
 test('users can authenticate using the login screen', function () {
@@ -22,6 +24,21 @@ test('users can authenticate using the login screen', function () {
         ->assertRedirect(route('dashboard', absolute: false));
 
     $this->assertAuthenticated();
+});
+
+test('users can authenticate using their mobile number', function () {
+    $user = User::factory()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->mobile_no,
+        'password' => 'password',
+    ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    $this->assertAuthenticatedAs($user);
 });
 
 test('users can not authenticate with invalid password', function () {
