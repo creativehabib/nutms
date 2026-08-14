@@ -188,7 +188,7 @@ class TeacherProfileForm extends Component
         abort_unless(in_array($step, self::STEPS, true), 404);
 
         $isStaffCreatingTeacherAccount = $this->editingId === null && ! auth()->user()->hasRole('teacher');
-        $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
+        $profileRequiredRule = $this->profileContactDetailsAreRequired() ? 'required' : 'nullable';
 
         $profileUserId = null;
         if ($this->editingId !== null) {
@@ -307,7 +307,7 @@ class TeacherProfileForm extends Component
         abort_unless(auth()->user()->can($this->editingId === null || $isTeacherResubmittingRejectedProfile ? 'teachers.create' : 'teachers.update'), 403);
 
         $isStaffCreatingTeacherAccount = $this->editingId === null && ! auth()->user()->hasRole('teacher');
-        $profileRequiredRule = $isStaffCreatingTeacherAccount ? 'nullable' : 'required';
+        $profileRequiredRule = $this->profileContactDetailsAreRequired() ? 'required' : 'nullable';
 
         $profileUserId = null;
         if ($this->editingId !== null) {
@@ -513,7 +513,17 @@ class TeacherProfileForm extends Component
             'thanas' => Thana::query()->where('district_id', $this->districtId ?: 0)->where('status', true)->orderBy('name')->get(['id', 'name', 'bn_name']),
             'trainingInstitutes' => TrainingInstitute::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'trainingTypes' => TrainingType::query()->where('is_active', true)->orderBy('name')->get(['id', 'training_institute_id', 'name', 'duration_value', 'duration_unit']),
+            'profileContactDetailsRequired' => $this->profileContactDetailsAreRequired(),
         ]);
+    }
+
+    private function profileContactDetailsAreRequired(): bool
+    {
+        $user = auth()->user();
+        $isStaffCreatingTeacherAccount = $this->editingId === null && ! $user->hasRole('teacher');
+        $isAdminEditingTeacher = $this->editingId !== null && $user->isAdmin();
+
+        return ! $isStaffCreatingTeacherAccount && ! $isAdminEditingTeacher;
     }
 
     /**

@@ -12,6 +12,8 @@ use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role as PermissionRole;
@@ -51,7 +53,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
     $teacher = Teacher::query()->where('name', 'New Teacher')->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
         ->and($teacher->college->name)->toBe('Teacher College')
-        ->and($teacher->ttis_id)->toMatch('/^\d{6}$/')
+        ->and($teacher->ttis_id)->toMatch('/^\d{4}$/')
         ->and($teacher->present_address)->toBe('Present Address')
         ->and($teacher->bank_name)->toBe('Sonali Bank')
         ->and($teacher->bank_account_number)->toBe('1234567890123')
@@ -65,14 +67,28 @@ it('creates a teacher linked to a college with contact and bank information', fu
 });
 
 
-it('generates unique six digit TTIS IDs for new teacher profiles', function () {
+it('generates unique four digit TTIS IDs for new teacher profiles', function () {
     $teachers = collect(range(1, 10))->map(fn (int $index): Teacher => Teacher::query()->create(['name' => "Generated TTIS Teacher {$index}"]));
 
-    expect($teachers->pluck('ttis_id')->unique())->toHaveCount(10);
+    expect($teachers->pluck('ttis_id')->all())->toBe(array_map('strval', range(1000, 1009)));
 
     $teachers->each(function (Teacher $teacher): void {
-        expect($teacher->ttis_id)->toMatch('/^\d{6}$/');
+        expect($teacher->ttis_id)->toMatch('/^\d{4}$/');
     });
+});
+
+it('continues generating TTIS IDs after all four digit values are used', function () {
+    collect(range(1000, 9999))
+        ->map(fn (int $ttisId): array => [
+            'ttis_id' => (string) $ttisId,
+            'name' => "Existing Teacher {$ttisId}",
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])
+        ->chunk(100)
+        ->each(fn (Collection $teachers): bool => DB::table('teacher_profiles')->insert($teachers->all()));
+
+    expect(Teacher::generateUniqueTtisId())->toBe('10000');
 });
 
 it('keeps an existing TTIS ID unchanged when a teacher profile is edited', function () {
@@ -148,6 +164,39 @@ it('updates profile fields without changing existing institutional training hist
 
     expect($teacher->refresh()->trainingTypes)->toHaveCount(1)
         ->and($teacher->trainingTypes->first()->pivot->training_year)->toBe(2025);
+});
+
+it('allows an admin to update a teacher without location or address details', function () {
+    $college = College::query()->create(['name' => 'Optional Address College']);
+    $teacherAccount = User::factory()->create([
+        'college_id' => $college->id,
+        'email' => 'optional-address@example.com',
+        'mobile_no' => '01811111111',
+    ]);
+    $teacher = Teacher::query()->create([
+        'user_id' => $teacherAccount->id,
+        'college_id' => $college->id,
+        'name' => 'Teacher Without Address',
+    ]);
+
+    Livewire::actingAs(User::factory()->withRole('admin')->create())
+        ->test(TeacherProfileForm::class, ['teacher' => $teacher])
+        ->set('name', 'Updated Teacher Without Address')
+        ->call('save')
+        ->assertHasNoErrors([
+            'divisionId',
+            'districtId',
+            'thanaId',
+            'presentAddress',
+            'permanentAddress',
+        ]);
+
+    expect($teacher->refresh()->name)->toBe('Updated Teacher Without Address')
+        ->and($teacher->division_id)->toBeNull()
+        ->and($teacher->district_id)->toBeNull()
+        ->and($teacher->thana_id)->toBeNull()
+        ->and($teacher->present_address)->toBeNull()
+        ->and($teacher->permanent_address)->toBeNull();
 });
 
 it('shows all teacher profile sections on a dedicated details page', function () {
