@@ -327,6 +327,20 @@ it('lets a teacher read a training notification from the header', function () {
     expect($notification->fresh()->read_at)->not->toBeNull();
 });
 
+it('stores database notifications immediately when the production queue is asynchronous', function () {
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create();
+    config([
+        'mail.training_notifications_enabled' => false,
+        'queue.default' => 'database',
+    ]);
+
+    $teacherUser->notify(new TrainingRegistrationStatusNotification($training, 'Approved'));
+
+    expect($teacherUser->unreadNotifications()->count())->toBe(1)
+        ->and($teacherUser->unreadNotifications()->first()->data['training_id'])->toBe($training->id);
+});
+
 it('lets an admin manage registrations and training status from the registered teachers page', function () {
     $admin = User::factory()->create();
     $teacherUser = registeredAffiliatedTeacher();

@@ -26,7 +26,7 @@
             </div>
 
             <!-- Search & Filter Section -->
-            <div class="mt-6 grid gap-3 lg:grid-cols-[minmax(16rem,1.5fr)_minmax(10rem,0.75fr)_minmax(10rem,0.75fr)_auto] lg:items-end">
+            <div class="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(16rem,1.5fr)_repeat(4,minmax(10rem,0.75fr))_auto] xl:items-end">
                 <flux:input
                     wire:model.live.debounce.300ms="search"
                     icon="magnifying-glass"
@@ -34,6 +34,20 @@
                     :placeholder="__('Search by college name, code, or principal')"
                     class="w-full shadow-sm"
                 />
+
+                <flux:select wire:model.live="divisionFilter" :label="__('Division')">
+                    <flux:select.option value="">{{ __('All Divisions') }}</flux:select.option>
+                    @foreach($divisions as $division)
+                        <flux:select.option wire:key="division-filter-{{ $division->id }}" value="{{ $division->id }}">{{ $division->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select wire:model.live="districtFilter" :label="__('District')">
+                    <flux:select.option value="">{{ __('All Districts') }}</flux:select.option>
+                    @foreach($districts as $district)
+                        <flux:select.option wire:key="district-filter-{{ $district->id }}" value="{{ $district->id }}">{{ $district->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
 
                 <flux:select wire:model.live="collegeTypeFilter" :label="__('College Type')">
                     <flux:select.option value="">{{ __('All Colleges') }}</flux:select.option>
@@ -58,7 +72,7 @@
                 </div>
             </div>
 
-            @if(trim($search) !== '' || $collegeTypeFilter !== '' || $approvalStatusFilter !== '')
+            @if(trim($search) !== '' || $divisionFilter !== '' || $districtFilter !== '' || $collegeTypeFilter !== '' || $approvalStatusFilter !== '')
                 <div class="mt-3 flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-indigo-50/70 px-3 py-2 dark:border-indigo-900 dark:bg-indigo-950/30">
                     <flux:text class="text-xs text-indigo-700 dark:text-indigo-300">{{ __('Showing colleges that match the active filters.') }}</flux:text>
                     <flux:button size="sm" variant="ghost" wire:click="clearFilters">{{ __('Clear Filters') }}</flux:button>
