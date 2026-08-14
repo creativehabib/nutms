@@ -16,7 +16,7 @@ it('only seeds newly appended teacher profiles and login accounts on subsequent 
         ['College Code', 'College Name', 'College Category', 'Name', 'TTIS ID', 'Designation', 'Subject', 'Date of Birth', 'Mobile', 'Email', 'Role', 'Category'],
         ['0101', 'Example College (101)', 'Govt', 'FIRST TEACHER', '17535', 'Professor', 'MANAGEMENT', '1961-12-18', '1712345678', 'shared@example.com', 'Principal', 'Honours'],
         ['0101', 'Example College (101)', 'Govt', 'MOHAMMAD REDUANUL HOQUE Lecturer BANGLA 39 y, 7 m, 24 d 12 year, 9 Non Priority 01832757466 reduan@example.com Teacher Degree NATIONAL UNIVERSITY GAZIPUR-1704, BANGLADESH Teachers Training Information System College Wise Principal/Vice Principal/Teacher Report '.str_repeat('invalid report data ', 10), '17536', 'Lecturer', 'BBA', '1980-01-02', '01812345678', 'shared@example.com', 'Teacher', 'Degree'],
-        ['0101', 'Example College (101)', 'Govt', 'TEACHER WITHOUT TTIS', null, 'Lecturer', 'BANGLA', '1988-01-02', '01612345678', 'generated@example.com', 'Teacher', 'Degree'],
+        ['0101', 'Example College (101)', 'Govt', 'TEACHER WITHOUT TTIS OR BIRTH DATE', null, 'Lecturer', 'BANGLA', null, '01612345678', 'generated@example.com', 'Teacher', 'Degree'],
         ['9999', 'Missing College', 'Govt', 'SKIPPED TEACHER', '17537', 'Lecturer', 'BANGLA', '1985-01-02', '01912345678', 'skipped@example.com', 'Teacher', 'Degree'],
     ]);
     (new Xlsx($spreadsheet))->save($sourcePath);
@@ -42,7 +42,7 @@ it('only seeds newly appended teacher profiles and login accounts on subsequent 
         $principal->refresh();
         $teacher = User::query()->where('email', 'shared+17536@example.com')->firstOrFail();
         $newTeacher = User::query()->where('email', 'new@example.com')->firstOrFail();
-        $teacherWithoutTtis = User::query()->where('email', 'generated@example.com')->firstOrFail()->teacherProfile;
+        $teacherWithoutTtisOrBirthDate = User::query()->where('email', 'generated@example.com')->firstOrFail()->teacherProfile;
         $firstProfile = Teacher::query()->where('ttis_id', '17535')->firstOrFail();
         $secondProfile = Teacher::query()->where('ttis_id', '17536')->firstOrFail();
         $sourceSpreadsheetTtisId = IOFactory::load($sourcePath)->getActiveSheet()->getCell('E4')->getValue();
@@ -53,7 +53,8 @@ it('only seeds newly appended teacher profiles and login accounts on subsequent 
             ->and($principal->hasRole('principal'))->toBeTrue()
             ->and($teacher->hasRole('teacher'))->toBeTrue()
             ->and($newTeacher->hasRole('teacher'))->toBeTrue()
-            ->and($teacherWithoutTtis->ttis_id)->toMatch('/^\d{4}$/')
+            ->and($teacherWithoutTtisOrBirthDate->ttis_id)->toMatch('/^\d{4}$/')
+            ->and($teacherWithoutTtisOrBirthDate->birth_date)->toBeNull()
             ->and($sourceSpreadsheetTtisId)->toBeNull()
             ->and($teacher->name)->toBe('Teacher 17536')
             ->and($firstProfile->college->college_code)->toBe('101')
