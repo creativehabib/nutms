@@ -218,7 +218,7 @@ class CollegeManagement extends Component
                 ->paginate(10),
             'divisions' => Division::query()->orderBy('name')->get(['id', 'name']),
             'districts' => District::query()
-                ->when($this->divisionFilter !== '', fn (Builder $query): Builder => $query->where('division_id', $this->divisionFilter))
+                ->where('division_id', (int) $this->divisionFilter)
                 ->orderBy('name')
                 ->get(['id', 'name']),
         ])->layout('layouts.app', ['title' => 'College Management']);

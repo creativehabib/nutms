@@ -120,6 +120,10 @@ it('filters colleges by division and district', function () {
     ]);
 
     Livewire::test(CollegeManagement::class)
+        ->assertSeeHtml('data-district-filter')
+        ->assertSeeHtml('disabled')
+        ->assertDontSee($firstDistrict->name)
+        ->assertDontSee($secondDistrict->name)
         ->set('divisionFilter', (string) $firstDivision->id)
         ->assertSet('districtFilter', '')
         ->assertSee($firstDistrict->name)

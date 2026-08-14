@@ -42,7 +42,12 @@
                     @endforeach
                 </flux:select>
 
-                <flux:select wire:model.live="districtFilter" :label="__('District')">
+                <flux:select
+                    wire:model.live="districtFilter"
+                    :label="__('District')"
+                    :disabled="$divisionFilter === ''"
+                    data-district-filter
+                >
                     <flux:select.option value="">{{ __('All Districts') }}</flux:select.option>
                     @foreach($districts as $district)
                         <flux:select.option wire:key="district-filter-{{ $district->id }}" value="{{ $district->id }}">{{ $district->name }}</flux:select.option>
