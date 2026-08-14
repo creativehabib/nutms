@@ -25,6 +25,15 @@ class TrainingRegistrationStatusNotification extends Notification implements Sho
             : ['database'];
     }
 
+    /** @return array<string, string> */
+    public function viaConnections(): array
+    {
+        return [
+            'database' => 'sync',
+            'mail' => (string) config('queue.default'),
+        ];
+    }
+
     public function toMail(object $notifiable): MailMessage
     {
         $message = (new MailMessage)

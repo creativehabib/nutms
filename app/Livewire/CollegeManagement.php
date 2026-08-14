@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use App\Enums\ApprovalStatus;
 use App\Models\College;
+use App\Models\District;
+use App\Models\Division;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,6 +22,10 @@ class CollegeManagement extends Component
     public string $collegeTypeFilter = '';
 
     public string $approvalStatusFilter = '';
+
+    public string $divisionFilter = '';
+
+    public string $districtFilter = '';
 
     public bool $showTrashed = false;
 
@@ -53,9 +59,20 @@ class CollegeManagement extends Component
         $this->resetPaginationAndSelection();
     }
 
+    public function updatedDivisionFilter(): void
+    {
+        $this->reset('districtFilter');
+        $this->resetPaginationAndSelection();
+    }
+
+    public function updatedDistrictFilter(): void
+    {
+        $this->resetPaginationAndSelection();
+    }
+
     public function clearFilters(): void
     {
-        $this->reset('search', 'collegeTypeFilter', 'approvalStatusFilter');
+        $this->reset('search', 'collegeTypeFilter', 'approvalStatusFilter', 'divisionFilter', 'districtFilter');
         $this->resetPaginationAndSelection();
     }
 
@@ -199,6 +216,11 @@ class CollegeManagement extends Component
                 ->withCount('teachers')
                 ->orderBy('name')
                 ->paginate(10),
+            'divisions' => Division::query()->orderBy('name')->get(['id', 'name']),
+            'districts' => District::query()
+                ->where('division_id', (int) $this->divisionFilter)
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ])->layout('layouts.app', ['title' => 'College Management']);
     }
 
@@ -224,6 +246,8 @@ class CollegeManagement extends Component
 
         $query->when($this->collegeTypeFilter !== '', fn (Builder $query): Builder => $query->where('college_type', $this->collegeTypeFilter));
         $query->when($this->approvalStatusFilter !== '', fn (Builder $query): Builder => $query->where('approval_status', $this->approvalStatusFilter));
+        $query->when($this->divisionFilter !== '', fn (Builder $query): Builder => $query->where('division_id', $this->divisionFilter));
+        $query->when($this->districtFilter !== '', fn (Builder $query): Builder => $query->where('district_id', $this->districtFilter));
 
         return $query;
     }

@@ -102,6 +102,42 @@ it('searches colleges by location and filters by type and approval status', func
         ->assertSet('approvalStatusFilter', '');
 });
 
+it('filters colleges by division and district', function () {
+    $firstDivision = Division::query()->where('name', 'Test Division One')->firstOrFail();
+    $firstDistrict = District::query()->whereBelongsTo($firstDivision)->firstOrFail();
+    $secondDivision = Division::query()->where('name', 'Test Division Two')->firstOrFail();
+    $secondDistrict = District::query()->whereBelongsTo($secondDivision)->firstOrFail();
+
+    College::query()->create([
+        'name' => 'Dhaka Division College',
+        'division_id' => $firstDivision->id,
+        'district_id' => $firstDistrict->id,
+    ]);
+    College::query()->create([
+        'name' => 'Other Division College',
+        'division_id' => $secondDivision->id,
+        'district_id' => $secondDistrict->id,
+    ]);
+
+    Livewire::test(CollegeManagement::class)
+        ->assertSeeHtml('data-district-filter')
+        ->assertSeeHtml('disabled')
+        ->assertDontSee($firstDistrict->name)
+        ->assertDontSee($secondDistrict->name)
+        ->set('divisionFilter', (string) $firstDivision->id)
+        ->assertSet('districtFilter', '')
+        ->assertSee($firstDistrict->name)
+        ->assertDontSee($secondDistrict->name)
+        ->set('districtFilter', (string) $firstDistrict->id)
+        ->assertSee('Dhaka Division College')
+        ->assertDontSee('Other Division College')
+        ->set('divisionFilter', (string) $secondDivision->id)
+        ->assertSet('districtFilter', '')
+        ->call('clearFilters')
+        ->assertSet('divisionFilter', '')
+        ->assertSet('districtFilter', '');
+});
+
 it('soft deletes and restores selected colleges in groups', function () {
     $colleges = collect([
         College::query()->create(['name' => 'First Group College']),
