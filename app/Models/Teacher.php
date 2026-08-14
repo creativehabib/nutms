@@ -63,7 +63,7 @@ class Teacher extends Model
     {
         static::creating(function (Teacher $teacher): void {
             if (blank($teacher->ttis_id)) {
-                $teacher->ttis_id = self::generateTtisId();
+                $teacher->ttis_id = self::generateUniqueTtisId();
             }
         });
 
@@ -77,10 +77,10 @@ class Teacher extends Model
         });
     }
 
-    private static function generateTtisId(): string
+    public static function generateUniqueTtisId(): string
     {
         do {
-            $ttisId = (string) random_int(100000, 999999);
+            $ttisId = (string) random_int(1000, 9999);
         } while (self::withTrashed()->where('ttis_id', $ttisId)->exists());
 
         return $ttisId;
