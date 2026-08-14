@@ -68,7 +68,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
 it('generates unique four digit TTIS IDs for new teacher profiles', function () {
     $teachers = collect(range(1, 10))->map(fn (int $index): Teacher => Teacher::query()->create(['name' => "Generated TTIS Teacher {$index}"]));
 
-    expect($teachers->pluck('ttis_id')->unique())->toHaveCount(10);
+    expect($teachers->pluck('ttis_id')->all())->toBe(array_map('strval', range(1000, 1009)));
 
     $teachers->each(function (Teacher $teacher): void {
         expect($teacher->ttis_id)->toMatch('/^\d{4}$/');

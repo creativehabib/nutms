@@ -53,7 +53,7 @@ it('only seeds newly appended teacher profiles and login accounts on subsequent 
             ->and($principal->hasRole('principal'))->toBeTrue()
             ->and($teacher->hasRole('teacher'))->toBeTrue()
             ->and($newTeacher->hasRole('teacher'))->toBeTrue()
-            ->and($teacherWithoutTtisOrBirthDate->ttis_id)->toMatch('/^\d{4}$/')
+            ->and($teacherWithoutTtisOrBirthDate->ttis_id)->toBe('1000')
             ->and($teacherWithoutTtisOrBirthDate->birth_date)->toBeNull()
             ->and($sourceSpreadsheetTtisId)->toBeNull()
             ->and($teacher->name)->toBe('Teacher 17536')

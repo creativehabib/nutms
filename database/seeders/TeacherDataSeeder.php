@@ -114,12 +114,18 @@ class TeacherDataSeeder extends Seeder
         $usedMobiles = User::query()->pluck('mobile_no')->mapWithKeys(fn (string $mobile): array => [$mobile => true])->all();
         $password = Hash::make('12345678');
         $skippedRows = 0;
+        $skippedExistingRows = 0;
+        $seededRows = 0;
+        $processedRows = 0;
+        $nextGeneratedTtisId = 1000;
 
-        $rows->chunk(250)->each(function (Collection $chunk) use ($subjects, $designations, $teacherLevels, $colleges, &$existingTtisIds, &$existingTeacherImportKeys, &$usedEmails, &$usedMobiles, $password, &$skippedRows): void {
+        $rows->chunk(250)->each(function (Collection $chunk) use ($subjects, $designations, $teacherLevels, $colleges, &$existingTtisIds, &$existingTeacherImportKeys, &$usedEmails, &$usedMobiles, $password, &$skippedRows, &$skippedExistingRows, &$seededRows, &$processedRows, &$nextGeneratedTtisId, $rows): void {
             foreach ($chunk as $row) {
                 $ttisId = trim((string) $row['E']);
 
                 if ($ttisId !== '' && isset($existingTtisIds[$ttisId])) {
+                    $skippedExistingRows++;
+
                     continue;
                 }
 
@@ -140,10 +146,14 @@ class TeacherDataSeeder extends Seeder
                 $importKey = $this->teacherImportKey($college->id, $row['D'] ?? null, $row['J'] ?? null, $row['I'] ?? null);
 
                 if ($ttisId === '' && isset($existingTeacherImportKeys[$importKey])) {
+                    $skippedExistingRows++;
+
                     continue;
                 }
 
-                $ttisId = $ttisId !== '' ? $ttisId : Teacher::generateUniqueTtisId();
+                $ttisId = $ttisId !== ''
+                    ? $ttisId
+                    : $this->nextAvailableTtisId($existingTtisIds, $nextGeneratedTtisId);
                 $email = $this->uniqueEmail((string) ($row['J'] ?? ''), $ttisId, $usedEmails);
                 $mobile = $this->uniqueMobile((string) ($row['I'] ?? ''), $ttisId, $usedMobiles);
                 $name = $this->normalizeTeacherName($row['D'] ?? null, $ttisId);
@@ -176,12 +186,46 @@ class TeacherDataSeeder extends Seeder
                 $teacher->restore();
                 $existingTtisIds[$ttisId] = true;
                 $existingTeacherImportKeys[$importKey] = true;
+                $seededRows++;
             }
+
+            $processedRows += $chunk->count();
+            $this->command?->info("Processed {$processedRows}/{$rows->count()} teacher rows; seeded {$seededRows}, skipped existing {$skippedExistingRows}, missing college {$skippedRows}.");
         });
 
         if ($skippedRows > 0) {
             $this->command?->warn("Skipped {$skippedRows} teacher rows because their college codes do not exist.");
         }
+
+        $this->command?->info("Teacher seeding complete: {$seededRows} seeded, {$skippedExistingRows} already existed, {$skippedRows} skipped for missing colleges.");
+    }
+
+    /** @param array<string, bool> $usedTtisIds */
+    private function nextAvailableTtisId(array $usedTtisIds, int &$nextCandidate): string
+    {
+        while ($nextCandidate <= 9999) {
+            $ttisId = (string) $nextCandidate++;
+
+            if (! isset($usedTtisIds[$ttisId])) {
+                return $ttisId;
+            }
+        }
+
+        throw new RuntimeException('Unable to seed another teacher because all four-digit TTIS IDs are already in use.');
+    }
+
+    private function teacherImportKey(int $collegeId, mixed $name, mixed $email, mixed $mobile): string
+    {
+        $normalizedEmail = Str::lower(trim((string) $email));
+        $normalizedMobile = preg_replace('/\D+/', '', (string) $mobile) ?? '';
+        $identity = $normalizedEmail !== '' || $normalizedMobile !== ''
+            ? "{$normalizedEmail}|{$normalizedMobile}"
+            : Str::lower(Str::squish((string) $name));
+
+        return implode('|', [
+            $collegeId,
+            $identity,
+        ]);
     }
 
     private function teacherImportKey(int $collegeId, mixed $name, mixed $email, mixed $mobile): string

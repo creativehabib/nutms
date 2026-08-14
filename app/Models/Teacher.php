@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use RuntimeException;
 
 class Teacher extends Model
 {
@@ -79,11 +80,21 @@ class Teacher extends Model
 
     public static function generateUniqueTtisId(): string
     {
-        do {
-            $ttisId = (string) random_int(1000, 9999);
-        } while (self::withTrashed()->where('ttis_id', $ttisId)->exists());
+        $usedTtisIds = self::withTrashed()
+            ->pluck('ttis_id')
+            ->filter(fn (string $ttisId): bool => preg_match('/^\d{4}$/', $ttisId) === 1)
+            ->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])
+            ->all();
 
-        return $ttisId;
+        for ($candidate = 1000; $candidate <= 9999; $candidate++) {
+            $ttisId = (string) $candidate;
+
+            if (! isset($usedTtisIds[$ttisId])) {
+                return $ttisId;
+            }
+        }
+
+        throw new RuntimeException('Unable to generate a TTIS ID because all four-digit IDs are already in use.');
     }
 
     public function subject(): BelongsTo
