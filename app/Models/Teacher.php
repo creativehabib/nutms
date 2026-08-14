@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use RuntimeException;
 
 class Teacher extends Model
 {
@@ -63,7 +64,7 @@ class Teacher extends Model
     {
         static::creating(function (Teacher $teacher): void {
             if (blank($teacher->ttis_id)) {
-                $teacher->ttis_id = self::generateTtisId();
+                $teacher->ttis_id = self::generateUniqueTtisId();
             }
         });
 
@@ -77,13 +78,23 @@ class Teacher extends Model
         });
     }
 
-    private static function generateTtisId(): string
+    public static function generateUniqueTtisId(): string
     {
-        do {
-            $ttisId = (string) random_int(100000, 999999);
-        } while (self::withTrashed()->where('ttis_id', $ttisId)->exists());
+        $usedTtisIds = self::withTrashed()
+            ->pluck('ttis_id')
+            ->filter(fn (string $ttisId): bool => preg_match('/^\d{4}$/', $ttisId) === 1)
+            ->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])
+            ->all();
 
-        return $ttisId;
+        for ($candidate = 1000; $candidate <= 9999; $candidate++) {
+            $ttisId = (string) $candidate;
+
+            if (! isset($usedTtisIds[$ttisId])) {
+                return $ttisId;
+            }
+        }
+
+        throw new RuntimeException('Unable to generate a TTIS ID because all four-digit IDs are already in use.');
     }
 
     public function subject(): BelongsTo
