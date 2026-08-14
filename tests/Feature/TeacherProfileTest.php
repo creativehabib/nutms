@@ -12,6 +12,8 @@ use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role as PermissionRole;
@@ -73,6 +75,20 @@ it('generates unique four digit TTIS IDs for new teacher profiles', function () 
     $teachers->each(function (Teacher $teacher): void {
         expect($teacher->ttis_id)->toMatch('/^\d{4}$/');
     });
+});
+
+it('continues generating TTIS IDs after all four digit values are used', function () {
+    collect(range(1000, 9999))
+        ->map(fn (int $ttisId): array => [
+            'ttis_id' => (string) $ttisId,
+            'name' => "Existing Teacher {$ttisId}",
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])
+        ->chunk(100)
+        ->each(fn (Collection $teachers): bool => DB::table('teacher_profiles')->insert($teachers->all()));
+
+    expect(Teacher::generateUniqueTtisId())->toBe('10000');
 });
 
 it('keeps an existing TTIS ID unchanged when a teacher profile is edited', function () {

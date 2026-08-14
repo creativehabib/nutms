@@ -82,19 +82,17 @@ class Teacher extends Model
     {
         $usedTtisIds = self::withTrashed()
             ->pluck('ttis_id')
-            ->filter(fn (string $ttisId): bool => preg_match('/^\d{4}$/', $ttisId) === 1)
+            ->filter(fn (mixed $ttisId): bool => preg_match('/^\d{4,}$/', (string) $ttisId) === 1)
             ->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])
             ->all();
 
-        for ($candidate = 1000; $candidate <= 9999; $candidate++) {
+        for ($candidate = 1000; ; $candidate++) {
             $ttisId = (string) $candidate;
 
             if (! isset($usedTtisIds[$ttisId])) {
                 return $ttisId;
             }
         }
-
-        throw new RuntimeException('Unable to generate a TTIS ID because all four-digit IDs are already in use.');
     }
 
     public function subject(): BelongsTo

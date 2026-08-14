@@ -9,13 +9,14 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-it('only seeds newly appended teacher profiles and login accounts on subsequent runs', function () {
+it('does not duplicate the same teacher within a college or on subsequent runs', function () {
     $sourcePath = tempnam(sys_get_temp_dir(), 'teachers-');
     $spreadsheet = new Spreadsheet;
     $spreadsheet->getActiveSheet()->fromArray([
         ['College Code', 'College Name', 'College Category', 'Name', 'TTIS ID', 'Designation', 'Subject', 'Date of Birth', 'Mobile', 'Email', 'Role', 'Category'],
         ['0101', 'Example College (101)', 'Govt', 'FIRST TEACHER', '17535', 'Professor', 'MANAGEMENT', '1961-12-18', '1712345678', 'shared@example.com', 'Principal', 'Honours'],
         ['0101', 'Example College (101)', 'Govt', 'MOHAMMAD REDUANUL HOQUE Lecturer BANGLA 39 y, 7 m, 24 d 12 year, 9 Non Priority 01832757466 reduan@example.com Teacher Degree NATIONAL UNIVERSITY GAZIPUR-1704, BANGLADESH Teachers Training Information System College Wise Principal/Vice Principal/Teacher Report '.str_repeat('invalid report data ', 10), '17536', 'Lecturer', 'BBA', '1980-01-02', '01812345678', 'shared@example.com', 'Teacher', 'Degree'],
+        ['0101', 'Example College (101)', 'Govt', 'TEACHER WITHOUT TTIS OR BIRTH DATE', null, 'Lecturer', 'BANGLA', null, '01612345678', 'generated@example.com', 'Teacher', 'Degree'],
         ['0101', 'Example College (101)', 'Govt', 'TEACHER WITHOUT TTIS OR BIRTH DATE', null, 'Lecturer', 'BANGLA', null, '01612345678', 'generated@example.com', 'Teacher', 'Degree'],
         ['9999', 'Missing College', 'Govt', 'SKIPPED TEACHER', '17537', 'Lecturer', 'BANGLA', '1985-01-02', '01912345678', 'skipped@example.com', 'Teacher', 'Degree'],
     ]);
@@ -31,10 +32,18 @@ it('only seeds newly appended teacher profiles and login accounts on subsequent 
         $seeder->run();
 
         $principal = User::query()->where('email', 'shared@example.com')->firstOrFail();
+        $teacherWithoutTtisOrBirthDate = User::query()->where('email', 'generated@example.com')->firstOrFail()->teacherProfile;
+
+        expect($teacherWithoutTtisOrBirthDate->ttis_id)->toBeNull()
+            ->and($teacherWithoutTtisOrBirthDate->birth_date)->toBeNull()
+            ->and(Teacher::query()->count())->toBe(3)
+            ->and(User::query()->count())->toBe(3);
+
         $principal->update(['name' => 'Manually Updated Name']);
+        $spreadsheet->getActiveSheet()->setCellValue('E4', '18000');
         $spreadsheet->getActiveSheet()->fromArray([
             ['0101', 'Example College (101)', 'Govt', 'NEW TEACHER', '17538', 'Lecturer', 'BANGLA', '1990-01-02', '01987654321', 'new@example.com', 'Teacher', 'Degree'],
-        ], null, 'A6');
+        ], null, 'A7');
         (new Xlsx($spreadsheet))->save($sourcePath);
         $seeder->run();
         $seeder->run();
@@ -42,7 +51,7 @@ it('only seeds newly appended teacher profiles and login accounts on subsequent 
         $principal->refresh();
         $teacher = User::query()->where('email', 'shared+17536@example.com')->firstOrFail();
         $newTeacher = User::query()->where('email', 'new@example.com')->firstOrFail();
-        $teacherWithoutTtisOrBirthDate = User::query()->where('email', 'generated@example.com')->firstOrFail()->teacherProfile;
+        $teacherWithoutTtisOrBirthDate->refresh();
         $firstProfile = Teacher::query()->where('ttis_id', '17535')->firstOrFail();
         $secondProfile = Teacher::query()->where('ttis_id', '17536')->firstOrFail();
         $sourceSpreadsheetTtisId = IOFactory::load($sourcePath)->getActiveSheet()->getCell('E4')->getValue();
@@ -53,9 +62,9 @@ it('only seeds newly appended teacher profiles and login accounts on subsequent 
             ->and($principal->hasRole('principal'))->toBeTrue()
             ->and($teacher->hasRole('teacher'))->toBeTrue()
             ->and($newTeacher->hasRole('teacher'))->toBeTrue()
-            ->and($teacherWithoutTtisOrBirthDate->ttis_id)->toBe('1000')
+            ->and($teacherWithoutTtisOrBirthDate->ttis_id)->toBe('18000')
             ->and($teacherWithoutTtisOrBirthDate->birth_date)->toBeNull()
-            ->and($sourceSpreadsheetTtisId)->toBeNull()
+            ->and($sourceSpreadsheetTtisId)->toBe('18000')
             ->and($teacher->name)->toBe('Teacher 17536')
             ->and($firstProfile->college->college_code)->toBe('101')
             ->and($college->fresh()->name)->toBe('Existing College Name')
