@@ -179,12 +179,14 @@
 
                                         <!-- Teacher Name & College -->
                                         <div class="flex flex-col">
-                                            <span class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                            <span class="font-semibold uppercase text-zinc-900 dark:text-zinc-100">
                                                 {{ $teacher?->display_name ?: __('No teacher profile') }}
                                             </span>
                                             <div class="flex items-center gap-1.5 mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                                                 <flux:icon.building-library variant="micro" class="size-3.5" />
-                                                <span class="truncate max-w-[200px]">{{ $teacher?->college?->name ?: $user->college?->name ?: __('No college assigned') }}</span>
+                                                <span class=" max-w-[250px]">
+                                                    {{ $teacher?->college ? "{$teacher->college->name} ({$teacher->college->college_code})" : ($user->college?->name ?: __('No college assigned')) }}
+                                                </span>
                                             </div>
                                         </div>
 
