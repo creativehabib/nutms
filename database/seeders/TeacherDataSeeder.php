@@ -14,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use RuntimeException;
 
 class TeacherDataSeeder extends Seeder
@@ -59,6 +60,31 @@ class TeacherDataSeeder extends Seeder
             ->filter(fn (array $row): bool => filled($row['D'] ?? null));
 
         $this->seedRows($rows);
+    }
+
+    private function fillMissingTtisIds(Spreadsheet $spreadsheet, string $sourcePath): void
+    {
+        $worksheet = $spreadsheet->getActiveSheet();
+        $reservedTtisIds = Teacher::withTrashed()->pluck('ttis_id')->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])->all();
+        $hasGeneratedTtisIds = false;
+
+        for ($rowNumber = 2; $rowNumber <= $worksheet->getHighestDataRow(); $rowNumber++) {
+            if (blank($worksheet->getCell("D{$rowNumber}")->getValue()) || filled($worksheet->getCell("E{$rowNumber}")->getValue())) {
+                continue;
+            }
+
+            do {
+                $ttisId = Teacher::generateUniqueTtisId();
+            } while (isset($reservedTtisIds[$ttisId]));
+
+            $worksheet->setCellValue("E{$rowNumber}", $ttisId);
+            $reservedTtisIds[$ttisId] = true;
+            $hasGeneratedTtisIds = true;
+        }
+
+        if ($hasGeneratedTtisIds) {
+            IOFactory::createWriter($spreadsheet, 'Xlsx')->save($sourcePath);
+        }
     }
 
     /** @param Collection<int, array<string, mixed>> $rows */
