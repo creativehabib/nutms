@@ -14,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use RuntimeException;
 
 class TeacherDataSeeder extends Seeder
@@ -52,11 +53,39 @@ class TeacherDataSeeder extends Seeder
             TeacherLevelSeeder::class,
         ]);
 
-        $rows = collect(IOFactory::load($sourcePath)->getActiveSheet()->toArray(null, true, true, true))
+        $spreadsheet = IOFactory::load($sourcePath);
+        $this->fillMissingTtisIds($spreadsheet, $sourcePath);
+
+        $rows = collect($spreadsheet->getActiveSheet()->toArray(null, true, true, true))
             ->skip(1)
-            ->filter(fn (array $row): bool => filled($row['D'] ?? null) && filled($row['E'] ?? null));
+            ->filter(fn (array $row): bool => filled($row['D'] ?? null));
 
         $this->seedRows($rows);
+    }
+
+    private function fillMissingTtisIds(Spreadsheet $spreadsheet, string $sourcePath): void
+    {
+        $worksheet = $spreadsheet->getActiveSheet();
+        $reservedTtisIds = Teacher::withTrashed()->pluck('ttis_id')->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])->all();
+        $hasGeneratedTtisIds = false;
+
+        for ($rowNumber = 2; $rowNumber <= $worksheet->getHighestDataRow(); $rowNumber++) {
+            if (blank($worksheet->getCell("D{$rowNumber}")->getValue()) || filled($worksheet->getCell("E{$rowNumber}")->getValue())) {
+                continue;
+            }
+
+            do {
+                $ttisId = Teacher::generateUniqueTtisId();
+            } while (isset($reservedTtisIds[$ttisId]));
+
+            $worksheet->setCellValue("E{$rowNumber}", $ttisId);
+            $reservedTtisIds[$ttisId] = true;
+            $hasGeneratedTtisIds = true;
+        }
+
+        if ($hasGeneratedTtisIds) {
+            IOFactory::createWriter($spreadsheet, 'Xlsx')->save($sourcePath);
+        }
     }
 
     /** @param Collection<int, array<string, mixed>> $rows */
@@ -66,14 +95,23 @@ class TeacherDataSeeder extends Seeder
         $designations = Designation::query()->get()->keyBy(fn (Designation $designation): string => Str::upper($designation->name));
         $teacherLevels = TeacherLevel::query()->get()->keyBy(fn (TeacherLevel $teacherLevel): string => Str::upper($teacherLevel->name));
         $colleges = College::query()->get()->keyBy(fn (College $college): string => $this->normalizeCollegeCode($college->college_code));
+        $existingTtisIds = Teacher::withTrashed()
+            ->pluck('ttis_id')
+            ->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])
+            ->all();
         $usedEmails = User::query()->pluck('email')->mapWithKeys(fn (string $email): array => [Str::lower($email) => true])->all();
         $usedMobiles = User::query()->pluck('mobile_no')->mapWithKeys(fn (string $mobile): array => [$mobile => true])->all();
         $password = Hash::make('12345678');
         $skippedRows = 0;
 
-        $rows->chunk(250)->each(function (Collection $chunk) use ($subjects, $designations, $teacherLevels, $colleges, &$usedEmails, &$usedMobiles, $password, &$skippedRows): void {
+        $rows->chunk(250)->each(function (Collection $chunk) use ($subjects, $designations, $teacherLevels, $colleges, &$existingTtisIds, &$usedEmails, &$usedMobiles, $password, &$skippedRows): void {
             foreach ($chunk as $row) {
                 $ttisId = trim((string) $row['E']);
+
+                if (isset($existingTtisIds[$ttisId])) {
+                    continue;
+                }
+
                 $college = $colleges->get($this->normalizeCollegeCode($row['A'] ?? null));
 
                 if (! $college instanceof College) {
@@ -88,11 +126,8 @@ class TeacherDataSeeder extends Seeder
                     $college->update(['college_type' => $collegeType]);
                 }
 
-                $existingTeacher = Teacher::withTrashed()->where('ttis_id', $ttisId)->first();
-                $email = $existingTeacher?->user?->email
-                    ?? $this->uniqueEmail((string) ($row['J'] ?? ''), $ttisId, $usedEmails);
-                $mobile = $existingTeacher?->user?->mobile_no
-                    ?? $this->uniqueMobile((string) ($row['I'] ?? ''), $ttisId, $usedMobiles);
+                $email = $this->uniqueEmail((string) ($row['J'] ?? ''), $ttisId, $usedEmails);
+                $mobile = $this->uniqueMobile((string) ($row['I'] ?? ''), $ttisId, $usedMobiles);
                 $name = $this->normalizeTeacherName($row['D'] ?? null, $ttisId);
 
                 $user = User::query()->updateOrCreate(['email' => $email], [
@@ -121,6 +156,7 @@ class TeacherDataSeeder extends Seeder
                     'approved_at' => now(),
                 ]);
                 $teacher->restore();
+                $existingTtisIds[$ttisId] = true;
             }
         });
 

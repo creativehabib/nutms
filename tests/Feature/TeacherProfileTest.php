@@ -51,7 +51,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
     $teacher = Teacher::query()->where('name', 'New Teacher')->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
         ->and($teacher->college->name)->toBe('Teacher College')
-        ->and($teacher->ttis_id)->toMatch('/^\d{6}$/')
+        ->and($teacher->ttis_id)->toMatch('/^\d{4}$/')
         ->and($teacher->present_address)->toBe('Present Address')
         ->and($teacher->bank_name)->toBe('Sonali Bank')
         ->and($teacher->bank_account_number)->toBe('1234567890123')
@@ -65,13 +65,13 @@ it('creates a teacher linked to a college with contact and bank information', fu
 });
 
 
-it('generates unique six digit TTIS IDs for new teacher profiles', function () {
+it('generates unique four digit TTIS IDs for new teacher profiles', function () {
     $teachers = collect(range(1, 10))->map(fn (int $index): Teacher => Teacher::query()->create(['name' => "Generated TTIS Teacher {$index}"]));
 
     expect($teachers->pluck('ttis_id')->unique())->toHaveCount(10);
 
     $teachers->each(function (Teacher $teacher): void {
-        expect($teacher->ttis_id)->toMatch('/^\d{6}$/');
+        expect($teacher->ttis_id)->toMatch('/^\d{4}$/');
     });
 });
 
