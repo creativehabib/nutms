@@ -45,7 +45,7 @@ it('only seeds newly appended teacher profiles and login accounts on subsequent 
         $teacherWithoutTtis = User::query()->where('email', 'generated@example.com')->firstOrFail()->teacherProfile;
         $firstProfile = Teacher::query()->where('ttis_id', '17535')->firstOrFail();
         $secondProfile = Teacher::query()->where('ttis_id', '17536')->firstOrFail();
-        $persistedGeneratedTtisId = (string) IOFactory::load($sourcePath)->getActiveSheet()->getCell('E4')->getValue();
+        $sourceSpreadsheetTtisId = IOFactory::load($sourcePath)->getActiveSheet()->getCell('E4')->getValue();
 
         expect(Hash::check('12345678', $principal->password))->toBeTrue()
             ->and($principal->mobile_no)->toBe('01712345678')
@@ -54,7 +54,7 @@ it('only seeds newly appended teacher profiles and login accounts on subsequent 
             ->and($teacher->hasRole('teacher'))->toBeTrue()
             ->and($newTeacher->hasRole('teacher'))->toBeTrue()
             ->and($teacherWithoutTtis->ttis_id)->toMatch('/^\d{4}$/')
-            ->and($persistedGeneratedTtisId)->toBe($teacherWithoutTtis->ttis_id)
+            ->and($sourceSpreadsheetTtisId)->toBeNull()
             ->and($teacher->name)->toBe('Teacher 17536')
             ->and($firstProfile->college->college_code)->toBe('101')
             ->and($college->fresh()->name)->toBe('Existing College Name')
