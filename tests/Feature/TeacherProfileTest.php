@@ -166,6 +166,39 @@ it('updates profile fields without changing existing institutional training hist
         ->and($teacher->trainingTypes->first()->pivot->training_year)->toBe(2025);
 });
 
+it('allows an admin to update a teacher without location or address details', function () {
+    $college = College::query()->create(['name' => 'Optional Address College']);
+    $teacherAccount = User::factory()->create([
+        'college_id' => $college->id,
+        'email' => 'optional-address@example.com',
+        'mobile_no' => '01811111111',
+    ]);
+    $teacher = Teacher::query()->create([
+        'user_id' => $teacherAccount->id,
+        'college_id' => $college->id,
+        'name' => 'Teacher Without Address',
+    ]);
+
+    Livewire::actingAs(User::factory()->withRole('admin')->create())
+        ->test(TeacherProfileForm::class, ['teacher' => $teacher])
+        ->set('name', 'Updated Teacher Without Address')
+        ->call('save')
+        ->assertHasNoErrors([
+            'divisionId',
+            'districtId',
+            'thanaId',
+            'presentAddress',
+            'permanentAddress',
+        ]);
+
+    expect($teacher->refresh()->name)->toBe('Updated Teacher Without Address')
+        ->and($teacher->division_id)->toBeNull()
+        ->and($teacher->district_id)->toBeNull()
+        ->and($teacher->thana_id)->toBeNull()
+        ->and($teacher->present_address)->toBeNull()
+        ->and($teacher->permanent_address)->toBeNull();
+});
+
 it('shows all teacher profile sections on a dedicated details page', function () {
     $user = User::factory()->create(['email' => 'details-teacher@example.com', 'mobile_no' => '01900000000']);
     $teacher = Teacher::query()->create(['name' => 'Details Teacher', 'user_id' => $user->id, 'present_address' => 'Teacher Present', 'permanent_address' => 'Teacher Permanent', 'bank_name' => 'Agrani Bank', 'bank_branch_name' => 'Town Branch', 'bank_account_number' => '9876543210123', 'bank_routing_number' => '987654321']);

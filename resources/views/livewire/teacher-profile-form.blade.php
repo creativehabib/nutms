@@ -163,19 +163,19 @@
                 </div>
                 <div class="grid gap-6">
                     <div class="grid gap-6 sm:grid-cols-3 bg-zinc-50/50 p-4 rounded-xl border border-zinc-100 dark:bg-zinc-900/30 dark:border-zinc-800">
-                        <flux:select wire:model.live="divisionId" :label="__('Division')" required>
+                        <flux:select wire:model.live="divisionId" :label="__('Division')" :required="$profileContactDetailsRequired">
                             <option value="">{{ __('Select') }}</option>
                             @foreach($divisions as $item)
                                 <option value="{{ $item->id }}">{{ $item->name }}</option>
                             @endforeach
                         </flux:select>
-                        <flux:select wire:model.live="districtId" :label="__('District')" required>
+                        <flux:select wire:model.live="districtId" :label="__('District')" :required="$profileContactDetailsRequired">
                             <option value="">{{ __('Select') }}</option>
                             @foreach($districts as $item)
                                 <option value="{{ $item->id }}">{{ $item->name }}</option>
                             @endforeach
                         </flux:select>
-                        <flux:select wire:model="thanaId" :label="__('Thana / Upazila')" required>
+                        <flux:select wire:model="thanaId" :label="__('Thana / Upazila')" :required="$profileContactDetailsRequired">
                             <option value="">{{ __('Select') }}</option>
                             @foreach($thanas as $item)
                                 <option value="{{ $item->id }}">{{ $item->name }}</option>
@@ -184,8 +184,8 @@
                     </div>
 
                     <div class="grid gap-6 sm:grid-cols-2">
-                        <flux:textarea wire:model="presentAddress" :label="__('Present Address')" rows="2" :placeholder="__('Enter present address')" required />
-                        <flux:textarea wire:model="permanentAddress" :label="__('Permanent Address')" rows="2" :placeholder="__('Enter permanent address')" required />
+                        <flux:textarea wire:model="presentAddress" :label="__('Present Address')" rows="2" :placeholder="__('Enter present address')" :required="$profileContactDetailsRequired" />
+                        <flux:textarea wire:model="permanentAddress" :label="__('Permanent Address')" rows="2" :placeholder="__('Enter permanent address')" :required="$profileContactDetailsRequired" />
 
                         <flux:field>
                             <flux:label>{{ __('Mobile Number') }}</flux:label>
