@@ -45,108 +45,7 @@
     $entryRoute = auth()->check() ? route('dashboard') : route('login');
 @endphp
 
-{{-- =========================
-    NAVBAR
-========================== --}}
-<header class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-
-        {{-- Logo --}}
-        <a href="/" class="flex items-center gap-3">
-
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-700 text-white shadow">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-7 w-7"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="1.8"
-                          d="M12 14l9-5-9-5-9 5 9 5z"/>
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="1.8"
-                          d="M5 12v5c4 3 10 3 14 0v-5"/>
-                </svg>
-            </div>
-
-            <div>
-                <h1 class="text-lg font-bold leading-tight text-emerald-800">
-                    জাতীয় বিশ্ববিদ্যালয়
-                </h1>
-
-                <p class="text-xs text-slate-500">
-                    শিক্ষক ও প্রশিক্ষণ ব্যবস্থাপনা
-                </p>
-            </div>
-
-        </a>
-
-
-        {{-- Desktop Menu --}}
-        <nav class="hidden items-center gap-7 md:flex">
-
-            <a href="#home"
-               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
-                হোম
-            </a>
-
-            <a href="#about"
-               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
-                আমাদের সম্পর্কে
-            </a>
-
-            <a href="#services"
-               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
-                সেবাসমূহ
-            </a>
-
-            <a href="#colleges"
-               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
-                কলেজসমূহ
-            </a>
-
-            <a href="#training"
-               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
-                প্রশিক্ষণ
-            </a>
-
-            <a href="#notices"
-               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
-                নোটিশ
-            </a>
-
-            <a href="#contact"
-               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
-                যোগাযোগ
-            </a>
-
-        </nav>
-
-
-        {{-- Login --}}
-        <div class="hidden md:block">
-            <a href="{{ $entryRoute }}"
-               class="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-4 w-4"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4m-5-4l5-5m0 0l-5-5m5 5H3"/>
-                </svg>
-
-                {{ auth()->check() ? 'ড্যাশবোর্ড' : 'লগইন' }}
-            </a>
-        </div>
-
-    </div>
-</header>
+@include('partials.frontend-navbar')
 
 
 {{-- =========================
@@ -1034,6 +933,8 @@
     </div>
 
 </footer>
+
+@fluxScripts
 
 </body>
 

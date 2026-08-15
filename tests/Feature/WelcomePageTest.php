@@ -50,12 +50,14 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->assertOk()
         ->assertSee('Public Affiliated College')
         ->assertSee('বাংলা')
+        ->assertSee('প্রধান নেভিগেশন')
         ->assertSee(route('public.colleges.show', $college));
 
     $this->get(route('public.colleges.index'))
         ->assertOk()
         ->assertSee('Public Affiliated College')
         ->assertSee('বাংলা')
+        ->assertSee('প্রধান নেভিগেশন')
         ->assertSee('অধিভুক্ত কলেজ ডিরেক্টরি');
 
     Livewire::test(AffiliatedCollegeDirectory::class)
@@ -68,6 +70,7 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->assertOk()
         ->assertSee('Public Principal')
         ->assertSee('বাংলা')
+        ->assertSee('প্রধান নেভিগেশন')
         ->assertSee('ইতিহাস');
 });
 
