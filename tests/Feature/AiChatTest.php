@@ -104,8 +104,20 @@ it('uses the native Gemini generateContent API', function () {
 });
 
 it('grounds public answers with matching college programs and a verified clickable link', function () {
+    College::query()->create([
+        'name' => 'GOVT. P. C. COLLEGE',
+        'college_code' => '101',
+        'is_active' => true,
+        'approval_status' => 'approved',
+    ]);
+    College::query()->create([
+        'name' => 'SHERE BANGLA COLLEGE',
+        'college_code' => '102',
+        'is_active' => true,
+        'approval_status' => 'approved',
+    ]);
     $college = College::query()->create([
-        'name' => 'ANANDAMOHAN COLLEGE',
+        'name' => 'BHAWAL BADRE ALAM GOVT. COLLEGE',
         'college_code' => '5201',
         'is_active' => true,
         'approval_status' => 'approved',
@@ -116,7 +128,7 @@ it('grounds public answers with matching college programs and a verified clickab
         'items' => ['Bangla', 'English', 'Economics'],
     ]);
     Http::fake(['https://api.openai.com/v1/chat/completions' => Http::response([
-        'choices' => [['message' => ['content' => 'কোর্সগুলো দেখুন: '.route('public.colleges.show', $college)]]],
+        'choices' => [['message' => ['content' => '[কলেজের বিস্তারিত পেজ]('.route('public.colleges.show', $college).')']]],
     ])]);
     AiSetting::query()->create([
         'is_enabled' => true,
@@ -128,11 +140,14 @@ it('grounds public answers with matching college programs and a verified clickab
     ]);
 
     Livewire::test(AiChat::class)
-        ->set('question', 'ANANDAMOHAN COLLEGE 5201 এর কোন কোর্স চালু আছে?')
+        ->set('question', 'BHAWAL BADRE ALAM GOVT. COLLEGE এই কলেজে কোন কোর্স চালু আছে আমাকে জানাও')
         ->call('send')
+        ->assertSeeHtml('href="'.route('public.colleges.show', $college).'"')
         ->assertSeeHtml('target="_blank"')
         ->assertSeeHtml('rel="noopener noreferrer"');
 
     Http::assertSent(fn ($request): bool => str_contains($request['messages'][0]['content'], 'Bangla, English, Economics')
+        && str_contains($request['messages'][0]['content'], 'BHAWAL BADRE ALAM GOVT. COLLEGE')
+        && ! str_contains($request['messages'][0]['content'], 'SHERE BANGLA COLLEGE')
         && str_contains($request['messages'][0]['content'], route('public.colleges.show', $college)));
 });

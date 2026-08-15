@@ -84,6 +84,11 @@ class AiChat extends Component
     public function renderAssistantMessage(string $message): HtmlString
     {
         $escapedMessage = e($message);
+        $escapedMessage = preg_replace(
+            '~\[([^\]]+)]\((https?://[^\s)]+)\)~u',
+            '$1 — $2',
+            $escapedMessage,
+        ) ?? $escapedMessage;
         $linkedMessage = preg_replace_callback(
             '~https?://[^\s<]+[^\s<\.,;:!?\)\]]~u',
             fn (array $matches): string => sprintf(
