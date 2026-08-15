@@ -37,6 +37,14 @@
 
 <body class="bg-slate-50 text-slate-800">
 
+@php
+    $toBengaliNumber = static fn (int|string $value): string => strtr((string) $value, [
+        '0' => '০', '1' => '১', '2' => '২', '3' => '৩', '4' => '৪',
+        '5' => '৫', '6' => '৬', '7' => '৭', '8' => '৮', '9' => '৯',
+    ]);
+    $entryRoute = auth()->check() ? route('dashboard') : route('login');
+@endphp
+
 {{-- =========================
     NAVBAR
 ========================== --}}
@@ -114,7 +122,7 @@
 
         {{-- Login --}}
         <div class="hidden md:block">
-            <a href="{{ route('login') }}"
+            <a href="{{ $entryRoute }}"
                class="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800">
 
                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -128,7 +136,7 @@
                           d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4m-5-4l5-5m0 0l-5-5m5 5H3"/>
                 </svg>
 
-                লগইন
+                {{ auth()->check() ? 'ড্যাশবোর্ড' : 'লগইন' }}
             </a>
         </div>
 
@@ -182,7 +190,7 @@
 
                 <div class="mt-8 flex flex-col gap-3 sm:flex-row">
 
-                    <a href="{{ route('login') }}"
+                    <a href="{{ $entryRoute }}"
                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-bold text-emerald-800 shadow-lg transition hover:bg-emerald-50">
 
                         সিস্টেমে প্রবেশ করুন
@@ -240,7 +248,7 @@
                                         মোট শিক্ষক
                                     </div>
                                     <div class="mt-2 text-2xl font-bold text-emerald-700">
-                                        ১২,৫৪০
+                                        {{ $toBengaliNumber(number_format($statistics['teachers'])) }}
                                     </div>
                                 </div>
 
@@ -249,7 +257,7 @@
                                         প্রশিক্ষণ
                                     </div>
                                     <div class="mt-2 text-2xl font-bold text-blue-700">
-                                        ৮৬
+                                        {{ $toBengaliNumber(number_format($statistics['trainings'])) }}
                                     </div>
                                 </div>
 
@@ -258,61 +266,31 @@
                                         অংশগ্রহণ
                                     </div>
                                     <div class="mt-2 text-2xl font-bold text-amber-700">
-                                        ৯৪%
+                                        {{ $toBengaliNumber(number_format($statistics['registrations'])) }}
                                     </div>
                                 </div>
 
                             </div>
 
                             <div class="mt-5 rounded-xl border p-4">
-
                                 <div class="flex items-center justify-between">
-                                        <span class="font-semibold">
-                                            প্রশিক্ষণ অগ্রগতি
-                                        </span>
-
-                                    <span class="text-xs text-emerald-700">
-                                            এই বছর
-                                        </span>
+                                    <span class="font-semibold">লাইভ প্ল্যাটফর্ম চিত্র</span>
+                                    <span class="text-xs text-emerald-700">সর্বশেষ তথ্য</span>
                                 </div>
-
-                                <div class="mt-5 space-y-4">
-
-                                    <div>
-                                        <div class="mb-2 flex justify-between text-xs">
-                                            <span>শিক্ষক উন্নয়ন</span>
-                                            <span>৮২%</span>
-                                        </div>
-
-                                        <div class="h-2 rounded-full bg-slate-100">
-                                            <div class="h-2 w-[82%] rounded-full bg-emerald-600"></div>
-                                        </div>
+                                <div class="mt-5 space-y-3 text-sm">
+                                    <div class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                                        <span class="text-slate-600">নিবন্ধিত শিক্ষক</span>
+                                        <span class="font-bold text-emerald-700">{{ $toBengaliNumber(number_format($statistics['teachers'])) }}</span>
                                     </div>
-
-                                    <div>
-                                        <div class="mb-2 flex justify-between text-xs">
-                                            <span>প্রশিক্ষণ সম্পন্ন</span>
-                                            <span>৭৪%</span>
-                                        </div>
-
-                                        <div class="h-2 rounded-full bg-slate-100">
-                                            <div class="h-2 w-[74%] rounded-full bg-blue-600"></div>
-                                        </div>
+                                    <div class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                                        <span class="text-slate-600">সক্রিয় কলেজ</span>
+                                        <span class="font-bold text-blue-700">{{ $toBengaliNumber(number_format($statistics['colleges'])) }}</span>
                                     </div>
-
-                                    <div>
-                                        <div class="mb-2 flex justify-between text-xs">
-                                            <span>মূল্যায়ন</span>
-                                            <span>৬৮%</span>
-                                        </div>
-
-                                        <div class="h-2 rounded-full bg-slate-100">
-                                            <div class="h-2 w-[68%] rounded-full bg-amber-500"></div>
-                                        </div>
+                                    <div class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                                        <span class="text-slate-600">প্রশিক্ষণ নিবন্ধন</span>
+                                        <span class="font-bold text-amber-600">{{ $toBengaliNumber(number_format($statistics['registrations'])) }}</span>
                                     </div>
-
                                 </div>
-
                             </div>
 
                         </div>
@@ -341,7 +319,7 @@
 
             <div class="border-b p-6 text-center sm:border-r lg:border-b-0">
                 <div class="text-3xl font-extrabold text-emerald-700">
-                    ১২,৫৪০+
+                    {{ $toBengaliNumber(number_format($statistics['teachers'])) }}
                 </div>
                 <div class="mt-1 text-sm text-slate-500">
                     নিবন্ধিত শিক্ষক
@@ -350,7 +328,7 @@
 
             <div class="border-b p-6 text-center lg:border-b-0 lg:border-r">
                 <div class="text-3xl font-extrabold text-emerald-700">
-                    ৮৬+
+                    {{ $toBengaliNumber(number_format($statistics['trainings'])) }}
                 </div>
                 <div class="mt-1 text-sm text-slate-500">
                     প্রশিক্ষণ কার্যক্রম
@@ -359,19 +337,19 @@
 
             <div class="border-b p-6 text-center sm:border-r lg:border-b-0">
                 <div class="text-3xl font-extrabold text-emerald-700">
-                    ১,২৫০+
+                    {{ $toBengaliNumber(number_format($statistics['colleges'])) }}
                 </div>
                 <div class="mt-1 text-sm text-slate-500">
-                    প্রশিক্ষক
+                    অধিভুক্ত কলেজ
                 </div>
             </div>
 
             <div class="p-6 text-center">
                 <div class="text-3xl font-extrabold text-emerald-700">
-                    ৯৮%
+                    {{ $toBengaliNumber(number_format($statistics['registrations'])) }}
                 </div>
                 <div class="mt-1 text-sm text-slate-500">
-                    সিস্টেম আপটাইম
+                    মোট প্রশিক্ষণ নিবন্ধন
                 </div>
             </div>
 
@@ -567,7 +545,7 @@
                         {{ $service['description'] }}
                     </p>
 
-                    <a href="{{ route('login') }}"
+                    <a href="{{ $entryRoute }}"
                        class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-emerald-700">
 
                         বিস্তারিত
@@ -648,78 +626,68 @@
 
 
             <div class="rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 p-1 shadow-2xl">
-
                 <div class="rounded-[22px] bg-slate-900 p-7">
+                    @if($upcomingTraining)
+                        @php
+                            $registrationPercentage = $upcomingTraining->capacity
+                                ? min(100, (int) round(($upcomingTraining->participants_count / $upcomingTraining->capacity) * 100))
+                                : 0;
+                        @endphp
 
-                    <div class="flex items-center justify-between">
-
-                        <div>
-                            <p class="text-sm text-slate-400">
-                                আসন্ন প্রশিক্ষণ
-                            </p>
-
-                            <h3 class="mt-1 text-xl font-bold text-white">
-                                শিক্ষক উন্নয়ন প্রশিক্ষণ
-                            </h3>
-                        </div>
-
-                        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-400">
-                                চলমান
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <p class="text-sm text-slate-400">আসন্ন প্রশিক্ষণ</p>
+                                <h3 class="mt-1 text-xl font-bold text-white">{{ $upcomingTraining->title }}</h3>
+                            </div>
+                            <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-400">
+                                {{ $upcomingTraining->status === 'Ongoing' ? 'চলমান' : 'আসন্ন' }}
                             </span>
-
-                    </div>
-
-                    <div class="mt-7 space-y-4">
-
-                        <div class="rounded-xl bg-white/5 p-4">
-                            <div class="flex justify-between">
-                                    <span class="text-sm text-slate-300">
-                                        তারিখ
-                                    </span>
-
-                                <span class="text-sm font-semibold text-white">
-                                        ১৫ সেপ্টেম্বর ২০২৬
-                                    </span>
-                            </div>
                         </div>
 
-                        <div class="rounded-xl bg-white/5 p-4">
-                            <div class="flex justify-between">
-                                    <span class="text-sm text-slate-300">
-                                        আসন সংখ্যা
+                        <div class="mt-7 space-y-4">
+                            <div class="rounded-xl bg-white/5 p-4">
+                                <div class="flex justify-between gap-4">
+                                    <span class="text-sm text-slate-300">তারিখ</span>
+                                    <span class="text-right text-sm font-semibold text-white">
+                                        {{ $toBengaliNumber($upcomingTraining->start_date->format('d-m-Y')) }}
                                     </span>
-
-                                <span class="text-sm font-semibold text-white">
-                                        ৫০ জন
+                                </div>
+                            </div>
+                            <div class="rounded-xl bg-white/5 p-4">
+                                <div class="flex justify-between gap-4">
+                                    <span class="text-sm text-slate-300">আসন সংখ্যা</span>
+                                    <span class="text-sm font-semibold text-white">
+                                        {{ $upcomingTraining->capacity ? $toBengaliNumber($upcomingTraining->capacity).' জন' : 'সীমাহীন' }}
                                     </span>
+                                </div>
+                            </div>
+                            <div class="rounded-xl bg-white/5 p-4">
+                                <div class="flex justify-between gap-4">
+                                    <span class="text-sm text-slate-300">নিবন্ধন</span>
+                                    <span class="text-sm font-semibold text-emerald-400">
+                                        {{ $toBengaliNumber($upcomingTraining->participants_count) }}{{ $upcomingTraining->capacity ? ' / '.$toBengaliNumber($upcomingTraining->capacity) : '' }}
+                                    </span>
+                                </div>
+                                @if($upcomingTraining->capacity)
+                                    <div class="mt-3 h-2 rounded-full bg-white/10">
+                                        <div class="h-2 rounded-full bg-emerald-500" style="width: {{ $registrationPercentage }}%"></div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
-
-                        <div class="rounded-xl bg-white/5 p-4">
-                            <div class="flex justify-between">
-                                    <span class="text-sm text-slate-300">
-                                        নিবন্ধন
-                                    </span>
-
-                                <span class="text-sm font-semibold text-emerald-400">
-                                        ৩৮ / ৫০
-                                    </span>
-                            </div>
-
-                            <div class="mt-3 h-2 rounded-full bg-white/10">
-                                <div class="h-2 w-[76%] rounded-full bg-emerald-500"></div>
-                            </div>
+                    @else
+                        <div class="py-10 text-center">
+                            <div class="text-4xl">📅</div>
+                            <h3 class="mt-4 text-xl font-bold text-white">এই মুহূর্তে কোনো আসন্ন প্রশিক্ষণ নেই</h3>
+                            <p class="mt-2 text-sm text-slate-400">নতুন প্রশিক্ষণ প্রকাশিত হলে এখানে দেখা যাবে।</p>
                         </div>
+                    @endif
 
-                    </div>
-
-                    <a href="{{ route('login') }}"
+                    <a href="{{ $entryRoute }}"
                        class="mt-6 flex items-center justify-center rounded-xl bg-emerald-600 py-3 font-semibold text-white transition hover:bg-emerald-500">
                         প্রশিক্ষণ দেখুন
                     </a>
-
                 </div>
-
             </div>
 
         </div>
@@ -750,7 +718,7 @@
 
             </div>
 
-            <a href="{{ route('login') }}"
+            <a href="{{ $entryRoute }}"
                class="font-semibold text-emerald-700">
                 সকল নোটিশ →
             </a>
@@ -760,58 +728,27 @@
 
         <div class="mt-10 divide-y overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
 
-            @php
-                $notices = [
-                    [
-                        'date' => '১২ আগস্ট ২০২৬',
-                        'title' => 'শিক্ষক প্রশিক্ষণ কার্যক্রমে অংশগ্রহণের জন্য নিবন্ধন বিজ্ঞপ্তি',
-                        'type' => 'প্রশিক্ষণ'
-                    ],
-                    [
-                        'date' => '০৮ আগস্ট ২০২৬',
-                        'title' => 'নতুন প্রশিক্ষণ ব্যাচের সময়সূচি প্রকাশ',
-                        'type' => 'নোটিশ'
-                    ],
-                    [
-                        'date' => '০২ আগস্ট ২০২৬',
-                        'title' => 'শিক্ষক তথ্য হালনাগাদ সংক্রান্ত বিজ্ঞপ্তি',
-                        'type' => 'গুরুত্বপূর্ণ'
-                    ],
-                ];
-            @endphp
-
-            @foreach($notices as $notice)
-
-                <a href="{{ route('login') }}"
+            @forelse($latestTrainings as $training)
+                <a href="{{ $entryRoute }}"
                    class="flex flex-col gap-4 p-6 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between">
-
                     <div class="flex items-start gap-4">
-
-                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
-                            📢
-                        </div>
-
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">📢</div>
                         <div>
-
-                            <h3 class="font-bold text-slate-800">
-                                {{ $notice['title'] }}
-                            </h3>
-
+                            <h3 class="font-bold text-slate-800">{{ $training->title }}</h3>
                             <p class="mt-1 text-sm text-slate-500">
-                                প্রকাশিত: {{ $notice['date'] }}
+                                প্রকাশিত: {{ $toBengaliNumber($training->created_at->format('d-m-Y')) }}
                             </p>
-
                         </div>
-
                     </div>
-
                     <span class="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                            {{ $notice['type'] }}
-                        </span>
-
+                        {{ $training->status === 'Ongoing' ? 'চলমান প্রশিক্ষণ' : 'প্রশিক্ষণ' }}
+                    </span>
                 </a>
-
-            @endforeach
+            @empty
+                <div class="p-10 text-center text-slate-500">
+                    নতুন কোনো নোটিশ প্রকাশিত হয়নি
+                </div>
+            @endforelse
 
         </div>
 
@@ -841,7 +778,7 @@
 
             <div class="mt-8">
 
-                <a href="{{ route('login') }}"
+                <a href="{{ $entryRoute }}"
                    class="inline-flex items-center justify-center rounded-xl bg-white px-7 py-3.5 font-bold text-emerald-800 shadow-lg transition hover:bg-emerald-50">
 
                     সিস্টেমে প্রবেশ করুন
@@ -942,19 +879,19 @@
                 <ul class="mt-5 space-y-3 text-sm">
 
                     <li>
-                        <a href="{{ route('login') }}" class="hover:text-emerald-400">
+                        <a href="{{ $entryRoute }}" class="hover:text-emerald-400">
                             শিক্ষক লগইন
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('login') }}" class="hover:text-emerald-400">
+                        <a href="{{ $entryRoute }}" class="hover:text-emerald-400">
                             প্রশাসনিক লগইন
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('login') }}" class="hover:text-emerald-400">
+                        <a href="{{ $entryRoute }}" class="hover:text-emerald-400">
                             প্রশিক্ষণ ব্যবস্থাপনা
                         </a>
                     </li>
