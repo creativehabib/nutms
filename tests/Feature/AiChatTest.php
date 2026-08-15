@@ -4,6 +4,7 @@ use App\Livewire\AiChat;
 use App\Models\AiSetting;
 use App\Models\College;
 use App\Models\User;
+use App\Services\WebsiteKnowledgeService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
@@ -168,4 +169,26 @@ it('restores only safe temporary browser messages', function () {
         ->assertCount('messages', 30)
         ->assertDontSee('<script>')
         ->assertSee('Message 35');
+});
+
+it('matches a joined misspelled college name against a spaced verified name', function () {
+    $college = College::query()->create([
+        'name' => 'ANANDA MOHAN COLLEGE',
+        'college_code' => '1762',
+        'is_active' => true,
+        'approval_status' => 'approved',
+    ]);
+    $college->programs()->create([
+        'level' => 'Degree',
+        'name' => 'Degree Courses',
+        'items' => ['BA', 'BSS', 'BBS', 'BSc'],
+    ]);
+
+    $context = app(WebsiteKnowledgeService::class)
+        ->context('Please share me Aanandamohan College details information');
+
+    expect($context)->toContain('ANANDA MOHAN COLLEGE')
+        ->toContain('code: 1762')
+        ->toContain('BA, BSS, BBS, BSc')
+        ->toContain(route('public.colleges.show', $college));
 });
