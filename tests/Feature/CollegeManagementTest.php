@@ -37,6 +37,7 @@ it('loads program levels dynamically from active database records', function () 
 
     Livewire::test(CollegeForm::class)
         ->assertSee('Postgraduate Diploma')
+        ->assertDontSee('Principal Name')
         ->assertDontSeeHtml('<option value="professional">')
         ->call('addProgram')
         ->assertSet('programs.0.level', 'degree');
@@ -48,8 +49,11 @@ it('supports searchable soft-deleted colleges with Flux confirmation', function 
     $college = College::query()->create([
         'name' => 'Searchable College',
         'college_code' => 'SEARCH-101',
-        'principal_name' => 'Professor Search',
         'address' => 'Search Road',
+    ]);
+    User::factory()->withRole('principal')->create([
+        'name' => 'Professor Search',
+        'college_id' => $college->id,
     ]);
 
     Livewire::test(CollegeManagement::class)
@@ -200,7 +204,6 @@ it('stores a complete college profile with multiple academic programs', function
         ->set('districtId', (string) $district->id)
         ->set('thanaId', (string) $thana->id)
         ->set('address', 'College Road')
-        ->set('principalName', 'Professor Rahman')
         ->set('collegeEmail', 'info@professional.edu.bd')
         ->set('collegeWebsite', 'https://professional.edu.bd')
         ->set('collegeType', 'government')
@@ -218,8 +221,7 @@ it('stores a complete college profile with multiple academic programs', function
         ->assertRedirect(route('colleges.manage'));
 
     $college = College::query()->where('college_code', '1201')->firstOrFail();
-    expect($college->principal_name)->toBe('Professor Rahman')
-        ->and($college->college_email)->toBe('info@professional.edu.bd')
+    expect($college->college_email)->toBe('info@professional.edu.bd')
         ->and($college->college_website)->toBe('https://professional.edu.bd')
         ->and($college->college_type)->toBe('government')
         ->and($college->has_computer_lab)->toBeTrue()
@@ -270,7 +272,6 @@ it('only stores courses and subjects from the active affiliation catalogs', func
         ->set('districtId', (string) $district->id)
         ->set('thanaId', (string) $thana->id)
         ->set('address', 'Catalog Road')
-        ->set('principalName', 'Catalog Principal')
         ->set('collegeType', 'government')
         ->set('hasComputerLab', '0')
         ->call('save')
@@ -288,7 +289,6 @@ it('rejects a district and thana outside the selected administrative hierarchy',
         ->set('districtId', (string) $unrelatedDistrict->id)
         ->set('thanaId', (string) $thana->id)
         ->set('address', 'Address')
-        ->set('principalName', 'Principal')
         ->set('collegeType', 'other')
         ->set('hasComputerLab', '0')
         ->call('save')
@@ -306,7 +306,6 @@ it('requires device counts when a college has a computer lab', function () {
         ->set('districtId', (string) $district->id)
         ->set('thanaId', (string) $thana->id)
         ->set('address', 'Lab Road')
-        ->set('principalName', 'Lab Principal')
         ->set('collegeType', 'government')
         ->set('hasComputerLab', '1')
         ->set('labEquipmentType', 'both')
@@ -325,7 +324,6 @@ it('supports a lab containing only one device category', function (string $equip
         ->set('districtId', (string) $district->id)
         ->set('thanaId', (string) $thana->id)
         ->set('address', 'Device Road')
-        ->set('principalName', 'Principal')
         ->set('collegeType', 'government')
         ->set('hasComputerLab', '1')
         ->set('labEquipmentType', $equipmentType)
@@ -352,7 +350,6 @@ it('stores null device counts when a college does not have a lab', function () {
         ->set('districtId', (string) $district->id)
         ->set('thanaId', (string) $thana->id)
         ->set('address', 'No Lab Road')
-        ->set('principalName', 'Principal')
         ->set('collegeType', 'non_government')
         ->set('hasComputerLab', '0')
         ->call('save')
@@ -382,7 +379,6 @@ it('shows a concise college table and a separate full details page', function ()
         'name' => 'Details College',
         'college_code' => 'DETAIL-1',
         'address' => 'Complete College Address',
-        'principal_name' => 'Principal Details',
         'college_email' => 'details@example.edu.bd',
         'college_website' => 'https://details.example.edu.bd',
         'has_computer_lab' => true,
@@ -398,9 +394,9 @@ it('shows a concise college table and a separate full details page', function ()
 
     Livewire::test(CollegeManagement::class)
         ->assertSee('Details College')
+        ->assertSee('Assigned Principal')
         ->assertSee('দেখুন')
         ->assertDontSee('Complete College Address')
-        ->assertDontSee('Principal Details')
         ->assertDontSee('BSS');
 
     $this->actingAs(User::factory()->create())
@@ -408,7 +404,6 @@ it('shows a concise college table and a separate full details page', function ()
         ->assertSuccessful()
         ->assertSee('Complete College Address')
         ->assertSee('Assigned Principal')
-        ->assertDontSee('Principal Details')
         ->assertSee('details@example.edu.bd')
         ->assertSee('https://details.example.edu.bd')
         ->assertSee('ডেস্কটপ')
@@ -422,13 +417,19 @@ it('shows a concise college table and a separate full details page', function ()
 it('shows an unassigned message when a college has no user with the principal role', function () {
     $college = College::query()->create([
         'name' => 'College Without Principal',
-        'principal_name' => 'Outdated Principal Name',
     ]);
+
+    Livewire::test(CollegeManagement::class)
+        ->assertSee('College Without Principal')
+        ->assertSee('এখনো রুলস এসাইন করা হয়নি');
 
     $this->get(route('colleges.show', $college))
         ->assertSuccessful()
-        ->assertSee('এখনো প্রিন্সিপাল এসাইন করা হয়নি')
-        ->assertDontSee('Outdated Principal Name');
+        ->assertSee('এখনো প্রিন্সিপাল এসাইন করা হয়নি');
+});
+
+it('removes the legacy principal name column', function () {
+    expect(Schema::hasColumn('colleges', 'principal_name'))->toBeFalse();
 });
 
 it('gives a principal direct view and edit access to only their college profile', function () {

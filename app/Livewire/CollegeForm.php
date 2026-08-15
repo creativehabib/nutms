@@ -28,7 +28,6 @@ class CollegeForm extends Component
     public string $districtId = '';
     public string $thanaId = '';
     public string $address = '';
-    public string $principalName = '';
     public string $collegeEmail = '';
     public string $collegeWebsite = '';
     public string $collegeType = '';
@@ -134,7 +133,6 @@ class CollegeForm extends Component
         $this->districtId = (string) ($college->district_id ?? '');
         $this->thanaId = (string) ($college->thana_id ?? '');
         $this->address = (string) ($college->address ?? '');
-        $this->principalName = (string) ($college->principal_name ?? '');
         $this->collegeEmail = (string) ($college->college_email ?? '');
         $this->collegeWebsite = (string) ($college->college_website ?? '');
         $this->collegeType = (string) ($college->college_type ?? '');
@@ -161,7 +159,6 @@ class CollegeForm extends Component
             'districtId' => ['required', Rule::exists('districts', 'id')],
             'thanaId' => ['required', Rule::exists('thanas', 'id')],
             'address' => ['required', 'string', 'max:2000'],
-            'principalName' => ['required', 'string', 'max:255'],
             'collegeEmail' => ['nullable', 'email:rfc', 'max:255'],
             'collegeWebsite' => ['nullable', 'url', 'max:255'],
             'collegeType' => ['required', Rule::in(['government', 'non_government', 'other'])],
@@ -181,7 +178,6 @@ class CollegeForm extends Component
             'districtId.required' => 'জেলা নির্বাচন করুন।',
             'thanaId.required' => 'থানা নির্বাচন করুন।',
             'address.required' => 'কলেজের ঠিকানা দিন।',
-            'principalName.required' => 'অধ্যক্ষের নাম দিন।',
             'collegeType.required' => 'কলেজের ধরন নির্বাচন করুন।',
             'hasComputerLab.required' => 'কলেজে কম্পিউটার ল্যাব আছে কি না নির্বাচন করুন।',
             'labEquipmentType.required' => 'ল্যাবে ডেস্কটপ, ল্যাপটপ অথবা উভয় আছে কি না নির্বাচন করুন।',
@@ -210,7 +206,6 @@ class CollegeForm extends Component
                 'district_id' => $validated['districtId'],
                 'thana_id' => $validated['thanaId'],
                 'address' => $validated['address'],
-                'principal_name' => $validated['principalName'],
                 'college_email' => blank($validated['collegeEmail']) ? null : $validated['collegeEmail'],
                 'college_website' => blank($validated['collegeWebsite']) ? null : $validated['collegeWebsite'],
                 'college_type' => $validated['collegeType'],

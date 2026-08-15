@@ -71,7 +71,6 @@ class DatabaseSeeder extends Seeder
             'district_id' => $district->id,
             'thana_id' => $thana->id,
             'address' => 'Dhanmondi, Dhaka',
-            'principal_name' => 'Demo Principal',
             'college_type' => 'government',
             'has_computer_lab' => true,
             'lab_equipment_type' => 'both',

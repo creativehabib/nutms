@@ -236,7 +236,7 @@ class CollegeManagement extends Component
             $query->where(function (Builder $query) use ($searchPattern): void {
                 $query->where('name', 'like', $searchPattern)
                     ->orWhere('college_code', 'like', $searchPattern)
-                    ->orWhere('principal_name', 'like', $searchPattern)
+                    ->orWhereHas('principal', fn (Builder $relation): Builder => $relation->where('name', 'like', $searchPattern))
                     ->orWhere('address', 'like', $searchPattern)
                     ->orWhereHas('division', fn (Builder $relation): Builder => $relation->where('name', 'like', $searchPattern))
                     ->orWhereHas('district', fn (Builder $relation): Builder => $relation->where('name', 'like', $searchPattern))

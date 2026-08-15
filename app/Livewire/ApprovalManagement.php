@@ -86,7 +86,7 @@ class ApprovalManagement extends Component
 
         return view('livewire.approval-management', [
             'principals' => $user->isAdmin() ? User::query()->role('principal')->where('approval_status', ApprovalStatus::Pending)->with('college')->latest()->get() : collect(),
-            'colleges' => $user->isAdmin() ? College::query()->where('approval_status', ApprovalStatus::Pending)->with('submitter')->latest()->get() : collect(),
+            'colleges' => $user->isAdmin() ? College::query()->where('approval_status', ApprovalStatus::Pending)->with('principal')->latest()->get() : collect(),
             'teachers' => Teacher::query()->where('approval_status', ApprovalStatus::Pending)
                 ->when($user->isPrincipal(), fn ($query) => $query->where('college_id', $user->college_id))
                 ->with(['college', 'user'])->latest()->get(),
