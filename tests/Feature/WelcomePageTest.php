@@ -7,6 +7,7 @@ use App\Models\District;
 use App\Models\Division;
 use App\Models\Teacher;
 use App\Models\Training;
+use App\Models\User;
 use Livewire\Livewire;
 
 it('renders live platform statistics and the next training', function () {
@@ -47,6 +48,10 @@ it('lets public users browse affiliated colleges and their subjects', function (
         'name' => 'Honours',
         'items' => ['বাংলা', 'ইতিহাস'],
     ]);
+    User::factory()->withRole('principal')->create([
+        'name' => 'Role Holder Name',
+        'college_id' => $college->id,
+    ]);
 
     $this->get(route('home'))
         ->assertOk()
@@ -70,10 +75,26 @@ it('lets public users browse affiliated colleges and their subjects', function (
 
     $this->get(route('public.colleges.show', $college))
         ->assertOk()
-        ->assertSee('Public Principal')
+        ->assertSee('Not specified')
+        ->assertDontSee('Role Holder Name')
+        ->assertDontSee('Public Principal')
         ->assertSee('বাংলা')
         ->assertSee('প্রধান নেভিগেশন')
         ->assertSee('ইতিহাস');
+});
+
+it('does not expose principal details on a public college profile', function () {
+    $college = College::query()->create([
+        'name' => 'Public College Without Principal',
+        'principal_name' => 'Outdated Public Principal',
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    $this->get(route('public.colleges.show', $college))
+        ->assertOk()
+        ->assertSee('Not specified')
+        ->assertDontSee('Outdated Public Principal');
 });
 
 it('only exposes active approved colleges to public users', function () {

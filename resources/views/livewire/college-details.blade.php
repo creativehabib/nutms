@@ -100,7 +100,7 @@
                         </tr>
                         <tr>
                             <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('Principal') }}</th>
-                            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-medium">{{ $college->principal_name ?: __('Not specified') }}</td>
+                            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-medium">{{ $college->principal?->name ?: 'এখনো প্রিন্সিপাল এসাইন করা হয়নি' }}</td>
                         </tr>
                         <tr>
                             <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('Email') }}</th>

@@ -391,6 +391,10 @@ it('shows a concise college table and a separate full details page', function ()
         'laptop_count' => 5,
     ]);
     $college->programs()->create(['level' => 'degree', 'name' => 'BA', 'items' => ['BA', 'BSS']]);
+    User::factory()->withRole('principal')->create([
+        'name' => 'Assigned Principal',
+        'college_id' => $college->id,
+    ]);
 
     Livewire::test(CollegeManagement::class)
         ->assertSee('Details College')
@@ -403,7 +407,8 @@ it('shows a concise college table and a separate full details page', function ()
         ->get(route('colleges.show', $college))
         ->assertSuccessful()
         ->assertSee('Complete College Address')
-        ->assertSee('Principal Details')
+        ->assertSee('Assigned Principal')
+        ->assertDontSee('Principal Details')
         ->assertSee('details@example.edu.bd')
         ->assertSee('https://details.example.edu.bd')
         ->assertSee('ডেস্কটপ')
@@ -412,6 +417,18 @@ it('shows a concise college table and a separate full details page', function ()
         ->assertSee('5')
         ->assertSee('BA')
         ->assertSee('BSS');
+});
+
+it('shows an unassigned message when a college has no user with the principal role', function () {
+    $college = College::query()->create([
+        'name' => 'College Without Principal',
+        'principal_name' => 'Outdated Principal Name',
+    ]);
+
+    $this->get(route('colleges.show', $college))
+        ->assertSuccessful()
+        ->assertSee('এখনো প্রিন্সিপাল এসাইন করা হয়নি')
+        ->assertDontSee('Outdated Principal Name');
 });
 
 it('gives a principal direct view and edit access to only their college profile', function () {
