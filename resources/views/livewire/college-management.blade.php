@@ -1,4 +1,4 @@
-<div class="p-4 sm:p-6">
+<div class="p-0 sm:p-0">
     <!-- Main Card Container -->
     <flux:card class="p-0 sm:p-0 overflow-hidden shadow-sm">
 

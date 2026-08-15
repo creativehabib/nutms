@@ -1,4 +1,4 @@
-<div class="mx-auto w-full px-4 py-6 sm:px-6 lg:px-8"
+<div class="w-full"
      x-data="{ showImportModal: false }"
      @close-modal.window="showImportModal = false"
      @teacher-selection-updated.window="$el.querySelectorAll('[data-teacher-checkbox]').forEach((checkbox) => checkbox.checked = $event.detail.selected)">
