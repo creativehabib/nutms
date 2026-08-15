@@ -110,6 +110,7 @@
                     @endif
                     <flux:table.column>{{ __('College') }}</flux:table.column>
                     <flux:table.column>{{ __('Location') }}</flux:table.column>
+                    <flux:table.column>{{ __('Principal') }}</flux:table.column>
                     <flux:table.column>{{ __('Type') }}</flux:table.column>
                     <flux:table.column>{{ __('Computer Lab') }}</flux:table.column>
                     <flux:table.column>{{ __('Approve') }}</flux:table.column>
@@ -146,6 +147,10 @@
                                     <flux:icon.map-pin variant="micro" class="text-zinc-400" />
                                     <span>{{ $college->thana?->name ?: '—' }}, {{ $college->district?->name ?: '—' }}</span>
                                 </div>
+                            </flux:table.cell>
+
+                            <flux:table.cell>
+                                {{ $college->principal?->name ?: 'এখনো রুলস এসাইন করা হয়নি' }}
                             </flux:table.cell>
 
                             <!-- College Type -->

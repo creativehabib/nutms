@@ -39,7 +39,6 @@ it('lets public users browse affiliated colleges and their subjects', function (
     $college = College::query()->create([
         'college_code' => '2020',
         'name' => 'Public Affiliated College',
-        'principal_name' => 'Public Principal',
         'is_active' => true,
         'approval_status' => ApprovalStatus::Approved,
     ]);
@@ -86,7 +85,6 @@ it('lets public users browse affiliated colleges and their subjects', function (
 it('does not expose principal details on a public college profile', function () {
     $college = College::query()->create([
         'name' => 'Public College Without Principal',
-        'principal_name' => 'Outdated Public Principal',
         'is_active' => true,
         'approval_status' => ApprovalStatus::Approved,
     ]);
