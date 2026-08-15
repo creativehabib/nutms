@@ -41,6 +41,30 @@
         </flux:card>
     </form>
 
+    <form wire:submit="saveAiSettings">
+        <flux:card class="flex flex-col gap-6 border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <div class="flex flex-col gap-4 border-b border-zinc-100 pb-5 dark:border-zinc-800/80 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex size-11 items-center justify-center rounded-xl border border-violet-100 bg-violet-50 text-violet-600 dark:border-violet-500/10 dark:bg-violet-500/10 dark:text-violet-400"><flux:icon.sparkles class="size-6" /></div>
+                    <div><flux:heading size="lg">{{ __('AI Settings') }}</flux:heading><flux:text class="mt-0.5 text-sm">{{ __('Configure the website assistant for visitors and teachers.') }}</flux:text></div>
+                </div>
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 dark:border-zinc-700 dark:bg-zinc-800"><flux:switch wire:model="aiEnabled" :label="__('Enable AI assistant')" /></div>
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+                <flux:select wire:model="aiProvider" :label="__('Provider')"><option value="openai">OpenAI</option><option value="compatible">{{ __('OpenAI-compatible') }}</option></flux:select>
+                <flux:input wire:model="aiModel" :label="__('Model')" placeholder="gpt-4o-mini" required />
+                <flux:input wire:model="aiEndpoint" type="url" :label="__('API Endpoint')" placeholder="https://api.openai.com/v1" required />
+                <flux:input wire:model="aiApiKey" type="password" :label="__('API Key')" :description="__('Leave blank to keep the current key.')" autocomplete="new-password" />
+                <flux:input wire:model="aiHistoryLimit" type="number" min="2" max="30" :label="__('Conversation history limit')" required />
+                <div class="sm:col-span-2"><flux:textarea wire:model="aiSystemPrompt" rows="4" :label="__('Additional instructions')" :description="__('Optional organization-specific guidance. Security and website rules are always applied.')" /></div>
+            </div>
+
+            <flux:callout variant="warning" icon="shield-check">{{ __('The API key is encrypted. AI responses may be inaccurate; do not include sensitive personal information in prompts.') }}</flux:callout>
+            <div class="flex justify-end border-t border-zinc-100 pt-5 dark:border-zinc-800"><flux:button type="submit" variant="primary" icon="check" wire:loading.attr="disabled"><span wire:loading.remove wire:target="saveAiSettings">{{ __('Save AI Settings') }}</span><span wire:loading wire:target="saveAiSettings">{{ __('Saving...') }}</span></flux:button></div>
+        </flux:card>
+    </form>
+
     <!-- ======================================= -->
     <!-- EMAIL SETTINGS CARD                     -->
     <!-- ======================================= -->

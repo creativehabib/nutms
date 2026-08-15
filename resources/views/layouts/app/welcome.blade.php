@@ -42,6 +42,8 @@
 
 </div>
 
+<livewire:ai-chat wire:key="public-ai-chat" />
+
 @persist('toast')
 <flux:toast.group>
     <flux:toast />
