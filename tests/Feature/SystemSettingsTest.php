@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\SystemSettings;
+use App\Models\AiSetting;
 use App\Models\EmailSetting;
 use App\Models\SystemSetting;
 use App\Models\User;
@@ -54,4 +55,36 @@ it('does not allow a principal to configure the retirement age', function () {
     $principal = User::factory()->withRole('principal')->create();
 
     $this->actingAs($principal)->get(route('system-settings.manage'))->assertForbidden();
+});
+
+it('stores an encrypted AI provider configuration', function () {
+    $admin = User::factory()->withRole('admin')->create();
+
+    Livewire::actingAs($admin)->test(SystemSettings::class)
+        ->set('aiEnabled', true)
+        ->set('aiProvider', 'openai')
+        ->set('aiModel', 'gpt-4o-mini')
+        ->set('aiEndpoint', 'https://api.openai.com/v1/')
+        ->set('aiApiKey', 'secret-ai-key')
+        ->set('aiHistoryLimit', 8)
+        ->call('saveAiSettings')
+        ->assertHasNoErrors()
+        ->assertSet('aiApiKey', '');
+
+    $setting = AiSetting::query()->firstOrFail();
+    expect($setting->is_enabled)->toBeTrue()
+        ->and($setting->api_key)->toBe('secret-ai-key')
+        ->and($setting->endpoint)->toBe('https://api.openai.com/v1')
+        ->and($setting->history_limit)->toBe(8);
+});
+
+it('shows AI setup guidance and official provider links to an admin', function () {
+    $admin = User::factory()->withRole('admin')->create();
+
+    Livewire::actingAs($admin)->test(SystemSettings::class)
+        ->assertSee('AI Setting Helper')
+        ->assertSee('Create OpenAI API Key')
+        ->assertSeeHtml('https://platform.openai.com/api-keys')
+        ->assertSeeHtml('https://platform.openai.com/docs/models')
+        ->assertSeeHtml('rel="noopener noreferrer"');
 });
