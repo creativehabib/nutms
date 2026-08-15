@@ -62,7 +62,9 @@ class SystemSettings extends Component
             $this->aiProvider = $aiSetting->provider;
             $this->savedAiProvider = $aiSetting->provider;
             $this->aiModel = $aiSetting->model;
-            $this->aiEndpoint = $aiSetting->endpoint;
+            $this->aiEndpoint = $aiSetting->provider === 'gemini'
+                ? (string) preg_replace('#/openai/?$#', '', $aiSetting->endpoint)
+                : $aiSetting->endpoint;
             $this->aiSystemPrompt = $aiSetting->system_prompt ?? '';
             $this->aiHistoryLimit = $aiSetting->history_limit;
             $this->aiHasApiKey = filled($aiSetting->api_key);
@@ -113,7 +115,7 @@ class SystemSettings extends Component
     {
         $preset = match ($provider) {
             'openai' => ['https://api.openai.com/v1', 'gpt-4o-mini'],
-            'gemini' => ['https://generativelanguage.googleapis.com/v1beta/openai', 'gemini-2.5-flash'],
+            'gemini' => ['https://generativelanguage.googleapis.com/v1beta', 'gemini-2.5-flash'],
             'groq' => ['https://api.groq.com/openai/v1', 'llama-3.3-70b-versatile'],
             'openrouter' => ['https://openrouter.ai/api/v1', 'openrouter/free'],
             default => [$this->aiEndpoint, $this->aiModel],

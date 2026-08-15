@@ -76,3 +76,28 @@ it('does not expose provider configuration errors to teachers', function () {
         ->assertSee('The AI service is temporarily unavailable. Please try again.')
         ->assertDontSee('rejected the API key');
 });
+
+it('uses the native Gemini generateContent API', function () {
+    Http::fake(['https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent' => Http::response([
+        'candidates' => [['content' => ['parts' => [['text' => 'Gemini is connected.']]]]],
+    ])]);
+    AiSetting::query()->create([
+        'is_enabled' => true,
+        'provider' => 'gemini',
+        'model' => 'gemini-2.5-flash',
+        'endpoint' => 'https://generativelanguage.googleapis.com/v1beta',
+        'api_key' => 'gemini-key',
+        'history_limit' => 10,
+    ]);
+    $admin = User::factory()->withRole('admin')->create();
+
+    Livewire::actingAs($admin)->test(AiChat::class)
+        ->set('question', 'Can Gemini answer?')
+        ->call('send')
+        ->assertSee('Gemini is connected.');
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
+        && $request->hasHeader('x-goog-api-key', 'gemini-key')
+        && $request['contents'][0]['role'] === 'user'
+        && filled($request['system_instruction']['parts'][0]['text']));
+});

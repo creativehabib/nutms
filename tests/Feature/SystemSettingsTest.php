@@ -134,7 +134,7 @@ it('applies the Gemini OpenAI-compatible preset', function () {
 
     Livewire::actingAs($admin)->test(SystemSettings::class)
         ->set('aiProvider', 'gemini')
-        ->assertSet('aiEndpoint', 'https://generativelanguage.googleapis.com/v1beta/openai')
+        ->assertSet('aiEndpoint', 'https://generativelanguage.googleapis.com/v1beta')
         ->assertSet('aiModel', 'gemini-2.5-flash')
         ->assertSee('Get Gemini API Key');
 });
