@@ -62,13 +62,33 @@
                 <flux:select wire:model="aiProvider" :label="__('Provider')"><option value="openai">OpenAI</option><option value="compatible">{{ __('OpenAI-compatible') }}</option></flux:select>
                 <flux:input wire:model="aiModel" :label="__('Model')" placeholder="gpt-4o-mini" required />
                 <flux:input wire:model="aiEndpoint" type="url" :label="__('API Endpoint')" placeholder="https://api.openai.com/v1" required />
-                <flux:input wire:model="aiApiKey" type="password" :label="__('API Key')" :description="__('Leave blank to keep the current key.')" autocomplete="new-password" />
+                <div>
+                    <flux:input wire:model="aiApiKey" type="password" :label="__('API Key')" :description="$aiHasApiKey ? __('A saved API key is configured. Leave blank to keep it, or enter a new key to replace it.') : __('No API key is saved. Enter a provider API key before enabling AI.')" autocomplete="new-password" />
+                    <div class="mt-2">
+                        <flux:badge :color="$aiHasApiKey ? 'green' : 'amber'" size="sm">
+                            {{ $aiHasApiKey ? __('API key configured') : __('API key missing') }}
+                        </flux:badge>
+                    </div>
+                </div>
                 <flux:input wire:model="aiHistoryLimit" type="number" min="2" max="30" :label="__('Conversation history limit')" required />
                 <div class="sm:col-span-2"><flux:textarea wire:model="aiSystemPrompt" rows="4" :label="__('Additional instructions')" :description="__('Optional organization-specific guidance. Security and website rules are always applied.')" /></div>
             </div>
 
             <flux:callout variant="warning" icon="shield-check">{{ __('The API key is encrypted. AI responses may be inaccurate; do not include sensitive personal information in prompts.') }}</flux:callout>
-            <div class="flex justify-end border-t border-zinc-100 pt-5 dark:border-zinc-800"><flux:button type="submit" variant="primary" icon="check" wire:loading.attr="disabled"><span wire:loading.remove wire:target="saveAiSettings">{{ __('Save AI Settings') }}</span><span wire:loading wire:target="saveAiSettings">{{ __('Saving...') }}</span></flux:button></div>
+
+            @if($aiConnectionMessage !== null)
+                <flux:callout :variant="$aiConnectionSuccessful ? 'success' : 'danger'" :icon="$aiConnectionSuccessful ? 'check-circle' : 'exclamation-triangle'">
+                    {{ $aiConnectionMessage }}
+                </flux:callout>
+            @endif
+
+            <div class="flex flex-wrap justify-end gap-3 border-t border-zinc-100 pt-5 dark:border-zinc-800">
+                <flux:button type="button" wire:click="testAiConnection" icon="signal" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="testAiConnection">{{ __('Test AI Connection') }}</span>
+                    <span wire:loading wire:target="testAiConnection">{{ __('Testing connection...') }}</span>
+                </flux:button>
+                <flux:button type="submit" variant="primary" icon="check" wire:loading.attr="disabled"><span wire:loading.remove wire:target="saveAiSettings">{{ __('Save AI Settings') }}</span><span wire:loading wire:target="saveAiSettings">{{ __('Saving...') }}</span></flux:button>
+            </div>
         </flux:card>
     </form>
 

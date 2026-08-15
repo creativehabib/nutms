@@ -6,6 +6,7 @@ use App\Models\EmailSetting;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\EnvironmentFileUpdater;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
 use function Pest\Laravel\mock;
@@ -87,4 +88,43 @@ it('shows AI setup guidance and official provider links to an admin', function (
         ->assertSeeHtml('https://platform.openai.com/api-keys')
         ->assertSeeHtml('https://platform.openai.com/docs/models')
         ->assertSeeHtml('rel="noopener noreferrer"');
+});
+
+it('tests a saved AI configuration and reports success', function () {
+    Http::fake(['https://api.openai.com/v1/chat/completions' => Http::response([
+        'choices' => [['message' => ['content' => 'OK']]],
+    ])]);
+    AiSetting::query()->create([
+        'is_enabled' => true,
+        'provider' => 'openai',
+        'model' => 'gpt-4o-mini',
+        'endpoint' => 'https://api.openai.com/v1',
+        'api_key' => 'valid-key',
+        'history_limit' => 10,
+    ]);
+    $admin = User::factory()->withRole('admin')->create();
+
+    Livewire::actingAs($admin)->test(SystemSettings::class)
+        ->assertSet('aiHasApiKey', true)
+        ->call('testAiConnection')
+        ->assertSet('aiConnectionSuccessful', true)
+        ->assertSee('Connection successful. The API key, endpoint, and model are working.');
+});
+
+it('explains when the AI provider rejects the saved API key', function () {
+    Http::fake(['https://api.openai.com/v1/chat/completions' => Http::response([], 401)]);
+    AiSetting::query()->create([
+        'is_enabled' => true,
+        'provider' => 'openai',
+        'model' => 'gpt-4o-mini',
+        'endpoint' => 'https://api.openai.com/v1',
+        'api_key' => 'invalid-key',
+        'history_limit' => 10,
+    ]);
+    $admin = User::factory()->withRole('admin')->create();
+
+    Livewire::actingAs($admin)->test(SystemSettings::class)
+        ->call('testAiConnection')
+        ->assertSet('aiConnectionSuccessful', false)
+        ->assertSee('The AI provider rejected the API key.');
 });

@@ -30,7 +30,12 @@ class AiChatService
 
         if ($response->failed()) {
             report(new RuntimeException('AI provider returned HTTP '.$response->status()));
-            throw new RuntimeException(__('The AI service is temporarily unavailable. Please try again.'));
+            throw new RuntimeException(match ($response->status()) {
+                401, 403 => __('The AI provider rejected the API key. Create a valid key and save it again.'),
+                404 => __('The AI endpoint or model was not found. Check both values in AI Settings.'),
+                429 => __('The AI provider rate limit or account quota has been reached. Check provider billing and usage limits.'),
+                default => __('The AI provider could not be reached successfully (HTTP :status).', ['status' => $response->status()]),
+            });
         }
 
         $content = $response->json('choices.0.message.content');

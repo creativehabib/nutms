@@ -5,12 +5,14 @@ namespace App\Livewire;
 use App\Models\AiSetting;
 use App\Models\EmailSetting;
 use App\Models\SystemSetting;
+use App\Services\AiChatService;
 use App\Services\EnvironmentFileUpdater;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use RuntimeException;
 
 class SystemSettings extends Component
 {
@@ -30,6 +32,9 @@ class SystemSettings extends Component
     public string $aiApiKey = '';
     public string $aiSystemPrompt = '';
     public int $aiHistoryLimit = 10;
+    public bool $aiHasApiKey = false;
+    public ?string $aiConnectionMessage = null;
+    public ?bool $aiConnectionSuccessful = null;
 
     public function mount(): void
     {
@@ -58,6 +63,7 @@ class SystemSettings extends Component
             $this->aiEndpoint = $aiSetting->endpoint;
             $this->aiSystemPrompt = $aiSetting->system_prompt ?? '';
             $this->aiHistoryLimit = $aiSetting->history_limit;
+            $this->aiHasApiKey = filled($aiSetting->api_key);
         }
     }
 
@@ -86,8 +92,33 @@ class SystemSettings extends Component
             $setting->api_key = $validated['aiApiKey'];
         }
         $setting->save();
+        $this->aiHasApiKey = filled($setting->api_key);
+        $this->aiConnectionMessage = null;
+        $this->aiConnectionSuccessful = null;
         $this->reset('aiApiKey');
         Flux::toast(variant: 'success', text: __('AI settings have been saved.'));
+    }
+
+    public function testAiConnection(AiChatService $chatService): void
+    {
+        abort_unless(auth()->user()->isAdmin(), 403);
+        $setting = AiSetting::query()->latest('id')->first();
+
+        if ($setting === null || ! $setting->is_enabled) {
+            $this->aiConnectionSuccessful = false;
+            $this->aiConnectionMessage = __('Save the settings and enable the AI assistant before testing.');
+
+            return;
+        }
+
+        try {
+            $chatService->reply($setting, [['role' => 'user', 'content' => 'Reply only with OK.']]);
+            $this->aiConnectionSuccessful = true;
+            $this->aiConnectionMessage = __('Connection successful. The API key, endpoint, and model are working.');
+        } catch (RuntimeException $exception) {
+            $this->aiConnectionSuccessful = false;
+            $this->aiConnectionMessage = $exception->getMessage();
+        }
     }
 
     public function saveEmailSettings(EnvironmentFileUpdater $environmentFileUpdater): void
