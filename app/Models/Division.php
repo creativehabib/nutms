@@ -13,4 +13,9 @@ class Division extends Model
     {
         return $this->hasMany(District::class);
     }
+
+    public function colleges(): HasMany
+    {
+        return $this->hasMany(College::class);
+    }
 }
