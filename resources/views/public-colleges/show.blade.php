@@ -1,4 +1,4 @@
-<x-layouts.app.welcome>
+<x-layouts::app.welcome :title="$college->name">
     <div class="space-y-8">
         <div class="rounded-3xl bg-gradient-to-br from-emerald-800 to-teal-900 px-6 py-10 text-white sm:px-10">
             <a href="{{ route('public.colleges.index') }}" class="text-sm font-semibold text-emerald-200 hover:text-white">← সকল কলেজ</a>
@@ -72,4 +72,4 @@
             </div>
         </section>
     </div>
-</x-layouts.app.welcome>
+</x-layouts::app.welcome>

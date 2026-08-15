@@ -50,6 +50,11 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->assertSee('বাংলা')
         ->assertSee(route('public.colleges.show', $college));
 
+    $this->get(route('public.colleges.index'))
+        ->assertOk()
+        ->assertSee('Public Affiliated College')
+        ->assertSee('বাংলা');
+
     $this->get(route('public.colleges.show', $college))
         ->assertOk()
         ->assertSee('Public Principal')
