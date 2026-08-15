@@ -128,8 +128,9 @@ it('grounds public answers with matching college programs and a verified clickab
         'name' => 'Honours Courses',
         'items' => ['Bangla', 'English', 'Economics'],
     ]);
+    $collegeUrl = route('public.colleges.show', $college);
     Http::fake(['https://api.openai.com/v1/chat/completions' => Http::response([
-        'choices' => [['message' => ['content' => '[কলেজের বিস্তারিত পেজ]('.route('public.colleges.show', $college).')']]],
+        'choices' => [['message' => ['content' => "**বিস্তারিত:**\n[{$collegeUrl}]({$collegeUrl}) — {$collegeUrl}"]]],
     ])]);
     AiSetting::query()->create([
         'is_enabled' => true,
@@ -140,12 +141,15 @@ it('grounds public answers with matching college programs and a verified clickab
         'history_limit' => 10,
     ]);
 
-    Livewire::test(AiChat::class)
+    $component = Livewire::test(AiChat::class)
         ->set('question', 'BHAWL BADR ALM GVT COLGE এই কলেজে কোন কোর্স চালু আছে আমাকে জানাও')
         ->call('send')
-        ->assertSeeHtml('href="'.route('public.colleges.show', $college).'"')
+        ->assertSeeHtml('href="'.$collegeUrl.'"')
         ->assertSeeHtml('target="_blank"')
-        ->assertSeeHtml('rel="noopener noreferrer"');
+        ->assertSeeHtml('rel="noopener noreferrer"')
+        ->assertDontSee('**বিস্তারিত:**');
+
+    expect(substr_count($component->html(), 'href="'.$collegeUrl.'"'))->toBe(1);
 
     Http::assertSent(fn ($request): bool => str_contains($request['messages'][0]['content'], 'Bangla, English, Economics')
         && str_contains($request['messages'][0]['content'], 'BHAWAL BADRE ALAM GOVT. COLLEGE')

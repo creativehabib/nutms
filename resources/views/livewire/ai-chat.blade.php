@@ -14,7 +14,7 @@
             <div x-ref="messages" class="flex-1 space-y-4 overflow-y-auto bg-zinc-50/70 p-4 dark:bg-zinc-950/40">
                 @foreach($messages as $index => $message)
                     <div wire:key="ai-message-{{ $index }}" class="flex {{ $message['role'] === 'user' ? 'justify-end' : 'justify-start' }}">
-                        <div class="max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 {{ $message['role'] === 'user' ? 'rounded-br-md bg-blue-600 text-white' : 'rounded-bl-md border border-zinc-200 bg-white text-zinc-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200' }}">
+                        <div class="max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 [&_a]:font-medium [&_a]:text-blue-600 [&_a]:underline [&_a]:underline-offset-2 [&_li]:my-1 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p:not(:last-child)]:mb-3 [&_strong]:font-semibold [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 dark:[&_a]:text-blue-400 {{ $message['role'] === 'user' ? 'rounded-br-md bg-blue-600 text-white' : 'rounded-bl-md border border-zinc-200 bg-white text-zinc-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200' }}">
                             @if($message['role'] === 'assistant')
                                 {!! $this->renderAssistantMessage($message['content']) !!}
                             @else

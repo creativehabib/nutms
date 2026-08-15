@@ -11,6 +11,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use League\CommonMark\GithubFlavoredMarkdownConverter;
 use Livewire\Component;
 use RuntimeException;
 use Throwable;
@@ -97,23 +98,35 @@ class AiChat extends Component
 
     public function renderAssistantMessage(string $message): HtmlString
     {
-        $escapedMessage = e($message);
-        $escapedMessage = preg_replace(
+        $normalizedMessage = preg_replace_callback(
             '~\[([^\]]+)]\((https?://[^\s)]+)\)~u',
-            '$1 — $2',
-            $escapedMessage,
-        ) ?? $escapedMessage;
-        $linkedMessage = preg_replace_callback(
+            fn (array $matches): string => trim($matches[1]) === $matches[2]
+                ? $matches[2]
+                : trim($matches[1]).': '.$matches[2],
+            $message,
+        ) ?? $message;
+        $seenUrls = [];
+        $normalizedMessage = preg_replace_callback(
             '~https?://[^\s<]+[^\s<\.,;:!?\)\]]~u',
-            fn (array $matches): string => sprintf(
-                '<a href="%s" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">%s</a>',
-                $matches[0],
-                $matches[0],
-            ),
-            $escapedMessage,
-        );
+            function (array $matches) use (&$seenUrls): string {
+                if (in_array($matches[0], $seenUrls, true)) {
+                    return '';
+                }
 
-        return new HtmlString(nl2br($linkedMessage ?? $escapedMessage));
+                $seenUrls[] = $matches[0];
+
+                return $matches[0];
+            },
+            $normalizedMessage,
+        ) ?? $normalizedMessage;
+        $converter = new GithubFlavoredMarkdownConverter([
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
+        $html = (string) $converter->convert($normalizedMessage);
+        $html = str_replace('<a href=', '<a target="_blank" rel="noopener noreferrer" href=', $html);
+
+        return new HtmlString($html);
     }
 
     private function conversation(): AiConversation
