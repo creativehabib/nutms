@@ -3,6 +3,8 @@
 use App\Enums\ApprovalStatus;
 use App\Livewire\Frontend\AffiliatedCollegeDirectory;
 use App\Models\College;
+use App\Models\District;
+use App\Models\Division;
 use App\Models\Teacher;
 use App\Models\Training;
 use Livewire\Livewire;
@@ -86,6 +88,59 @@ it('only exposes active approved colleges to public users', function () {
         ->assertDontSee('Pending Private College');
 
     $this->get(route('public.colleges.show', $college))->assertNotFound();
+});
+
+it('filters public colleges by type division and district', function () {
+    $firstDivision = Division::query()->create([
+        'country_id' => 1,
+        'name' => 'Public First Division',
+        'bn_name' => 'প্রথম বিভাগ',
+    ]);
+    $secondDivision = Division::query()->create([
+        'country_id' => 1,
+        'name' => 'Public Second Division',
+        'bn_name' => 'দ্বিতীয় বিভাগ',
+    ]);
+    $firstDistrict = District::query()->create([
+        'division_id' => $firstDivision->id,
+        'name' => 'Public First District',
+        'bn_name' => 'প্রথম জেলা',
+    ]);
+    $secondDistrict = District::query()->create([
+        'division_id' => $secondDivision->id,
+        'name' => 'Public Second District',
+        'bn_name' => 'দ্বিতীয় জেলা',
+    ]);
+
+    College::query()->create([
+        'name' => 'Government District College',
+        'college_type' => 'government',
+        'division_id' => $firstDivision->id,
+        'district_id' => $firstDistrict->id,
+    ]);
+    College::query()->create([
+        'name' => 'Private District College',
+        'college_type' => 'non_government',
+        'division_id' => $secondDivision->id,
+        'district_id' => $secondDistrict->id,
+    ]);
+
+    Livewire::test(AffiliatedCollegeDirectory::class)
+        ->assertSeeHtml('data-public-district-filter')
+        ->assertSeeHtml('disabled')
+        ->assertDontSee('প্রথম জেলা')
+        ->set('division', (string) $firstDivision->id)
+        ->assertSet('district', '')
+        ->assertSee('প্রথম জেলা')
+        ->assertDontSee('দ্বিতীয় জেলা')
+        ->set('district', (string) $firstDistrict->id)
+        ->assertSee('Government District College')
+        ->assertDontSee('Private District College')
+        ->set('collegeType', 'non_government')
+        ->assertDontSee('Government District College')
+        ->set('division', (string) $secondDivision->id)
+        ->assertSet('district', '')
+        ->assertSee('Private District College');
 });
 
 it('renders an empty state when no public training is available', function () {

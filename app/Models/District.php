@@ -19,4 +19,9 @@ class District extends Model
     {
         return $this->hasMany(Thana::class);
     }
+
+    public function colleges(): HasMany
+    {
+        return $this->hasMany(College::class);
+    }
 }
