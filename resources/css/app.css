@@ -1,122 +1,236 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
 
-@source '../views';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
-@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+/*
+|--------------------------------------------------------------------------
+| Tailwind v4 Content Sources
+|--------------------------------------------------------------------------
+*/
+
+@source "../views/**/*.blade.php";
+@source "../../app/Livewire/**/*.php";
+@source "../../app/Livewire/**/*.blade.php";
+
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/**/*.blade.php";
+@source "../../vendor/livewire/flux-pro/stubs/**/*.blade.php";
+@source "../../vendor/livewire/flux/stubs/**/*.blade.php";
+
+
+/*
+|--------------------------------------------------------------------------
+| Dark Mode
+|--------------------------------------------------------------------------
+*/
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-    --color-zinc-50: #fafafa;
-    --color-zinc-100: #f5f5f5;
-    --color-zinc-200: #e5e5e5;
-    --color-zinc-300: #d4d4d4;
-    --color-zinc-400: #a3a3a3;
-    --color-zinc-500: #737373;
-    --color-zinc-600: #525252;
-    --color-zinc-700: #404040;
-    --color-zinc-800: #262626;
-    --color-zinc-900: #171717;
-    --color-zinc-950: #0a0a0a;
+/*
+|--------------------------------------------------------------------------
+| Theme
+|--------------------------------------------------------------------------
+|
+| Keep Tailwind's default color palette.
+| Only add application-specific theme variables here.
+|
+*/
+
+@theme {
+    --font-sans:
+        'Instrument Sans',
+        ui-sans-serif,
+        system-ui,
+        sans-serif,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        'Noto Color Emoji';
 
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| Dark Theme
+|--------------------------------------------------------------------------
+*/
+
 @layer theme {
     .dark {
+        color-scheme: dark;
+
         --color-accent: var(--color-white);
         --color-accent-content: var(--color-white);
         --color-accent-foreground: var(--color-neutral-800);
     }
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| Base Styles
+|--------------------------------------------------------------------------
+*/
+
 @layer base {
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        min-height: 100vh;
+        font-family: var(--font-sans);
+    }
 
     .dark {
         color-scheme: dark;
     }
 
     *,
-    ::after,
     ::before,
+    ::after,
     ::backdrop,
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| Livewire Flux
+|--------------------------------------------------------------------------
+*/
+
 [data-flux-field]:not(ui-radio, ui-checkbox) {
     @apply grid gap-2;
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !leading-tight;
 }
 
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-background;
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
 
-/* Choices.js theming (light/dark) */
+/*
+|--------------------------------------------------------------------------
+| Choices.js - Light Mode
+|--------------------------------------------------------------------------
+*/
+
 .choices__inner {
-    border-radius: 6px !important;
-    padding: 4px !important;
     min-height: 0 !important;
-}
-.dark .choices__item.choices__placeholder.choices__item--selectable {
-    color: var(--color-zinc-200);
+    padding: 4px !important;
+    border-radius: 6px !important;
+
+    border: 1px solid #e2e8f0 !important;
+
+    background-color: #ffffff !important;
+    color: #0f172a !important;
 }
 
-.choices__item--selectable{
+.choices__item--selectable {
     color: #1e293b;
 }
 
-.dark .choices__item--selectable{
-    color: var(--color-zinc-300);
+.choices__item.choices__placeholder.choices__item--selectable {
+    color: #64748b;
 }
+
 .choices__list--dropdown,
 .choices__list[aria-expanded] {
-    background-color: #ffffff;
     border: 1px solid #e2e8f0;
+
+    background-color: #ffffff;
+
     color: #0f172a;
 }
 
 .choices__list--dropdown .choices__item--selectable.is-highlighted,
 .choices__list[aria-expanded] .choices__item--selectable.is-highlighted {
     background-color: #e2e8f0;
+    color: #0f172a;
 }
 
+.choices[data-type*='select-one'] .choices__input {
+    border-bottom: 1px solid #e2e8f0;
+
+    background-color: #ffffff;
+
+    color: #0f172a;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Choices.js - Dark Mode
+|--------------------------------------------------------------------------
+*/
+
 .dark .choices__inner {
-    background-color: var(--color-zinc-800) !important;
     border-color: var(--color-zinc-700) !important;
-    color: #e2e8f0;
+
+    background-color: var(--color-zinc-800) !important;
+
+    color: var(--color-zinc-200) !important;
+}
+
+.dark .choices__item--selectable {
+    color: var(--color-zinc-300);
+}
+
+.dark .choices__item.choices__placeholder.choices__item--selectable {
+    color: var(--color-zinc-400);
 }
 
 .dark .choices__list--dropdown,
 .dark .choices__list[aria-expanded] {
-    background-color: var(--color-zinc-800) !important;
     border-color: var(--color-zinc-700) !important;
-    color: #e2e8f0;
+
+    background-color: var(--color-zinc-800) !important;
+
+    color: var(--color-zinc-200);
 }
 
 .dark .choices__list--dropdown .choices__item--selectable.is-highlighted,
 .dark .choices__list[aria-expanded] .choices__item--selectable.is-highlighted {
-    background-color: var(--color-gray-500) !important;
+    background-color: var(--color-zinc-600) !important;
+
+    color: var(--color-white);
 }
 
-.dark .choices[data-type*=select-one] .choices__input {
-    border-bottom: 1px solid #334155 !important;
+.dark .choices[data-type*='select-one'] .choices__input {
+    border-bottom-color: var(--color-zinc-700) !important;
+
     background-color: var(--color-zinc-800) !important;
+
+    color: var(--color-zinc-200) !important;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Custom Utilities
+|--------------------------------------------------------------------------
+*/
+
+@layer utilities {
+
+    .scrollbar-none {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
 }

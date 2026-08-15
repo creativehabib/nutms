@@ -1,382 +1,1025 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
+<html lang="bn">
+
 <head>
-    @include('partials.head', ['title' => __('National University Teacher Training Department')])
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Theme Init Script (Strictly prevents screen flash & reload mismatch) -->
-    <script>
-        (function() {
-            try {
-                let theme = localStorage.getItem('theme') || 'system';
-                let isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    <title>শিক্ষক ও প্রশিক্ষণ ব্যবস্থাপনা | জাতীয় বিশ্ববিদ্যালয়</title>
 
-                if (theme === 'dark' || (theme === 'system' && isSystemDark)) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
-            } catch (e) {}
-        })();
-    </script>
+    <meta name="description"
+          content="জাতীয় বিশ্ববিদ্যালয়ের শিক্ষক ব্যবস্থাপনা ও প্রশিক্ষণ পরিচালনা সংক্রান্ত সমন্বিত ডিজিটাল প্ল্যাটফর্ম।">
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
 
     <style>
-        [x-cloak] { display: none !important; }
+        * {
+            font-family: 'Noto Sans Bengali', sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .hero-pattern {
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(255,255,255,.10) 0, transparent 30%),
+                radial-gradient(circle at 80% 80%, rgba(255,255,255,.08) 0, transparent 30%);
+        }
     </style>
 </head>
 
-<body x-data="{
-          scrolled: false,
-          mobileMenuOpen: false,
-          theme: localStorage.getItem('theme') || 'system',
+<body class="bg-slate-50 text-slate-800">
 
-          init() {
-              // Watch for system theme changes if set to 'system'
-              window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                  if (this.theme === 'system') {
-                      if (e.matches) {
-                          document.documentElement.classList.add('dark');
-                      } else {
-                          document.documentElement.classList.remove('dark');
-                      }
-                  }
-              });
-          },
+{{-- =========================
+    NAVBAR
+========================== --}}
+<header class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
 
-          setTheme(val) {
-              this.theme = val;
-              localStorage.setItem('theme', val);
+        {{-- Logo --}}
+        <a href="/" class="flex items-center gap-3">
 
-              if (val === 'dark') {
-                  document.documentElement.classList.add('dark');
-              } else if (val === 'light') {
-                  document.documentElement.classList.remove('dark');
-              } else {
-                  // system fallback
-                  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                      document.documentElement.classList.add('dark');
-                  } else {
-                      document.documentElement.classList.remove('dark');
-                  }
-              }
-              window.dispatchEvent(new Event('theme-changed'));
-          }
-      }"
-      @scroll.window="scrolled = (window.pageYOffset > 20)"
-      class="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 antialiased transition-colors duration-300 flex flex-col">
-
-<div class="relative isolate overflow-hidden flex-1 flex flex-col">
-
-    <!-- ========================================== -->
-    <!-- Dynamic Background Effects (Light & Dark) -->
-    <!-- ========================================== -->
-    <!-- Dark Mode Background -->
-    <div class="absolute inset-0 -z-20 hidden dark:block bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_35%),radial-gradient(circle_at_85%_25%,_rgba(59,130,246,0.15),_transparent_30%),linear-gradient(to_bottom,_#07111f,_#0f172a)] transition-colors duration-300"></div>
-    <!-- Light Mode Background -->
-    <div class="absolute inset-0 -z-20 dark:hidden bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.1),_transparent_35%),radial-gradient(circle_at_85%_25%,_rgba(59,130,246,0.1),_transparent_30%),linear-gradient(to_bottom,_#f8fafc,_#f1f5f9)] transition-colors duration-300"></div>
-
-    <div class="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-emerald-400/50 dark:via-emerald-300/70 to-transparent"></div>
-
-    <!-- ========================================== -->
-    <!-- Dynamic Sticky Header -->
-    <!-- ========================================== -->
-    <header :class="scrolled ? 'bg-white/85 dark:bg-slate-950/85 border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm backdrop-blur-xl' : 'bg-transparent border-transparent'"
-            class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
-        <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-
-            <div class="flex items-center gap-8">
-                <!-- Logo & Brand Name -->
-                <a href="{{ route('home') }}" class="flex min-w-0 items-center gap-3 group" aria-label="{{ __('Home') }}">
-                        <span class="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-white text-emerald-600 shadow-md shadow-emerald-200/40 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:shadow-emerald-950/50 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-lg">
-                            <svg class="size-6 sm:size-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="m3 9 9-5 9 5-9-5Zm3 3v5c3.5 2.7 8.5 2.7 12 0v-5m3-3v6"></path></svg>
-                        </span>
-                    <span class="min-w-0">
-                            <span class="block truncate text-sm sm:text-base font-bold text-slate-800 dark:text-white transition-colors tracking-tight">{{ __('National University') }}</span>
-                            <span class="block truncate text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 transition-colors uppercase tracking-wider font-semibold">{{ __('Teacher Training Dept.') }}</span>
-                        </span>
-                </a>
-
-                <!-- Desktop Primary Navigation -->
-                <nav class="hidden md:flex items-center gap-6 h-full" aria-label="{{ __('Primary navigation') }}">
-                    <div x-data="{ dropdownOpen: false }" @mouseenter="dropdownOpen = true" @mouseleave="dropdownOpen = false" class="relative h-12 flex items-center">
-                        <button class="text-sm font-semibold text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5 h-full">
-                            {{ __('Surveys & Forms') }}
-                            <svg :class="dropdownOpen ? 'rotate-180 text-indigo-600 dark:text-indigo-400' : 'text-slate-400'" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-
-                        <!-- Dropdown -->
-                        <div x-show="dropdownOpen" x-cloak
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 translate-y-3 scale-95"
-                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave-end="opacity-0 translate-y-3 scale-95"
-                             class="absolute top-full left-0 w-[300px] p-2 bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/70 rounded-2xl shadow-2xl z-50 before:absolute before:-top-2 before:left-6 before:border-8 before:border-transparent before:border-b-white dark:before:border-b-slate-900">
-                            <div class="flex flex-col">
-                                <a href="{{ route('survey.student') }}" class="group flex items-start gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                    <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-bold text-slate-800 dark:text-white">{{ __('Student Survey') }}</p>
-                                        <p class="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{{ __('Provide your feedback on ICT courses.') }}</p>
-                                    </div>
-                                </a>
-                                <div class="h-px bg-slate-100 dark:bg-slate-800 my-1 mx-2"></div>
-                                <a href="{{ route('survey.teacher') }}" class="group flex items-start gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                    <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"></path></svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-bold text-slate-800 dark:text-white">{{ __('Teacher Survey') }}</p>
-                                        <p class="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{{ __('Share insights on teaching methods.') }}</p>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </nav>
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-700 text-white shadow">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-7 w-7"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.8"
+                          d="M12 14l9-5-9-5-9 5 9 5z"/>
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.8"
+                          d="M5 12v5c4 3 10 3 14 0v-5"/>
+                </svg>
             </div>
 
-            <!-- Right Side Actions -->
-            <div class="flex items-center gap-2 sm:gap-4">
-
-                <!-- Flux UI Theme Toggle Dropdown -->
-                <flux:dropdown align="end">
-                    <flux:button variant="ghost" square class="rounded-full text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200" aria-label="Toggle Theme">
-                        <flux:icon.sun x-show="theme === 'light'" class="size-5" />
-                        <flux:icon.moon x-show="theme === 'dark'" x-cloak class="size-5" />
-                        <flux:icon.computer-desktop x-show="theme === 'system'" x-cloak class="size-5" />
-                    </flux:button>
-
-                    <flux:menu>
-                        <flux:menu.item icon="sun" @click="setTheme('light')" x-bind:class="theme === 'light' ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : ''">{{ __('Light') }}</flux:menu.item>
-                        <flux:menu.item icon="moon" @click="setTheme('dark')" x-bind:class="theme === 'dark' ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : ''">{{ __('Dark') }}</flux:menu.item>
-                        <flux:menu.item icon="computer-desktop" @click="setTheme('system')" x-bind:class="theme === 'system' ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : ''">{{ __('System') }}</flux:menu.item>
-                    </flux:menu>
-                </flux:dropdown>
-
-                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
-
-                <div class="hidden md:flex items-center gap-3">
-                    @auth
-                        <flux:button :href="route('dashboard')" variant="primary" icon="squares-2x2" class="shadow-sm">{{ __('Dashboard') }}</flux:button>
-                    @else
-                        <flux:button :href="route('login')" variant="primary" icon="arrow-right-end-on-rectangle" class="shadow-sm">{{ __('Login') }}</flux:button>
-                    @endauth
-                </div>
-
-                <!-- Hamburger Button -->
-                <button @click="mobileMenuOpen = !mobileMenuOpen" type="button" class="md:hidden inline-flex items-center justify-center p-2.5 rounded-xl text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 focus:outline-none transition-colors">
-                    <svg x-show="!mobileMenuOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    <svg x-show="mobileMenuOpen" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- ========================================== -->
-    <!-- Mobile Dropdown Menu -->
-    <!-- ========================================== -->
-    <div x-show="mobileMenuOpen" x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 -translate-y-2"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 translate-y-0"
-         x-transition:leave-end="opacity-0 -translate-y-2"
-         @click.away="mobileMenuOpen = false"
-         class="md:hidden fixed top-[72px] inset-x-0 border-b border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-2xl z-40">
-
-        <div class="px-4 py-6 space-y-4 max-h-[calc(100vh-80px)] overflow-y-auto">
-            <p class="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{{ __('Surveys & Forms') }}</p>
-            <div class="grid gap-2">
-                <a href="{{ route('survey.student') }}" class="flex items-center gap-4 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 hover:bg-indigo-50 dark:bg-slate-900/50 dark:hover:bg-slate-800/80 transition-colors">
-                    <div class="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path></svg>
-                    </div>
-                    <p class="text-base font-bold text-slate-800 dark:text-white">{{ __('Student Survey') }}</p>
-                </a>
-                <a href="{{ route('survey.teacher') }}" class="flex items-center gap-4 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 hover:bg-emerald-50 dark:bg-slate-900/50 dark:hover:bg-slate-800/80 transition-colors">
-                    <div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"></path></svg>
-                    </div>
-                    <p class="text-base font-bold text-slate-800 dark:text-white">{{ __('Teacher Survey') }}</p>
-                </a>
-            </div>
-            <div class="mt-4 pt-6 border-t border-slate-100 dark:border-slate-800/80">
-                @auth
-                    <a href="{{ route('dashboard') }}" class="flex w-full items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-white font-semibold transition-colors shadow-lg shadow-slate-900/20 dark:shadow-white/10">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                        {{ __('Go to Dashboard') }}
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="flex w-full items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-white font-semibold transition-colors shadow-lg shadow-slate-900/20 dark:shadow-white/10">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                        {{ __('Secure Login') }}
-                    </a>
-                @endauth
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- Main Content (Hero Section) -->
-    <!-- ========================================== -->
-    <main class="flex-1">
-        <section class="mx-auto grid min-h-[calc(100vh-5.5rem)] w-full max-w-7xl items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:py-28">
-
-            <!-- Left Side Content -->
             <div>
-                <div class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-300/20 dark:bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold dark:text-emerald-200 sm:text-sm transition-colors duration-300">
-                    <span class="size-2 rounded-full bg-emerald-500 dark:bg-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.5)] dark:shadow-[0_0_12px_rgba(110,231,183,0.9)]"></span>
-                    {{ __('Integrated teacher information management platform') }}
-                </div>
-
-                <h1 class="mt-6 max-w-4xl text-4xl font-black leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl transition-colors duration-300">
-                    {{ __('Teacher development and training management is now') }}
-                    <span class="bg-gradient-to-r from-emerald-600 to-cyan-600 dark:from-emerald-300 dark:to-cyan-300 bg-clip-text text-transparent">{{ __('easier and more effective') }}</span>
+                <h1 class="text-lg font-bold leading-tight text-emerald-800">
+                    জাতীয় বিশ্ববিদ্যালয়
                 </h1>
 
-                <p class="mt-6 max-w-2xl text-base leading-8 text-slate-600 dark:text-slate-300 sm:text-lg transition-colors duration-300">
-                    {{ __('A modern digital system for securely storing, updating, and analyzing teacher information, ICT training, and computer lab data for National University affiliated colleges.') }}
+                <p class="text-xs text-slate-500">
+                    শিক্ষক ও প্রশিক্ষণ ব্যবস্থাপনা
+                </p>
+            </div>
+
+        </a>
+
+
+        {{-- Desktop Menu --}}
+        <nav class="hidden items-center gap-7 md:flex">
+
+            <a href="#home"
+               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
+                হোম
+            </a>
+
+            <a href="#about"
+               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
+                আমাদের সম্পর্কে
+            </a>
+
+            <a href="#services"
+               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
+                সেবাসমূহ
+            </a>
+
+            <a href="#training"
+               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
+                প্রশিক্ষণ
+            </a>
+
+            <a href="#notices"
+               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
+                নোটিশ
+            </a>
+
+            <a href="#contact"
+               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
+                যোগাযোগ
+            </a>
+
+        </nav>
+
+
+        {{-- Login --}}
+        <div class="hidden md:block">
+            <a href="{{ route('login') }}"
+               class="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-4 w-4"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4m-5-4l5-5m0 0l-5-5m5 5H3"/>
+                </svg>
+
+                লগইন
+            </a>
+        </div>
+
+    </div>
+</header>
+
+
+{{-- =========================
+    HERO
+========================== --}}
+<section
+    id="home"
+    class="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900"
+>
+
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white"></div>
+        <div class="absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-white"></div>
+    </div>
+
+    <div class="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+
+        <div class="grid items-center gap-12 lg:grid-cols-2">
+
+            {{-- Left --}}
+            <div>
+
+                <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-300/30 bg-white/10 px-4 py-2 text-sm text-emerald-50 backdrop-blur">
+
+                    <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
+
+                    ডিজিটাল শিক্ষক ও প্রশিক্ষণ ব্যবস্থাপনা প্ল্যাটফর্ম
+
+                </div>
+
+                <h2 class="text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
+
+                    শিক্ষক ব্যবস্থাপনা
+                    <span class="text-emerald-300">ও প্রশিক্ষণের</span>
+                    আধুনিক সমাধান
+
+                </h2>
+
+                <p class="mt-6 max-w-xl text-lg leading-8 text-emerald-50/80">
+
+                    জাতীয় বিশ্ববিদ্যালয়ের অধিভুক্ত কলেজসমূহের শিক্ষক ব্যবস্থাপনা,
+                    প্রশিক্ষণ কার্যক্রম, অংশগ্রহণ, মূল্যায়ন এবং প্রশাসনিক কার্যক্রম
+                    একটি সমন্বিত ডিজিটাল প্ল্যাটফর্মের মাধ্যমে পরিচালনা করুন।
+
                 </p>
 
                 <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                    @auth
-                        <flux:button :href="route('teachers.manage')" variant="primary" icon-trailing="arrow-right" class="shadow-lg shadow-indigo-500/20">{{ __('Open teacher management') }}</flux:button>
-                    @else
-                        <flux:button :href="route('login')" variant="primary" icon-trailing="arrow-right" class="shadow-lg shadow-indigo-500/20">{{ __('Enter management system') }}</flux:button>
-                    @endauth
-                    <flux:button href="#features" variant="ghost" class="bg-white/50 dark:bg-transparent border-slate-200 dark:border-transparent">{{ __('View system benefits') }}</flux:button>
+
+                    <a href="{{ route('login') }}"
+                       class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-bold text-emerald-800 shadow-lg transition hover:bg-emerald-50">
+
+                        সিস্টেমে প্রবেশ করুন
+
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+
+                    </a>
+
+                    <a href="#about"
+                       class="inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 font-semibold text-white backdrop-blur transition hover:bg-white/20">
+
+                        বিস্তারিত জানুন
+
+                    </a>
+
                 </div>
 
-                <!-- Quick Stats Cards -->
-                <div class="mt-10 grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:shadow-none dark:border-white/10 dark:bg-white/5 p-4 backdrop-blur transition-colors duration-300">
-                        <p class="text-2xl font-black text-emerald-600 dark:text-emerald-300">Excel</p>
-                        <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ __('Fast teacher data import') }}</p>
-                    </div>
-                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:shadow-none dark:border-white/10 dark:bg-white/5 p-4 backdrop-blur transition-colors duration-300">
-                        <p class="text-2xl font-black text-cyan-600 dark:text-cyan-300">Live</p>
-                        <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ __('Search, filters, and reports') }}</p>
-                    </div>
-                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:shadow-none dark:border-white/10 dark:bg-white/5 p-4 backdrop-blur transition-colors duration-300">
-                        <p class="text-2xl font-black text-blue-600 dark:text-blue-300">Safe</p>
-                        <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ __('Trash and data restore') }}</p>
-                    </div>
-                </div>
             </div>
 
-            <!-- Right Side Floating Card -->
-            <div class="relative mx-auto w-full max-w-xl">
-                <div class="absolute -inset-8 -z-10 rounded-full bg-emerald-200/50 dark:bg-emerald-400/10 blur-3xl transition-colors duration-300"></div>
 
-                <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white/70 shadow-xl shadow-slate-200/50 dark:border-white/15 dark:bg-white/5 dark:shadow-2xl dark:shadow-black/40 backdrop-blur-xl p-3 sm:p-4 transition-colors duration-300">
-                    <div class="rounded-2xl border border-slate-100 bg-white dark:border-white/10 dark:bg-slate-900/85 p-5 sm:p-7 transition-colors duration-300">
+            {{-- Right Dashboard Preview --}}
+            <div class="relative">
 
-                        <div class="flex items-center justify-between gap-4 border-b border-slate-100 dark:border-white/10 pb-5 transition-colors duration-300">
+                <div class="rounded-2xl border border-white/20 bg-white/10 p-3 shadow-2xl backdrop-blur">
+
+                    <div class="overflow-hidden rounded-xl bg-white">
+
+                        {{-- Fake dashboard header --}}
+                        <div class="flex items-center justify-between border-b px-5 py-4">
+
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-300">Training Office</p>
-                                <h2 class="mt-1 text-xl font-bold text-slate-900 dark:text-white">{{ __('Information Management Center') }}</h2>
+                                <div class="h-3 w-28 rounded bg-slate-200"></div>
+                                <div class="mt-2 h-2 w-20 rounded bg-slate-100"></div>
                             </div>
-                            <span class="flex size-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
-                                    <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87m-2-12a4 4 0 0 1 0 7.75"></path></svg>
-                                </span>
+
+                            <div class="h-9 w-9 rounded-full bg-emerald-100"></div>
+
                         </div>
 
-                        <div class="mt-6 space-y-3">
-                            <div class="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-white/8 dark:bg-white/5 transition-colors duration-300">
-                                    <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
-                                        <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7 9 18l-5-5"></path></svg>
-                                    </span>
-                                <div>
-                                    <p class="font-semibold text-slate-800 dark:text-white">{{ __('Central teacher database') }}</p>
-                                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ __('College-wise information storage and updates') }}</p>
+                        <div class="p-5">
+
+                            <div class="grid grid-cols-3 gap-3">
+
+                                <div class="rounded-xl bg-emerald-50 p-4">
+                                    <div class="text-xs text-slate-500">
+                                        মোট শিক্ষক
+                                    </div>
+                                    <div class="mt-2 text-2xl font-bold text-emerald-700">
+                                        ১২,৫৪০
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-white/8 dark:bg-white/5 transition-colors duration-300">
-                                    <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-600 dark:bg-cyan-400/10 dark:text-cyan-300">
-                                        <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19V9m5 10V5m5 14v-7m5 7V3"></path></svg>
-                                    </span>
-                                <div>
-                                    <p class="font-semibold text-slate-800 dark:text-white">{{ __('Training progress monitoring') }}</p>
-                                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ __('ICT and other training summary') }}</p>
+
+                                <div class="rounded-xl bg-blue-50 p-4">
+                                    <div class="text-xs text-slate-500">
+                                        প্রশিক্ষণ
+                                    </div>
+                                    <div class="mt-2 text-2xl font-bold text-blue-700">
+                                        ৮৬
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-white/8 dark:bg-white/5 transition-colors duration-300">
-                                    <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
-                                        <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 10h10M9 14h6M11 18h2"></path></svg>
-                                    </span>
-                                <div>
-                                    <p class="font-semibold text-slate-800 dark:text-white">{{ __('Lab facility analysis') }}</p>
-                                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ __('College computer and lab information overview') }}</p>
+
+                                <div class="rounded-xl bg-amber-50 p-4">
+                                    <div class="text-xs text-slate-500">
+                                        অংশগ্রহণ
+                                    </div>
+                                    <div class="mt-2 text-2xl font-bold text-amber-700">
+                                        ৯৪%
+                                    </div>
                                 </div>
+
                             </div>
+
+                            <div class="mt-5 rounded-xl border p-4">
+
+                                <div class="flex items-center justify-between">
+                                        <span class="font-semibold">
+                                            প্রশিক্ষণ অগ্রগতি
+                                        </span>
+
+                                    <span class="text-xs text-emerald-700">
+                                            এই বছর
+                                        </span>
+                                </div>
+
+                                <div class="mt-5 space-y-4">
+
+                                    <div>
+                                        <div class="mb-2 flex justify-between text-xs">
+                                            <span>শিক্ষক উন্নয়ন</span>
+                                            <span>৮২%</span>
+                                        </div>
+
+                                        <div class="h-2 rounded-full bg-slate-100">
+                                            <div class="h-2 w-[82%] rounded-full bg-emerald-600"></div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="mb-2 flex justify-between text-xs">
+                                            <span>প্রশিক্ষণ সম্পন্ন</span>
+                                            <span>৭৪%</span>
+                                        </div>
+
+                                        <div class="h-2 rounded-full bg-slate-100">
+                                            <div class="h-2 w-[74%] rounded-full bg-blue-600"></div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="mb-2 flex justify-between text-xs">
+                                            <span>মূল্যায়ন</span>
+                                            <span>৬৮%</span>
+                                        </div>
+
+                                        <div class="h-2 rounded-full bg-slate-100">
+                                            <div class="h-2 w-[68%] rounded-full bg-amber-500"></div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+{{-- =========================
+    STATS
+========================== --}}
+<section class="-mt-8 relative z-10">
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        <div class="grid overflow-hidden rounded-2xl bg-white shadow-xl sm:grid-cols-2 lg:grid-cols-4">
+
+            <div class="border-b p-6 text-center sm:border-r lg:border-b-0">
+                <div class="text-3xl font-extrabold text-emerald-700">
+                    ১২,৫৪০+
+                </div>
+                <div class="mt-1 text-sm text-slate-500">
+                    নিবন্ধিত শিক্ষক
+                </div>
+            </div>
+
+            <div class="border-b p-6 text-center lg:border-b-0 lg:border-r">
+                <div class="text-3xl font-extrabold text-emerald-700">
+                    ৮৬+
+                </div>
+                <div class="mt-1 text-sm text-slate-500">
+                    প্রশিক্ষণ কার্যক্রম
+                </div>
+            </div>
+
+            <div class="border-b p-6 text-center sm:border-r lg:border-b-0">
+                <div class="text-3xl font-extrabold text-emerald-700">
+                    ১,২৫০+
+                </div>
+                <div class="mt-1 text-sm text-slate-500">
+                    প্রশিক্ষক
+                </div>
+            </div>
+
+            <div class="p-6 text-center">
+                <div class="text-3xl font-extrabold text-emerald-700">
+                    ৯৮%
+                </div>
+                <div class="mt-1 text-sm text-slate-500">
+                    সিস্টেম আপটাইম
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+{{-- =========================
+    ABOUT
+========================== --}}
+<section id="about" class="py-20 lg:py-28">
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        <div class="grid items-center gap-12 lg:grid-cols-2">
+
+            <div>
+
+                    <span class="text-sm font-bold uppercase tracking-wider text-emerald-700">
+                        আমাদের প্ল্যাটফর্ম
+                    </span>
+
+                <h2 class="mt-3 text-3xl font-extrabold text-slate-900 sm:text-4xl">
+                    একটি প্ল্যাটফর্মে সম্পূর্ণ ব্যবস্থাপনা
+                </h2>
+
+                <p class="mt-5 leading-8 text-slate-600">
+
+                    শিক্ষক সংক্রান্ত তথ্য সংরক্ষণ থেকে শুরু করে প্রশিক্ষণ পরিকল্পনা,
+                    প্রশিক্ষণার্থী নির্বাচন, উপস্থিতি, মূল্যায়ন এবং রিপোর্টিং—
+                    সকল কার্যক্রম একটি কেন্দ্রীয় সিস্টেমের মাধ্যমে পরিচালনা করা যাবে।
+
+                </p>
+
+                <div class="mt-7 space-y-4">
+
+                    @foreach([
+                        'কেন্দ্রীয় শিক্ষক তথ্য ব্যবস্থাপনা',
+                        'অনলাইন প্রশিক্ষণ নিবন্ধন ও ব্যবস্থাপনা',
+                        'উপস্থিতি ও মূল্যায়ন ব্যবস্থাপনা',
+                        'স্বয়ংক্রিয় রিপোর্ট ও ড্যাশবোর্ড'
+                    ] as $item)
+
+                        <div class="flex items-center gap-3">
+
+                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                                ✓
+                            </div>
+
+                            <span class="text-slate-700">
+                                    {{ $item }}
+                                </span>
+
+                        </div>
+
+                    @endforeach
+
+                </div>
+
+            </div>
+
+
+            <div class="grid grid-cols-2 gap-4">
+
+                <div class="rounded-2xl bg-emerald-700 p-7 text-white shadow-lg">
+                    <div class="text-4xl">👨‍🏫</div>
+                    <h3 class="mt-5 text-xl font-bold">
+                        শিক্ষক ব্যবস্থাপনা
+                    </h3>
+                    <p class="mt-3 text-sm leading-6 text-emerald-50/80">
+                        শিক্ষক প্রোফাইল, কর্মস্থল, বিষয়, অভিজ্ঞতা ও অন্যান্য তথ্যের সমন্বিত ব্যবস্থাপনা।
+                    </p>
+                </div>
+
+                <div class="mt-8 rounded-2xl bg-white p-7 shadow-lg ring-1 ring-slate-100">
+                    <div class="text-4xl">🎓</div>
+                    <h3 class="mt-5 text-xl font-bold text-slate-900">
+                        প্রশিক্ষণ
+                    </h3>
+                    <p class="mt-3 text-sm leading-6 text-slate-500">
+                        প্রশিক্ষণ আয়োজন, নিবন্ধন, অংশগ্রহণ ও সম্পন্ন করার তথ্য।
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-white p-7 shadow-lg ring-1 ring-slate-100">
+                    <div class="text-4xl">📊</div>
+                    <h3 class="mt-5 text-xl font-bold text-slate-900">
+                        রিপোর্টিং
+                    </h3>
+                    <p class="mt-3 text-sm leading-6 text-slate-500">
+                        প্রয়োজনীয় রিপোর্ট ও পরিসংখ্যান দ্রুত তৈরি করুন।
+                    </p>
+                </div>
+
+                <div class="mt-8 rounded-2xl bg-slate-900 p-7 text-white shadow-lg">
+                    <div class="text-4xl">🔐</div>
+                    <h3 class="mt-5 text-xl font-bold">
+                        নিরাপদ ব্যবস্থাপনা
+                    </h3>
+                    <p class="mt-3 text-sm leading-6 text-slate-300">
+                        Role-based access এবং নিরাপদ ডেটা ব্যবস্থাপনার সুবিধা।
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+{{-- =========================
+    SERVICES
+========================== --}}
+<section id="services" class="bg-white py-20 lg:py-28">
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        <div class="mx-auto max-w-2xl text-center">
+
+                <span class="text-sm font-bold uppercase tracking-wider text-emerald-700">
+                    প্রধান সেবাসমূহ
+                </span>
+
+            <h2 class="mt-3 text-3xl font-extrabold text-slate-900 sm:text-4xl">
+                আপনার প্রয়োজনীয় সকল কার্যক্রম
+            </h2>
+
+            <p class="mt-4 leading-7 text-slate-500">
+                শিক্ষক ও প্রশিক্ষণ ব্যবস্থাপনার জন্য প্রয়োজনীয় গুরুত্বপূর্ণ
+                কার্যক্রম একটি প্ল্যাটফর্মে।
+            </p>
+
+        </div>
+
+
+        <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+            @php
+                $services = [
+                    [
+                        'icon' => '👨‍🏫',
+                        'title' => 'শিক্ষক ব্যবস্থাপনা',
+                        'description' => 'শিক্ষকের ব্যক্তিগত, একাডেমিক ও কর্মসংক্রান্ত তথ্য সংরক্ষণ ও ব্যবস্থাপনা।'
+                    ],
+                    [
+                        'icon' => '🎯',
+                        'title' => 'প্রশিক্ষণ পরিকল্পনা',
+                        'description' => 'প্রশিক্ষণ তৈরি, সময়সূচি, আসন সংখ্যা, প্রশিক্ষক ও স্থান ব্যবস্থাপনা।'
+                    ],
+                    [
+                        'icon' => '📝',
+                        'title' => 'অনলাইন নিবন্ধন',
+                        'description' => 'শিক্ষকরা অনলাইনে প্রশিক্ষণের জন্য আবেদন ও নিবন্ধন করতে পারবেন।'
+                    ],
+                    [
+                        'icon' => '📅',
+                        'title' => 'প্রশিক্ষণ ক্যালেন্ডার',
+                        'description' => 'সকল চলমান ও আসন্ন প্রশিক্ষণ কার্যক্রম এক নজরে দেখুন।'
+                    ],
+                    [
+                        'icon' => '📋',
+                        'title' => 'উপস্থিতি ব্যবস্থাপনা',
+                        'description' => 'প্রশিক্ষণে অংশগ্রহণকারীদের উপস্থিতি ডিজিটালভাবে সংরক্ষণ।'
+                    ],
+                    [
+                        'icon' => '📈',
+                        'title' => 'রিপোর্ট ও বিশ্লেষণ',
+                        'description' => 'প্রশিক্ষণ ও শিক্ষক সংক্রান্ত বিভিন্ন রিপোর্ট সহজে তৈরি করুন।'
+                    ],
+                ];
+            @endphp
+
+
+            @foreach($services as $service)
+
+                <div class="group rounded-2xl border border-slate-100 bg-slate-50 p-7 transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-xl">
+
+                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-100 text-3xl transition group-hover:bg-emerald-700">
+                        {{ $service['icon'] }}
+                    </div>
+
+                    <h3 class="mt-6 text-xl font-bold text-slate-900">
+                        {{ $service['title'] }}
+                    </h3>
+
+                    <p class="mt-3 leading-7 text-slate-500">
+                        {{ $service['description'] }}
+                    </p>
+
+                    <a href="{{ route('login') }}"
+                       class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-emerald-700">
+
+                        বিস্তারিত
+
+                        <span>→</span>
+
+                    </a>
+
+                </div>
+
+            @endforeach
+
+        </div>
+
+    </div>
+
+</section>
+
+
+{{-- =========================
+    TRAINING
+========================== --}}
+<section id="training" class="bg-slate-900 py-20 lg:py-28">
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        <div class="grid items-center gap-12 lg:grid-cols-2">
+
+            <div>
+
+                    <span class="text-sm font-bold uppercase tracking-wider text-emerald-400">
+                        প্রশিক্ষণ ব্যবস্থাপনা
+                    </span>
+
+                <h2 class="mt-3 text-3xl font-extrabold text-white sm:text-4xl">
+                    প্রশিক্ষণ কার্যক্রমকে করুন আরও সহজ ও কার্যকর
+                </h2>
+
+                <p class="mt-5 leading-8 text-slate-300">
+                    প্রশিক্ষণ আয়োজন থেকে শুরু করে অংশগ্রহণকারী নির্বাচন,
+                    উপস্থিতি, মূল্যায়ন এবং সার্টিফিকেট—সম্পূর্ণ workflow
+                    একটি সিস্টেমের মাধ্যমে পরিচালনা করা সম্ভব।
+                </p>
+
+                <div class="mt-8 grid gap-4 sm:grid-cols-2">
+
+                    <div class="rounded-xl bg-white/5 p-5 ring-1 ring-white/10">
+                        <div class="text-2xl">01</div>
+                        <div class="mt-2 font-semibold text-white">
+                            প্রশিক্ষণ তৈরি
                         </div>
                     </div>
+
+                    <div class="rounded-xl bg-white/5 p-5 ring-1 ring-white/10">
+                        <div class="text-2xl">02</div>
+                        <div class="mt-2 font-semibold text-white">
+                            অংশগ্রহণকারী নির্বাচন
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl bg-white/5 p-5 ring-1 ring-white/10">
+                        <div class="text-2xl">03</div>
+                        <div class="mt-2 font-semibold text-white">
+                            উপস্থিতি ও মূল্যায়ন
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl bg-white/5 p-5 ring-1 ring-white/10">
+                        <div class="text-2xl">04</div>
+                        <div class="mt-2 font-semibold text-white">
+                            রিপোর্ট ও সার্টিফিকেট
+                        </div>
+                    </div>
+
                 </div>
+
             </div>
-        </section>
 
-        <!-- ========================================== -->
-        <!-- Features Section -->
-        <!-- ========================================== -->
-        <section id="features" class="border-y border-slate-200 bg-white/50 dark:border-white/10 dark:bg-white/3 transition-colors duration-300">
-            <div class="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-                <div class="max-w-2xl">
-                    <p class="text-sm font-bold text-emerald-600 dark:text-emerald-300">{{ __('Digital support for office activities') }}</p>
-                    <h2 class="mt-3 text-3xl font-black text-slate-900 dark:text-white sm:text-4xl">{{ __('All essential features in one platform') }}</h2>
-                    <p class="mt-4 leading-7 text-slate-600 dark:text-slate-400">{{ __('Make teacher training planning and institutional decisions more effective with accurate data.') }}</p>
+
+            <div class="rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 p-1 shadow-2xl">
+
+                <div class="rounded-[22px] bg-slate-900 p-7">
+
+                    <div class="flex items-center justify-between">
+
+                        <div>
+                            <p class="text-sm text-slate-400">
+                                আসন্ন প্রশিক্ষণ
+                            </p>
+
+                            <h3 class="mt-1 text-xl font-bold text-white">
+                                শিক্ষক উন্নয়ন প্রশিক্ষণ
+                            </h3>
+                        </div>
+
+                        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-400">
+                                চলমান
+                            </span>
+
+                    </div>
+
+                    <div class="mt-7 space-y-4">
+
+                        <div class="rounded-xl bg-white/5 p-4">
+                            <div class="flex justify-between">
+                                    <span class="text-sm text-slate-300">
+                                        তারিখ
+                                    </span>
+
+                                <span class="text-sm font-semibold text-white">
+                                        ১৫ সেপ্টেম্বর ২০২৬
+                                    </span>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl bg-white/5 p-4">
+                            <div class="flex justify-between">
+                                    <span class="text-sm text-slate-300">
+                                        আসন সংখ্যা
+                                    </span>
+
+                                <span class="text-sm font-semibold text-white">
+                                        ৫০ জন
+                                    </span>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl bg-white/5 p-4">
+                            <div class="flex justify-between">
+                                    <span class="text-sm text-slate-300">
+                                        নিবন্ধন
+                                    </span>
+
+                                <span class="text-sm font-semibold text-emerald-400">
+                                        ৩৮ / ৫০
+                                    </span>
+                            </div>
+
+                            <div class="mt-3 h-2 rounded-full bg-white/10">
+                                <div class="h-2 w-[76%] rounded-full bg-emerald-500"></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <a href="{{ route('login') }}"
+                       class="mt-6 flex items-center justify-center rounded-xl bg-emerald-600 py-3 font-semibold text-white transition hover:bg-emerald-500">
+                        প্রশিক্ষণ দেখুন
+                    </a>
+
                 </div>
 
-                <div class="mt-10 grid gap-4 md:grid-cols-3">
-                    <article class="rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md dark:shadow-none dark:border-white/10 dark:bg-slate-900/70 p-6 transition-all duration-300">
-                            <span class="flex size-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
-                                <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0-12 4 4m-4-4L8 7M5 21h14a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2"></path></svg>
-                            </span>
-                        <h3 class="mt-5 text-lg font-bold text-slate-900 dark:text-white">{{ __('Easy data import') }}</h3>
-                        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{{ __('Quickly and accurately add college-wise teacher information from Excel and CSV files.') }}</p>
-                    </article>
-
-                    <article class="rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md dark:shadow-none dark:border-white/10 dark:bg-slate-900/70 p-6 transition-all duration-300">
-                            <span class="flex size-11 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 dark:bg-cyan-400/10 dark:text-cyan-300">
-                                <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 3 7.5 7.5M21 3l-7.5 7.5M3 21l7.5-7.5M21 21l-7.5-7.5"></path></svg>
-                            </span>
-                        <h3 class="mt-5 text-lg font-bold text-slate-900 dark:text-white">{{ __('Fast search and filters') }}</h3>
-                        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{{ __('Find the information you need by name, subject, college, and lab facility.') }}</p>
-                    </article>
-
-                    <article class="rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md dark:shadow-none dark:border-white/10 dark:bg-slate-900/70 p-6 transition-all duration-300">
-                            <span class="flex size-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
-                                <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12.75 11.25 15 15 9.75M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6l8-3Z"></path></svg>
-                            </span>
-                        <h3 class="mt-5 text-lg font-bold text-slate-900 dark:text-white">{{ __('Secure information management') }}</h3>
-                        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{{ __('Manage information confidently with edit, bulk action, soft delete, and restore features.') }}</p>
-                    </article>
-                </div>
             </div>
-        </section>
-    </main>
 
-    <!-- ========================================== -->
-    <!-- Footer -->
-    <!-- ========================================== -->
-    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/20 backdrop-blur-sm transition-colors duration-300">
-        <div class="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-8 text-sm text-slate-600 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-            <p>© {{ now()->year }} <span class="font-semibold text-slate-800 dark:text-slate-300">{{ __('National University') }}</span>. {{ __('All rights reserved.') }}</p>
-            <p class="text-[13px] sm:text-sm font-medium">{{ __('Teacher Management & Training Portal') }}</p>
         </div>
-    </footer>
 
-</div>
+    </div>
 
-@persist('toast')
-<flux:toast.group>
-    <flux:toast />
-</flux:toast.group>
-@endpersist
+</section>
 
-@fluxScripts
+
+{{-- =========================
+    NOTICE
+========================== --}}
+<section id="notices" class="py-20 lg:py-28">
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+
+            <div>
+
+                    <span class="text-sm font-bold uppercase tracking-wider text-emerald-700">
+                        সর্বশেষ আপডেট
+                    </span>
+
+                <h2 class="mt-3 text-3xl font-extrabold text-slate-900">
+                    নোটিশ ও ঘোষণা
+                </h2>
+
+            </div>
+
+            <a href="{{ route('login') }}"
+               class="font-semibold text-emerald-700">
+                সকল নোটিশ →
+            </a>
+
+        </div>
+
+
+        <div class="mt-10 divide-y overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+
+            @php
+                $notices = [
+                    [
+                        'date' => '১২ আগস্ট ২০২৬',
+                        'title' => 'শিক্ষক প্রশিক্ষণ কার্যক্রমে অংশগ্রহণের জন্য নিবন্ধন বিজ্ঞপ্তি',
+                        'type' => 'প্রশিক্ষণ'
+                    ],
+                    [
+                        'date' => '০৮ আগস্ট ২০২৬',
+                        'title' => 'নতুন প্রশিক্ষণ ব্যাচের সময়সূচি প্রকাশ',
+                        'type' => 'নোটিশ'
+                    ],
+                    [
+                        'date' => '০২ আগস্ট ২০২৬',
+                        'title' => 'শিক্ষক তথ্য হালনাগাদ সংক্রান্ত বিজ্ঞপ্তি',
+                        'type' => 'গুরুত্বপূর্ণ'
+                    ],
+                ];
+            @endphp
+
+            @foreach($notices as $notice)
+
+                <a href="{{ route('login') }}"
+                   class="flex flex-col gap-4 p-6 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div class="flex items-start gap-4">
+
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                            📢
+                        </div>
+
+                        <div>
+
+                            <h3 class="font-bold text-slate-800">
+                                {{ $notice['title'] }}
+                            </h3>
+
+                            <p class="mt-1 text-sm text-slate-500">
+                                প্রকাশিত: {{ $notice['date'] }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <span class="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                            {{ $notice['type'] }}
+                        </span>
+
+                </a>
+
+            @endforeach
+
+        </div>
+
+    </div>
+
+</section>
+
+
+{{-- =========================
+    CTA
+========================== --}}
+<section class="px-4 pb-20 sm:px-6 lg:px-8">
+
+    <div class="mx-auto max-w-7xl overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-700 to-teal-700">
+
+        <div class="px-6 py-14 text-center sm:px-12 lg:py-16">
+
+            <h2 class="text-3xl font-extrabold text-white sm:text-4xl">
+                ডিজিটাল ব্যবস্থাপনার মাধ্যমে
+                শিক্ষক উন্নয়নকে আরও এগিয়ে নিন
+            </h2>
+
+            <p class="mx-auto mt-4 max-w-2xl leading-7 text-emerald-50/80">
+                শিক্ষক ও প্রশিক্ষণ সংক্রান্ত সকল কার্যক্রমকে একটি
+                আধুনিক, দ্রুত ও নির্ভরযোগ্য প্ল্যাটফর্মে পরিচালনা করুন।
+            </p>
+
+            <div class="mt-8">
+
+                <a href="{{ route('login') }}"
+                   class="inline-flex items-center justify-center rounded-xl bg-white px-7 py-3.5 font-bold text-emerald-800 shadow-lg transition hover:bg-emerald-50">
+
+                    সিস্টেমে প্রবেশ করুন
+
+                    <span class="ml-2">→</span>
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+{{-- =========================
+    FOOTER
+========================== --}}
+<footer id="contact" class="bg-slate-950 text-slate-300">
+
+    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+
+        <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+
+            <div>
+
+                <div class="flex items-center gap-3">
+
+                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-700 text-white">
+                        🎓
+                    </div>
+
+                    <div>
+                        <div class="font-bold text-white">
+                            জাতীয় বিশ্ববিদ্যালয়
+                        </div>
+
+                        <div class="text-xs text-slate-500">
+                            শিক্ষক ও প্রশিক্ষণ ব্যবস্থাপনা
+                        </div>
+                    </div>
+
+                </div>
+
+                <p class="mt-5 text-sm leading-7 text-slate-400">
+                    শিক্ষক ব্যবস্থাপনা ও প্রশিক্ষণ কার্যক্রমকে
+                    ডিজিটাল ও সমন্বিত করার একটি আধুনিক প্ল্যাটফর্ম।
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <h3 class="font-bold text-white">
+                    দ্রুত লিংক
+                </h3>
+
+                <ul class="mt-5 space-y-3 text-sm">
+
+                    <li>
+                        <a href="#about" class="hover:text-emerald-400">
+                            আমাদের সম্পর্কে
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#services" class="hover:text-emerald-400">
+                            সেবাসমূহ
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#training" class="hover:text-emerald-400">
+                            প্রশিক্ষণ
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#notices" class="hover:text-emerald-400">
+                            নোটিশ
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+
+            <div>
+
+                <h3 class="font-bold text-white">
+                    গুরুত্বপূর্ণ
+                </h3>
+
+                <ul class="mt-5 space-y-3 text-sm">
+
+                    <li>
+                        <a href="{{ route('login') }}" class="hover:text-emerald-400">
+                            শিক্ষক লগইন
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('login') }}" class="hover:text-emerald-400">
+                            প্রশাসনিক লগইন
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('login') }}" class="hover:text-emerald-400">
+                            প্রশিক্ষণ ব্যবস্থাপনা
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+
+            <div>
+
+                <h3 class="font-bold text-white">
+                    যোগাযোগ
+                </h3>
+
+                <ul class="mt-5 space-y-4 text-sm">
+
+                    <li class="flex gap-3">
+                        <span>📍</span>
+                        <span>
+                                জাতীয় বিশ্ববিদ্যালয়, বাংলাদেশ
+                            </span>
+                    </li>
+
+                    <li class="flex gap-3">
+                        <span>✉️</span>
+                        <span>
+                                info@example.edu.bd
+                            </span>
+                    </li>
+
+                    <li class="flex gap-3">
+                        <span>☎️</span>
+                        <span>
+                                +880 2 XXXX XXXX
+                            </span>
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+
+        <div class="mt-12 border-t border-white/10 pt-7">
+
+            <div class="flex flex-col justify-between gap-3 text-sm text-slate-500 sm:flex-row">
+
+                <p>
+                    © {{ date('Y') }} জাতীয় বিশ্ববিদ্যালয়। সর্বস্বত্ব সংরক্ষিত।
+                </p>
+
+                <p>
+                    Teacher & Training Management System
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</footer>
+
 </body>
+
 </html>
