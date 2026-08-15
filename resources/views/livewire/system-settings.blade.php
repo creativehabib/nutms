@@ -59,16 +59,23 @@
             </div>
 
             <div class="grid gap-5 sm:grid-cols-2">
-                <flux:select wire:model="aiProvider" :label="__('Provider')"><option value="openai">OpenAI</option><option value="compatible">{{ __('OpenAI-compatible') }}</option></flux:select>
+                <flux:select wire:model.live="aiProvider" :label="__('Provider')">
+                    <option value="openai">OpenAI</option>
+                    <option value="gemini">Google Gemini</option>
+                    <option value="groq">Groq</option>
+                    <option value="openrouter">OpenRouter</option>
+                    <option value="compatible">{{ __('Other OpenAI-compatible') }}</option>
+                </flux:select>
                 <flux:input wire:model="aiModel" :label="__('Model')" placeholder="gpt-4o-mini" required />
                 <flux:input wire:model="aiEndpoint" type="url" :label="__('API Endpoint')" placeholder="https://api.openai.com/v1" required />
                 <div>
-                    <flux:input wire:model="aiApiKey" type="password" :label="__('API Key')" :description="$aiHasApiKey ? __('A saved API key is configured. Leave blank to keep it, or enter a new key to replace it.') : __('No API key is saved. Enter a provider API key before enabling AI.')" autocomplete="new-password" />
+                    <flux:input wire:model="aiApiKey" type="password" :label="__('API Key')" :description="$aiHasApiKey && $aiProvider === $savedAiProvider ? __('A saved API key is configured. Leave blank to keep it, or enter a new key to replace it.') : __('Enter an API key for the selected provider.')" autocomplete="new-password" />
                     <div class="mt-2">
-                        <flux:badge :color="$aiHasApiKey ? 'green' : 'amber'" size="sm">
-                            {{ $aiHasApiKey ? __('API key configured') : __('API key missing') }}
+                        <flux:badge :color="$aiHasApiKey && $aiProvider === $savedAiProvider ? 'green' : 'amber'" size="sm">
+                            {{ $aiHasApiKey && $aiProvider === $savedAiProvider ? __('API key configured') : __('API key required for selected provider') }}
                         </flux:badge>
                     </div>
+                    <flux:error name="aiApiKey" />
                 </div>
                 <flux:input wire:model="aiHistoryLimit" type="number" min="2" max="30" :label="__('Conversation history limit')" required />
                 <div class="sm:col-span-2"><flux:textarea wire:model="aiSystemPrompt" rows="4" :label="__('Additional instructions')" :description="__('Optional organization-specific guidance. Security and website rules are always applied.')" /></div>
@@ -111,6 +118,10 @@
                 <li class="flex gap-3"><flux:badge color="violet">4</flux:badge><span><strong>{{ __('Test gradually:') }}</strong> {{ __('Save the settings, enable the assistant, and ask a simple website question. Monitor provider usage and costs regularly.') }}</span></li>
             </ol>
 
+            <flux:callout variant="info" icon="information-circle">
+                {{ __('Gemini, Groq, and OpenRouter may offer limited free usage. Free quotas, available models, and eligibility are controlled by each provider and can change. A provider API key is still required.') }}
+            </flux:callout>
+
             <flux:callout variant="warning" icon="shield-check">
                 {{ __('Do not place personal, confidential, or authentication information in Additional Instructions. The saved API key is encrypted and is never displayed again.') }}
             </flux:callout>
@@ -124,6 +135,15 @@
                 </flux:button>
                 <flux:button href="https://platform.openai.com/docs/guides/text-generation" target="_blank" rel="noopener noreferrer" variant="ghost" icon="arrow-top-right-on-square">
                     {{ __('API Documentation') }}
+                </flux:button>
+                <flux:button href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" variant="ghost" icon="key">
+                    {{ __('Get Gemini API Key') }}
+                </flux:button>
+                <flux:button href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" variant="ghost" icon="key">
+                    {{ __('Get Groq API Key') }}
+                </flux:button>
+                <flux:button href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener noreferrer" variant="ghost" icon="key">
+                    {{ __('Get OpenRouter API Key') }}
                 </flux:button>
             </div>
         </div>

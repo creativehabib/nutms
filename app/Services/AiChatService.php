@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AiSetting;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -17,16 +18,20 @@ class AiChatService
             throw new RuntimeException(__('AI assistant is not configured yet.'));
         }
 
-        $response = Http::baseUrl(rtrim($setting->endpoint, '/'))
-            ->withToken($setting->api_key)
-            ->acceptJson()
-            ->timeout(45)
-            ->retry(2, 300, throw: false)
-            ->post('/chat/completions', [
-                'model' => $setting->model,
-                'temperature' => 0.3,
-                'messages' => array_merge([['role' => 'system', 'content' => $this->systemPrompt($setting)]], $messages),
-            ]);
+        try {
+            $response = Http::withToken($setting->api_key)
+                ->acceptJson()
+                ->timeout(45)
+                ->retry(2, 300, throw: false)
+                ->post(rtrim($setting->endpoint, '/').'/chat/completions', [
+                    'model' => $setting->model,
+                    'temperature' => 0.3,
+                    'messages' => array_merge([['role' => 'system', 'content' => $this->systemPrompt($setting)]], $messages),
+                ]);
+        } catch (ConnectionException $exception) {
+            report($exception);
+            throw new RuntimeException(__('The AI endpoint could not be reached. Check the URL, internet connection, firewall, and SSL configuration.'), previous: $exception);
+        }
 
         if ($response->failed()) {
             report(new RuntimeException('AI provider returned HTTP '.$response->status()));

@@ -9,6 +9,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use RuntimeException;
 use Throwable;
 
 class AiChat extends Component
@@ -56,9 +57,14 @@ class AiChat extends Component
 
         try {
             $reply = $chatService->reply($setting, $history);
+        } catch (RuntimeException $exception) {
+            report($exception);
+            $reply = auth()->user()?->isAdmin()
+                ? $exception->getMessage()
+                : __('The AI service is temporarily unavailable. Please try again.');
         } catch (Throwable $exception) {
             report($exception);
-            $reply = __('The AI service is temporarily unavailable. Please try again.');
+            $reply = __('An unexpected AI service error occurred. Please contact the administrator.');
         }
 
         $conversation->messages()->create(['role' => 'assistant', 'content' => $reply]);

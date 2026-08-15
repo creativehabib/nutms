@@ -128,3 +128,32 @@ it('explains when the AI provider rejects the saved API key', function () {
         ->assertSet('aiConnectionSuccessful', false)
         ->assertSee('The AI provider rejected the API key.');
 });
+
+it('applies the Gemini OpenAI-compatible preset', function () {
+    $admin = User::factory()->withRole('admin')->create();
+
+    Livewire::actingAs($admin)->test(SystemSettings::class)
+        ->set('aiProvider', 'gemini')
+        ->assertSet('aiEndpoint', 'https://generativelanguage.googleapis.com/v1beta/openai')
+        ->assertSet('aiModel', 'gemini-2.5-flash')
+        ->assertSee('Get Gemini API Key');
+});
+
+it('requires a new API key when changing AI providers', function () {
+    AiSetting::query()->create([
+        'is_enabled' => true,
+        'provider' => 'openai',
+        'model' => 'gpt-4o-mini',
+        'endpoint' => 'https://api.openai.com/v1',
+        'api_key' => 'openai-key',
+        'history_limit' => 10,
+    ]);
+    $admin = User::factory()->withRole('admin')->create();
+
+    Livewire::actingAs($admin)->test(SystemSettings::class)
+        ->set('aiProvider', 'gemini')
+        ->call('saveAiSettings')
+        ->assertHasErrors(['aiApiKey']);
+
+    expect(AiSetting::query()->firstOrFail()->provider)->toBe('openai');
+});

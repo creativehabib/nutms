@@ -35,6 +35,7 @@ class SystemSettings extends Component
     public bool $aiHasApiKey = false;
     public ?string $aiConnectionMessage = null;
     public ?bool $aiConnectionSuccessful = null;
+    public string $savedAiProvider = 'openai';
 
     public function mount(): void
     {
@@ -59,6 +60,7 @@ class SystemSettings extends Component
         if ($aiSetting !== null) {
             $this->aiEnabled = $aiSetting->is_enabled;
             $this->aiProvider = $aiSetting->provider;
+            $this->savedAiProvider = $aiSetting->provider;
             $this->aiModel = $aiSetting->model;
             $this->aiEndpoint = $aiSetting->endpoint;
             $this->aiSystemPrompt = $aiSetting->system_prompt ?? '';
@@ -72,13 +74,20 @@ class SystemSettings extends Component
         abort_unless(auth()->user()->isAdmin(), 403);
         $validated = $this->validate([
             'aiEnabled' => ['boolean'],
-            'aiProvider' => ['required', Rule::in(['openai', 'compatible'])],
+            'aiProvider' => ['required', Rule::in(['openai', 'gemini', 'groq', 'openrouter', 'compatible'])],
             'aiModel' => ['required', 'string', 'max:100'],
             'aiEndpoint' => ['required', 'url:http,https', 'max:255'],
             'aiApiKey' => ['nullable', 'string', 'max:1000'],
             'aiSystemPrompt' => ['nullable', 'string', 'max:5000'],
             'aiHistoryLimit' => ['required', 'integer', 'min:2', 'max:30'],
         ]);
+
+        if ($validated['aiProvider'] !== $this->savedAiProvider && blank($validated['aiApiKey'])) {
+            $this->addError('aiApiKey', __('Enter an API key for the newly selected provider.'));
+
+            return;
+        }
+
         $setting = AiSetting::query()->latest('id')->firstOrNew();
         $setting->fill([
             'is_enabled' => $validated['aiEnabled'],
@@ -92,11 +101,28 @@ class SystemSettings extends Component
             $setting->api_key = $validated['aiApiKey'];
         }
         $setting->save();
+        $this->savedAiProvider = $setting->provider;
         $this->aiHasApiKey = filled($setting->api_key);
         $this->aiConnectionMessage = null;
         $this->aiConnectionSuccessful = null;
         $this->reset('aiApiKey');
         Flux::toast(variant: 'success', text: __('AI settings have been saved.'));
+    }
+
+    public function updatedAiProvider(string $provider): void
+    {
+        $preset = match ($provider) {
+            'openai' => ['https://api.openai.com/v1', 'gpt-4o-mini'],
+            'gemini' => ['https://generativelanguage.googleapis.com/v1beta/openai', 'gemini-2.5-flash'],
+            'groq' => ['https://api.groq.com/openai/v1', 'llama-3.3-70b-versatile'],
+            'openrouter' => ['https://openrouter.ai/api/v1', 'openrouter/free'],
+            default => [$this->aiEndpoint, $this->aiModel],
+        };
+
+        [$this->aiEndpoint, $this->aiModel] = $preset;
+        $this->aiConnectionMessage = null;
+        $this->aiConnectionSuccessful = null;
+        $this->resetErrorBag('aiApiKey');
     }
 
     public function testAiConnection(AiChatService $chatService): void
