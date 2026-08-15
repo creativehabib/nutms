@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportExportController;
 use App\Http\Controllers\TrainingCertificateController;
+use App\Http\Controllers\WelcomeController;
 use App\Livewire\Admin\LanguageManager;
 use App\Livewire\AdmissionInfoManager;
 use App\Livewire\AdmissionSummary;
@@ -10,6 +11,8 @@ use App\Livewire\CollegeDetails;
 use App\Livewire\CollegeForm;
 use App\Livewire\CollegeLabSummary;
 use App\Livewire\CollegeManagement;
+use App\Livewire\Frontend\AffiliatedCollegeDetails;
+use App\Livewire\Frontend\AffiliatedCollegeDirectory;
 use App\Livewire\IctTrainingSummary;
 use App\Livewire\ReferenceDataManagement;
 use App\Livewire\RolePermissionManagement;
@@ -28,7 +31,9 @@ use App\Livewire\TrainingCatalogManagement;
 use App\Models\AdmissionInfo;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::get('/', WelcomeController::class)->name('home');
+Route::get('/affiliated-colleges', AffiliatedCollegeDirectory::class)->name('public.colleges.index');
+Route::get('/affiliated-colleges/{college}', AffiliatedCollegeDetails::class)->name('public.colleges.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
