@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\AiConversation;
 use App\Models\AiSetting;
 use App\Services\AiChatService;
+use App\Services\AiConversationPruner;
 use App\Services\WebsiteKnowledgeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\HtmlString;
@@ -28,7 +29,7 @@ class AiChat extends Component
         $this->messages = [['role' => 'assistant', 'content' => __('Hello! I am the website AI assistant. How can I help you today?')]];
     }
 
-    public function send(AiChatService $chatService, WebsiteKnowledgeService $knowledgeService): void
+    public function send(AiChatService $chatService, WebsiteKnowledgeService $knowledgeService, AiConversationPruner $pruner): void
     {
         $validated = $this->validate(['question' => ['required', 'string', 'min:2', 'max:2000']]);
         $rateLimitKey = 'ai-chat:'.(auth()->id() ?? request()->ip());
@@ -52,10 +53,19 @@ class AiChat extends Component
             return;
         }
 
-        $conversation = $this->conversation();
-        $conversation->messages()->create(['role' => 'user', 'content' => $question]);
-        $history = $conversation->messages()->latest('id')->limit($setting->history_limit)->get()->reverse()
-            ->map(fn ($message): array => ['role' => $message->role, 'content' => $message->content])->values()->all();
+        $conversation = null;
+        if (auth()->check() || $setting->save_guest_conversations) {
+            $conversation = $this->conversation();
+            $conversation->messages()->create(['role' => 'user', 'content' => $question]);
+            $history = $conversation->messages()->latest('id')->limit($setting->history_limit)->get()->reverse()
+                ->map(fn ($message): array => ['role' => $message->role, 'content' => $message->content])->values()->all();
+        } else {
+            $history = collect($this->messages)
+                ->reject(fn (array $message, int $index): bool => $index === 0 && $message['role'] === 'assistant')
+                ->take(-$setting->history_limit)
+                ->values()
+                ->all();
+        }
 
         try {
             $reply = $chatService->reply($setting, $history, $knowledgeService->context($question));
@@ -69,7 +79,11 @@ class AiChat extends Component
             $reply = __('An unexpected AI service error occurred. Please contact the administrator.');
         }
 
-        $conversation->messages()->create(['role' => 'assistant', 'content' => $reply]);
+        if ($conversation !== null) {
+            $conversation->messages()->create(['role' => 'assistant', 'content' => $reply]);
+            $conversation->touch();
+            $pruner->trim($conversation, $setting->history_limit);
+        }
         $this->messages[] = ['role' => 'assistant', 'content' => $reply];
         $this->dispatch('ai-message-added');
     }

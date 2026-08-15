@@ -36,6 +36,8 @@ class SystemSettings extends Component
     public ?string $aiConnectionMessage = null;
     public ?bool $aiConnectionSuccessful = null;
     public string $savedAiProvider = 'openai';
+    public int $aiRetentionDays = 30;
+    public bool $aiSaveGuestConversations = false;
 
     public function mount(): void
     {
@@ -68,6 +70,8 @@ class SystemSettings extends Component
             $this->aiSystemPrompt = $aiSetting->system_prompt ?? '';
             $this->aiHistoryLimit = $aiSetting->history_limit;
             $this->aiHasApiKey = filled($aiSetting->api_key);
+            $this->aiRetentionDays = $aiSetting->retention_days;
+            $this->aiSaveGuestConversations = $aiSetting->save_guest_conversations;
         }
     }
 
@@ -82,6 +86,8 @@ class SystemSettings extends Component
             'aiApiKey' => ['nullable', 'string', 'max:1000'],
             'aiSystemPrompt' => ['nullable', 'string', 'max:5000'],
             'aiHistoryLimit' => ['required', 'integer', 'min:2', 'max:30'],
+            'aiRetentionDays' => ['required', 'integer', 'min:1', 'max:365'],
+            'aiSaveGuestConversations' => ['boolean'],
         ]);
 
         if ($validated['aiProvider'] !== $this->savedAiProvider && blank($validated['aiApiKey'])) {
@@ -98,6 +104,8 @@ class SystemSettings extends Component
             'endpoint' => rtrim($validated['aiEndpoint'], '/'),
             'system_prompt' => $validated['aiSystemPrompt'] ?: null,
             'history_limit' => $validated['aiHistoryLimit'],
+            'retention_days' => $validated['aiRetentionDays'],
+            'save_guest_conversations' => $validated['aiSaveGuestConversations'],
         ]);
         if (filled($validated['aiApiKey'])) {
             $setting->api_key = $validated['aiApiKey'];

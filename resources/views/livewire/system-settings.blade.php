@@ -78,6 +78,10 @@
                     <flux:error name="aiApiKey" />
                 </div>
                 <flux:input wire:model="aiHistoryLimit" type="number" min="2" max="30" :label="__('Conversation history limit')" required />
+                <flux:input wire:model="aiRetentionDays" type="number" min="1" max="365" :label="__('Stored conversation retention (days)')" :description="__('Old conversations and their messages are deleted automatically every day.')" required />
+                <div class="flex items-center rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800">
+                    <flux:switch wire:model="aiSaveGuestConversations" :label="__('Save guest conversations')" :description="__('Keep disabled to prevent anonymous chats from growing the database.')" />
+                </div>
                 <div class="sm:col-span-2"><flux:textarea wire:model="aiSystemPrompt" rows="4" :label="__('Additional instructions')" :description="__('Optional organization-specific guidance. Security and website rules are always applied.')" /></div>
             </div>
 

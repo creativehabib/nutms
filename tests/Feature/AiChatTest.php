@@ -5,6 +5,7 @@ use App\Models\AiConversation;
 use App\Models\AiSetting;
 use App\Models\College;
 use App\Models\User;
+use App\Services\AiConversationPruner;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
@@ -150,4 +151,33 @@ it('grounds public answers with matching college programs and a verified clickab
         && str_contains($request['messages'][0]['content'], 'BHAWAL BADRE ALAM GOVT. COLLEGE')
         && ! str_contains($request['messages'][0]['content'], 'SHERE BANGLA COLLEGE')
         && str_contains($request['messages'][0]['content'], route('public.colleges.show', $college)));
+
+    expect(AiConversation::query()->count())->toBe(0);
+});
+
+it('deletes expired conversations and bounds messages in active conversations', function () {
+    AiSetting::query()->create([
+        'is_enabled' => true,
+        'provider' => 'openai',
+        'model' => 'gpt-4o-mini',
+        'endpoint' => 'https://api.openai.com/v1',
+        'api_key' => 'test-key',
+        'history_limit' => 10,
+        'retention_days' => 7,
+    ]);
+    $expired = AiConversation::query()->create(['guest_token' => fake()->uuid()]);
+    $expired->messages()->create(['role' => 'user', 'content' => 'Expired']);
+    $expired->forceFill(['created_at' => now()->subDays(10), 'updated_at' => now()->subDays(10)])->saveQuietly();
+    $active = AiConversation::query()->create(['guest_token' => fake()->uuid()]);
+    foreach (range(1, 30) as $number) {
+        $active->messages()->create(['role' => $number % 2 === 0 ? 'assistant' : 'user', 'content' => "Message {$number}"]);
+    }
+
+    $pruner = app(AiConversationPruner::class);
+    $pruner->trim($active, 10);
+    $deleted = $pruner->prune();
+
+    expect($deleted)->toBe(1)
+        ->and(AiConversation::query()->whereKey($expired->id)->exists())->toBeFalse()
+        ->and($active->messages()->count())->toBe(20);
 });
