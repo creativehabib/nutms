@@ -102,6 +102,11 @@
                 সেবাসমূহ
             </a>
 
+            <a href="#colleges"
+               class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
+                কলেজসমূহ
+            </a>
+
             <a href="#training"
                class="text-sm font-medium text-slate-700 transition hover:text-emerald-700">
                 প্রশিক্ষণ
@@ -562,6 +567,79 @@
 
     </div>
 
+</section>
+
+
+{{-- =========================
+    AFFILIATED COLLEGES
+========================== --}}
+<section id="colleges" class="bg-slate-50 py-20 lg:py-28">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+            <div class="max-w-2xl">
+                <span class="text-sm font-bold uppercase tracking-wider text-emerald-700">অধিভুক্ত প্রতিষ্ঠান</span>
+                <h2 class="mt-3 text-3xl font-extrabold text-slate-900 sm:text-4xl">অধিভুক্ত কলেজ ও বিষয়সমূহ</h2>
+                <p class="mt-4 leading-7 text-slate-500">
+                    কলেজের অবস্থান এবং অধিভুক্ত কোর্স ও বিষয়গুলো দেখুন। বিস্তারিত তথ্য জানতে কলেজের প্রোফাইল খুলুন।
+                </p>
+            </div>
+            <a href="{{ route('public.colleges.index') }}"
+               class="inline-flex items-center gap-2 font-bold text-emerald-700 transition hover:text-emerald-800">
+                সকল কলেজ দেখুন <span aria-hidden="true">→</span>
+            </a>
+        </div>
+
+        <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            @forelse($affiliatedColleges as $college)
+                @php
+                    $subjects = $college->programs
+                        ->flatMap(fn ($program) => $program->items ?: [$program->name])
+                        ->filter()
+                        ->unique()
+                        ->values();
+                @endphp
+                <article class="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-2xl text-emerald-700">🏛️</div>
+                        @if($college->college_code)
+                            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                কোড: {{ $toBengaliNumber($college->college_code) }}
+                            </span>
+                        @endif
+                    </div>
+                    <h3 class="mt-5 text-xl font-bold text-slate-900">{{ $college->name }}</h3>
+                    <p class="mt-2 text-sm text-slate-500">
+                        {{ $college->district?->bn_name ?: $college->district?->name ?: 'জেলা উল্লেখ নেই' }}@if($college->division), {{ $college->division->bn_name ?: $college->division->name }}@endif
+                    </p>
+
+                    <div class="mt-5 flex-1">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">অধিভুক্ত বিষয় / কোর্স</p>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            @forelse($subjects->take(5) as $subject)
+                                <span class="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-800">{{ $subject }}</span>
+                            @empty
+                                <span class="text-sm text-slate-400">কোনো বিষয় যোগ করা হয়নি</span>
+                            @endforelse
+                            @if($subjects->count() > 5)
+                                <span class="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600">
+                                    +{{ $toBengaliNumber($subjects->count() - 5) }} আরও
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <a href="{{ route('public.colleges.show', $college) }}"
+                       class="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800">
+                        বিস্তারিত দেখুন <span aria-hidden="true">→</span>
+                    </a>
+                </article>
+            @empty
+                <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500 md:col-span-2 lg:col-span-3">
+                    কোনো অনুমোদিত অধিভুক্ত কলেজ পাওয়া যায়নি।
+                </div>
+            @endforelse
+        </div>
+    </div>
 </section>
 
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ApprovalStatus;
 use App\Models\College;
 use App\Models\Teacher;
 use App\Models\Training;
@@ -30,6 +31,13 @@ class WelcomeController extends Controller
                 ->where('status', '!=', 'Draft')
                 ->latest()
                 ->limit(3)
+                ->get(),
+            'affiliatedColleges' => College::query()
+                ->where('is_active', true)
+                ->where('approval_status', ApprovalStatus::Approved)
+                ->with(['division:id,name,bn_name', 'district:id,name,bn_name', 'programs:id,college_id,level,name,items'])
+                ->orderBy('name')
+                ->limit(6)
                 ->get(),
         ]);
     }
