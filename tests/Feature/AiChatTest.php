@@ -141,7 +141,7 @@ it('grounds public answers with matching college programs and a verified clickab
     ]);
 
     Livewire::test(AiChat::class)
-        ->set('question', 'BHAWAL BADRE ALAM GOVT. COLLEGE এই কলেজে কোন কোর্স চালু আছে আমাকে জানাও')
+        ->set('question', 'BHAWL BADR ALM GVT COLGE এই কলেজে কোন কোর্স চালু আছে আমাকে জানাও')
         ->call('send')
         ->assertSeeHtml('href="'.route('public.colleges.show', $college).'"')
         ->assertSeeHtml('target="_blank"')
