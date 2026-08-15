@@ -12,6 +12,8 @@ use App\Livewire\CollegeDetails;
 use App\Livewire\CollegeForm;
 use App\Livewire\CollegeLabSummary;
 use App\Livewire\CollegeManagement;
+use App\Livewire\Frontend\AffiliatedCollegeDetails;
+use App\Livewire\Frontend\AffiliatedCollegeDirectory;
 use App\Livewire\IctTrainingSummary;
 use App\Livewire\ReferenceDataManagement;
 use App\Livewire\RolePermissionManagement;
@@ -31,8 +33,8 @@ use App\Models\AdmissionInfo;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', WelcomeController::class)->name('home');
-Route::get('/affiliated-colleges', [PublicCollegeController::class, 'index'])->name('public.colleges.index');
-Route::get('/affiliated-colleges/{college}', [PublicCollegeController::class, 'show'])->name('public.colleges.show');
+Route::get('/affiliated-colleges', AffiliatedCollegeDirectory::class)->name('public.colleges.index');
+Route::get('/affiliated-colleges/{college}', AffiliatedCollegeDetails::class)->name('public.colleges.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

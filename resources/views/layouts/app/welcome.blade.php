@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
 <head>
-    @include('partials.head', ['title' => __('National University Teacher Training Department')])
+    @include('partials.head', ['title' => $title ?? __('National University Teacher Training Department')])
 
     <script>
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -48,6 +48,16 @@
 
                 <!-- Desktop Primary Navigation (Hover Dropdown) -->
                 <nav class="hidden md:flex items-center gap-6 h-full" aria-label="{{ __('Primary navigation') }}">
+
+                    <a href="{{ route('home') }}" wire:navigate
+                       class="text-sm font-semibold text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400">
+                        হোম
+                    </a>
+
+                    <a href="{{ route('public.colleges.index') }}" wire:navigate
+                       class="text-sm font-semibold text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400">
+                        অধিভুক্ত কলেজ
+                    </a>
 
                     <!-- Hover Dropdown Wrapper -->
                     <div x-data="{ dropdownOpen: false }" @mouseenter="dropdownOpen = true" @mouseleave="dropdownOpen = false" class="relative h-12 flex items-center">
@@ -138,6 +148,17 @@
          class="md:hidden fixed top-[72px] inset-x-0 border-b border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-2xl z-40">
 
         <div class="px-4 py-6 space-y-4 max-h-[calc(100vh-80px)] overflow-y-auto">
+            <div class="grid gap-2">
+                <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3 font-bold text-slate-800 transition-colors hover:bg-emerald-50 dark:border-slate-800 dark:bg-slate-900/50 dark:text-white dark:hover:bg-slate-800/80">
+                    <span class="flex size-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">⌂</span>
+                    হোম
+                </a>
+                <a href="{{ route('public.colleges.index') }}" wire:navigate class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3 font-bold text-slate-800 transition-colors hover:bg-emerald-50 dark:border-slate-800 dark:bg-slate-900/50 dark:text-white dark:hover:bg-slate-800/80">
+                    <span class="flex size-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">🏛</span>
+                    অধিভুক্ত কলেজ
+                </a>
+            </div>
+
             <p class="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{{ __('Surveys & Forms') }}</p>
 
             <div class="grid gap-2">

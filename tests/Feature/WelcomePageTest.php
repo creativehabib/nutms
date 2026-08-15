@@ -1,9 +1,11 @@
 <?php
 
 use App\Enums\ApprovalStatus;
+use App\Livewire\Frontend\AffiliatedCollegeDirectory;
 use App\Models\College;
 use App\Models\Teacher;
 use App\Models\Training;
+use Livewire\Livewire;
 
 it('renders live platform statistics and the next training', function () {
     College::query()->create([
@@ -53,7 +55,14 @@ it('lets public users browse affiliated colleges and their subjects', function (
     $this->get(route('public.colleges.index'))
         ->assertOk()
         ->assertSee('Public Affiliated College')
-        ->assertSee('বাংলা');
+        ->assertSee('বাংলা')
+        ->assertSee('অধিভুক্ত কলেজ ডিরেক্টরি');
+
+    Livewire::test(AffiliatedCollegeDirectory::class)
+        ->set('search', 'ইতিহাস')
+        ->assertSee('Public Affiliated College')
+        ->set('search', 'Not available')
+        ->assertDontSee('Public Affiliated College');
 
     $this->get(route('public.colleges.show', $college))
         ->assertOk()
