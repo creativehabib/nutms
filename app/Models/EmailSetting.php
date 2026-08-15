@@ -34,6 +34,7 @@ class EmailSetting extends Model
     {
         return [
             'mail.training_notifications_enabled' => $this->is_enabled,
+            'mail.approval_notifications_enabled' => $this->is_enabled,
             'mail.default' => $this->is_enabled ? $this->mailer : 'log',
             'mail.mailers.smtp.transport' => 'smtp',
             'mail.mailers.smtp.scheme' => $this->scheme,

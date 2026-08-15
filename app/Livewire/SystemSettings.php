@@ -79,6 +79,7 @@ class SystemSettings extends Component
 
         $environmentFileUpdater->update([
             'TRAINING_EMAILS_ENABLED' => $emailSetting->is_enabled,
+            'APPROVAL_EMAILS_ENABLED' => $emailSetting->is_enabled,
             'MAIL_MAILER' => $emailSetting->is_enabled ? 'smtp' : 'log',
             'MAIL_SCHEME' => $emailSetting->scheme,
             'MAIL_HOST' => $emailSetting->host,

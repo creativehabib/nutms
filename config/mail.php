@@ -4,6 +4,8 @@ return [
 
     'training_notifications_enabled' => env('TRAINING_EMAILS_ENABLED', false),
 
+    'approval_notifications_enabled' => env('APPROVAL_EMAILS_ENABLED', false),
+
     /*
     |--------------------------------------------------------------------------
     | Default Mailer

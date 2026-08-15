@@ -79,6 +79,7 @@ class TrainingRegistrationStatusNotification extends Notification implements Sho
             'Approved' => __('You have been selected for :training.', ['training' => $this->training->title]),
             'Rejected' => __('Your registration for :training was not selected.', ['training' => $this->training->title]),
             'Completed' => __('Your certificate for :training is ready to download.', ['training' => $this->training->title]),
+            'Pending' => __('Your registration for :training is pending review.', ['training' => $this->training->title]),
             default => __('Your registration status for :training is now :status.', [
                 'training' => $this->training->title,
                 'status' => __($this->status),
