@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\AiSetting;
 use App\Models\EmailSetting;
 use App\Models\SystemSetting;
 use App\Services\EnvironmentFileUpdater;
@@ -22,6 +23,13 @@ class SystemSettings extends Component
     public string $mailPassword = '';
     public string $mailFromAddress = '';
     public string $mailFromName = '';
+    public bool $aiEnabled = false;
+    public string $aiProvider = 'openai';
+    public string $aiModel = 'gpt-4o-mini';
+    public string $aiEndpoint = 'https://api.openai.com/v1';
+    public string $aiApiKey = '';
+    public string $aiSystemPrompt = '';
+    public int $aiHistoryLimit = 10;
 
     public function mount(): void
     {
@@ -41,6 +49,45 @@ class SystemSettings extends Component
             $this->mailFromAddress = (string) config('mail.from.address');
             $this->mailFromName = (string) config('mail.from.name');
         }
+
+        $aiSetting = AiSetting::query()->latest('id')->first();
+        if ($aiSetting !== null) {
+            $this->aiEnabled = $aiSetting->is_enabled;
+            $this->aiProvider = $aiSetting->provider;
+            $this->aiModel = $aiSetting->model;
+            $this->aiEndpoint = $aiSetting->endpoint;
+            $this->aiSystemPrompt = $aiSetting->system_prompt ?? '';
+            $this->aiHistoryLimit = $aiSetting->history_limit;
+        }
+    }
+
+    public function saveAiSettings(): void
+    {
+        abort_unless(auth()->user()->isAdmin(), 403);
+        $validated = $this->validate([
+            'aiEnabled' => ['boolean'],
+            'aiProvider' => ['required', Rule::in(['openai', 'compatible'])],
+            'aiModel' => ['required', 'string', 'max:100'],
+            'aiEndpoint' => ['required', 'url:http,https', 'max:255'],
+            'aiApiKey' => ['nullable', 'string', 'max:1000'],
+            'aiSystemPrompt' => ['nullable', 'string', 'max:5000'],
+            'aiHistoryLimit' => ['required', 'integer', 'min:2', 'max:30'],
+        ]);
+        $setting = AiSetting::query()->latest('id')->firstOrNew();
+        $setting->fill([
+            'is_enabled' => $validated['aiEnabled'],
+            'provider' => $validated['aiProvider'],
+            'model' => $validated['aiModel'],
+            'endpoint' => rtrim($validated['aiEndpoint'], '/'),
+            'system_prompt' => $validated['aiSystemPrompt'] ?: null,
+            'history_limit' => $validated['aiHistoryLimit'],
+        ]);
+        if (filled($validated['aiApiKey'])) {
+            $setting->api_key = $validated['aiApiKey'];
+        }
+        $setting->save();
+        $this->reset('aiApiKey');
+        Flux::toast(variant: 'success', text: __('AI settings have been saved.'));
     }
 
     public function saveEmailSettings(EnvironmentFileUpdater $environmentFileUpdater): void
