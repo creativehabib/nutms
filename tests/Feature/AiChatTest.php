@@ -3,6 +3,7 @@
 use App\Livewire\AiChat;
 use App\Models\AiConversation;
 use App\Models\AiSetting;
+use App\Models\College;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -100,4 +101,38 @@ it('uses the native Gemini generateContent API', function () {
         && $request->hasHeader('x-goog-api-key', 'gemini-key')
         && $request['contents'][0]['role'] === 'user'
         && filled($request['system_instruction']['parts'][0]['text']));
+});
+
+it('grounds public answers with matching college programs and a verified clickable link', function () {
+    $college = College::query()->create([
+        'name' => 'ANANDAMOHAN COLLEGE',
+        'college_code' => '5201',
+        'is_active' => true,
+        'approval_status' => 'approved',
+    ]);
+    $college->programs()->create([
+        'level' => 'Honours',
+        'name' => 'Honours Courses',
+        'items' => ['Bangla', 'English', 'Economics'],
+    ]);
+    Http::fake(['https://api.openai.com/v1/chat/completions' => Http::response([
+        'choices' => [['message' => ['content' => 'কোর্সগুলো দেখুন: '.route('public.colleges.show', $college)]]],
+    ])]);
+    AiSetting::query()->create([
+        'is_enabled' => true,
+        'provider' => 'openai',
+        'model' => 'gpt-4o-mini',
+        'endpoint' => 'https://api.openai.com/v1',
+        'api_key' => 'test-key',
+        'history_limit' => 10,
+    ]);
+
+    Livewire::test(AiChat::class)
+        ->set('question', 'ANANDAMOHAN COLLEGE 5201 এর কোন কোর্স চালু আছে?')
+        ->call('send')
+        ->assertSeeHtml('target="_blank"')
+        ->assertSeeHtml('rel="noopener noreferrer"');
+
+    Http::assertSent(fn ($request): bool => str_contains($request['messages'][0]['content'], 'Bangla, English, Economics')
+        && str_contains($request['messages'][0]['content'], route('public.colleges.show', $college)));
 });

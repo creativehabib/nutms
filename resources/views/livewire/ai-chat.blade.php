@@ -15,7 +15,11 @@
                 @foreach($messages as $index => $message)
                     <div wire:key="ai-message-{{ $index }}" class="flex {{ $message['role'] === 'user' ? 'justify-end' : 'justify-start' }}">
                         <div class="max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 {{ $message['role'] === 'user' ? 'rounded-br-md bg-blue-600 text-white' : 'rounded-bl-md border border-zinc-200 bg-white text-zinc-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200' }}">
-                            {{ $message['content'] }}
+                            @if($message['role'] === 'assistant')
+                                {!! $this->renderAssistantMessage($message['content']) !!}
+                            @else
+                                {{ $message['content'] }}
+                            @endif
                         </div>
                     </div>
                 @endforeach

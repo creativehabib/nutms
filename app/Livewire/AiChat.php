@@ -5,7 +5,9 @@ namespace App\Livewire;
 use App\Models\AiConversation;
 use App\Models\AiSetting;
 use App\Services\AiChatService;
+use App\Services\WebsiteKnowledgeService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -26,7 +28,7 @@ class AiChat extends Component
         $this->messages = [['role' => 'assistant', 'content' => __('Hello! I am the website AI assistant. How can I help you today?')]];
     }
 
-    public function send(AiChatService $chatService): void
+    public function send(AiChatService $chatService, WebsiteKnowledgeService $knowledgeService): void
     {
         $validated = $this->validate(['question' => ['required', 'string', 'min:2', 'max:2000']]);
         $rateLimitKey = 'ai-chat:'.(auth()->id() ?? request()->ip());
@@ -56,7 +58,7 @@ class AiChat extends Component
             ->map(fn ($message): array => ['role' => $message->role, 'content' => $message->content])->values()->all();
 
         try {
-            $reply = $chatService->reply($setting, $history);
+            $reply = $chatService->reply($setting, $history, $knowledgeService->context($question));
         } catch (RuntimeException $exception) {
             report($exception);
             $reply = auth()->user()?->isAdmin()
@@ -77,6 +79,22 @@ class AiChat extends Component
         $this->conversationId = null;
         $this->resetErrorBag();
         $this->mount();
+    }
+
+    public function renderAssistantMessage(string $message): HtmlString
+    {
+        $escapedMessage = e($message);
+        $linkedMessage = preg_replace_callback(
+            '~https?://[^\s<]+[^\s<\.,;:!?\)\]]~u',
+            fn (array $matches): string => sprintf(
+                '<a href="%s" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">%s</a>',
+                $matches[0],
+                $matches[0],
+            ),
+            $escapedMessage,
+        );
+
+        return new HtmlString(nl2br($linkedMessage ?? $escapedMessage));
     }
 
     private function conversation(): AiConversation
