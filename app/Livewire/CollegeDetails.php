@@ -17,7 +17,7 @@ class CollegeDetails extends Component
     {
         $user = auth()->user();
         abort_unless($user->isAdmin() || ($user->hasRole('principal') && $college->id === $user->college_id && $user->isApproved() && $college->approval_status === ApprovalStatus::Approved), 403);
-        $this->college = $college->load(['division:id,name,bn_name', 'district:id,name,bn_name', 'thana:id,name,bn_name', 'programs'])
+        $this->college = $college->load(['division:id,name,bn_name', 'district:id,name,bn_name', 'thana:id,name,bn_name', 'principal:id,name,college_id', 'programs'])
             ->loadCount('teachers');
     }
 
