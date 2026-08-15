@@ -26,7 +26,8 @@ it('stores encrypted SMTP settings and synchronizes the environment file', funct
         ->shouldReceive('update')
         ->once()
         ->withArgs(fn (array $values): bool => $values['MAIL_HOST'] === 'smtp.example.com'
-            && $values['MAIL_PASSWORD'] === 'smtp-secret');
+            && $values['MAIL_PASSWORD'] === 'smtp-secret'
+            && $values['APPROVAL_EMAILS_ENABLED'] === true);
 
     Livewire::actingAs($admin)->test(SystemSettings::class)
         ->set('emailEnabled', true)
@@ -45,6 +46,7 @@ it('stores encrypted SMTP settings and synchronizes the environment file', funct
     expect($settings->password)->toBe('smtp-secret')
         ->and($settings->is_enabled)->toBeTrue()
         ->and(config('mail.default'))->toBe('smtp')
+        ->and(config('mail.approval_notifications_enabled'))->toBeTrue()
         ->and(config('mail.from.address'))->toBe('training@example.com');
 });
 

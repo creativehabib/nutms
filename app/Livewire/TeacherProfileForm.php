@@ -17,6 +17,7 @@ use App\Models\TeacherOtherTraining;
 use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\User;
+use App\Notifications\TeacherApprovalStatusNotification;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -380,8 +381,8 @@ class TeacherProfileForm extends Component
             $validated['mobileNumber'] = auth()->user()->mobile_no;
         }
 
-        DB::transaction(function () use ($validated, $isStaffCreatingTeacherAccount): void {
-            $user = auth()->user();
+        $user = auth()->user();
+        $teacher = DB::transaction(function () use ($validated, $isStaffCreatingTeacherAccount, $user): Teacher {
             $college = College::query()->findOrFail($validated['collegeId']);
 
             if ($user->hasRole('teacher')) {
@@ -479,7 +480,13 @@ class TeacherProfileForm extends Component
                     ]);
                 }
             }
+
+            return $teacher;
         });
+
+        if ($user->hasRole('teacher') && $teacher->approval_status === ApprovalStatus::Pending) {
+            $user->notify(new TeacherApprovalStatusNotification($teacher, ApprovalStatus::Pending));
+        }
 
         $isNewTeacherSubmission = auth()->user()->hasRole('teacher') && $this->editingId === null;
         Flux::toast(variant: 'success', text: $isNewTeacherSubmission ? 'প্রোফাইলটি প্রিন্সিপালের অনুমোদনের জন্য জমা হয়েছে।' : 'শিক্ষকের প্রোফাইল সংরক্ষণ করা হয়েছে।');

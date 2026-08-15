@@ -66,7 +66,7 @@ class ChangeTrainingRegistrationStatus
             return true;
         }, attempts: 3);
 
-        if ($statusChanged && $newStatus !== TrainingRegistrationStatus::Pending) {
+        if ($statusChanged) {
             $participant->notify(new TrainingRegistrationStatusNotification($training, $newStatus->value));
         }
     }
