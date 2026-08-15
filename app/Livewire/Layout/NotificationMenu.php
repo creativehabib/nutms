@@ -3,11 +3,12 @@
 namespace App\Livewire\Layout;
 
 use Illuminate\Contracts\View\View;
-use Illuminate\Notifications\DatabaseNotification;
 use Livewire\Component;
 
 class NotificationMenu extends Component
 {
+    public string $filter = 'all';
+
     public function open(string $notificationId): void
     {
         $notification = auth()->user()->notifications()->findOrFail($notificationId);
@@ -18,16 +19,33 @@ class NotificationMenu extends Component
 
     public function markAllAsRead(): void
     {
-        auth()->user()->unreadNotifications->each(
-            fn (DatabaseNotification $notification) => $notification->markAsRead(),
-        );
+        auth()->user()->unreadNotifications()->update(['read_at' => now()]);
+    }
+
+    public function clearRead(): void
+    {
+        auth()->user()->readNotifications()->delete();
+    }
+
+    public function setFilter(string $filter): void
+    {
+        if (in_array($filter, ['all', 'unread'], true)) {
+            $this->filter = $filter;
+        }
     }
 
     public function render(): View
     {
+        $notifications = auth()->user()->notifications()
+            ->when($this->filter === 'unread', fn ($query) => $query->whereNull('read_at'))
+            ->latest()
+            ->limit(10)
+            ->get();
+
         return view('livewire.layout.notification-menu', [
-            'notifications' => auth()->user()->notifications()->latest()->limit(8)->get(),
+            'notifications' => $notifications,
             'unreadCount' => auth()->user()->unreadNotifications()->count(),
+            'hasReadNotifications' => auth()->user()->readNotifications()->exists(),
         ]);
     }
 }
