@@ -931,6 +931,9 @@
 
 </footer>
 
+{{-- Public AI assistant for every guest visiting the standalone home page. --}}
+<livewire:ai-chat wire:key="home-public-ai-chat" />
+
 @fluxScripts
 
 </body>
