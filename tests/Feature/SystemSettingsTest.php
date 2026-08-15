@@ -68,8 +68,6 @@ it('stores an encrypted AI provider configuration', function () {
         ->set('aiEndpoint', 'https://api.openai.com/v1/')
         ->set('aiApiKey', 'secret-ai-key')
         ->set('aiHistoryLimit', 8)
-        ->set('aiRetentionDays', 14)
-        ->set('aiSaveGuestConversations', false)
         ->call('saveAiSettings')
         ->assertHasNoErrors()
         ->assertSet('aiApiKey', '');
@@ -78,9 +76,7 @@ it('stores an encrypted AI provider configuration', function () {
     expect($setting->is_enabled)->toBeTrue()
         ->and($setting->api_key)->toBe('secret-ai-key')
         ->and($setting->endpoint)->toBe('https://api.openai.com/v1')
-        ->and($setting->history_limit)->toBe(8)
-        ->and($setting->retention_days)->toBe(14)
-        ->and($setting->save_guest_conversations)->toBeFalse();
+        ->and($setting->history_limit)->toBe(8);
 });
 
 it('shows AI setup guidance and official provider links to an admin', function () {

@@ -2,10 +2,8 @@
 
 namespace App\Livewire;
 
-use App\Models\AiConversation;
 use App\Models\AiSetting;
 use App\Services\AiChatService;
-use App\Services\AiConversationPruner;
 use App\Services\WebsiteKnowledgeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\HtmlString;
@@ -20,8 +18,6 @@ class AiChat extends Component
 {
     public bool $open = false;
     public string $question = '';
-    public ?int $conversationId = null;
-
     /** @var array<int, array{role: string, content: string}> */
     public array $messages = [];
 
@@ -30,7 +26,7 @@ class AiChat extends Component
         $this->messages = [['role' => 'assistant', 'content' => __('Hello! I am the website AI assistant. How can I help you today?')]];
     }
 
-    public function send(AiChatService $chatService, WebsiteKnowledgeService $knowledgeService, AiConversationPruner $pruner): void
+    public function send(AiChatService $chatService, WebsiteKnowledgeService $knowledgeService): void
     {
         $validated = $this->validate(['question' => ['required', 'string', 'min:2', 'max:2000']]);
         $rateLimitKey = 'ai-chat:'.(auth()->id() ?? request()->ip());
@@ -54,19 +50,11 @@ class AiChat extends Component
             return;
         }
 
-        $conversation = null;
-        if (auth()->check() || $setting->save_guest_conversations) {
-            $conversation = $this->conversation();
-            $conversation->messages()->create(['role' => 'user', 'content' => $question]);
-            $history = $conversation->messages()->latest('id')->limit($setting->history_limit)->get()->reverse()
-                ->map(fn ($message): array => ['role' => $message->role, 'content' => $message->content])->values()->all();
-        } else {
-            $history = collect($this->messages)
-                ->reject(fn (array $message, int $index): bool => $index === 0 && $message['role'] === 'assistant')
-                ->take(-$setting->history_limit)
-                ->values()
-                ->all();
-        }
+        $history = collect($this->messages)
+            ->reject(fn (array $message, int $index): bool => $index === 0 && $message['role'] === 'assistant')
+            ->take(-$setting->history_limit)
+            ->values()
+            ->all();
 
         try {
             $reply = $chatService->reply($setting, $history, $knowledgeService->context($question));
@@ -80,20 +68,35 @@ class AiChat extends Component
             $reply = __('An unexpected AI service error occurred. Please contact the administrator.');
         }
 
-        if ($conversation !== null) {
-            $conversation->messages()->create(['role' => 'assistant', 'content' => $reply]);
-            $conversation->touch();
-            $pruner->trim($conversation, $setting->history_limit);
-        }
         $this->messages[] = ['role' => 'assistant', 'content' => $reply];
         $this->dispatch('ai-message-added');
     }
 
     public function resetConversation(): void
     {
-        $this->conversationId = null;
         $this->resetErrorBag();
         $this->mount();
+        $this->dispatch('ai-conversation-reset');
+    }
+
+    /** @param array<int, mixed> $messages */
+    public function restoreMessages(array $messages): void
+    {
+        $restoredMessages = collect($messages)
+            ->filter(fn (mixed $message): bool => is_array($message)
+                && in_array($message['role'] ?? null, ['user', 'assistant'], true)
+                && is_string($message['content'] ?? null))
+            ->map(fn (array $message): array => [
+                'role' => $message['role'],
+                'content' => Str::limit(strip_tags($message['content']), 5000, ''),
+            ])
+            ->take(-30)
+            ->values()
+            ->all();
+
+        if ($restoredMessages !== []) {
+            $this->messages = $restoredMessages;
+        }
     }
 
     public function renderAssistantMessage(string $message): HtmlString
@@ -127,34 +130,6 @@ class AiChat extends Component
         $html = str_replace('<a href=', '<a target="_blank" rel="noopener noreferrer" href=', $html);
 
         return new HtmlString($html);
-    }
-
-    private function conversation(): AiConversation
-    {
-        if ($this->conversationId !== null) {
-            return AiConversation::query()
-                ->whereKey($this->conversationId)
-                ->when(auth()->check(), fn ($query) => $query->where('user_id', auth()->id()))
-                ->when(auth()->guest(), fn ($query) => $query->where('guest_token', session('ai_guest_token')))
-                ->firstOrFail();
-        }
-
-        $guestToken = auth()->check() ? null : session('ai_guest_token');
-        if (auth()->guest() && blank($guestToken)) {
-            $guestToken = Str::uuid()->toString();
-        }
-        if ($guestToken !== null) {
-            session()->put('ai_guest_token', $guestToken);
-        }
-
-        $conversation = AiConversation::query()->create([
-            'user_id' => auth()->id(),
-            'guest_token' => $guestToken,
-            'title' => Str::limit($this->messages[array_key_last($this->messages)]['content'], 100),
-        ]);
-        $this->conversationId = $conversation->id;
-
-        return $conversation;
     }
 
     public function render(): View

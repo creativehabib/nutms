@@ -1,15 +1,14 @@
 <?php
 
 use App\Livewire\AiChat;
-use App\Models\AiConversation;
 use App\Models\AiSetting;
 use App\Models\College;
 use App\Models\User;
-use App\Services\AiConversationPruner;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 
-it('answers a teacher and stores the conversation', function () {
+it('answers a teacher without storing the conversation', function () {
     Http::fake(['https://api.openai.com/v1/chat/completions' => Http::response([
         'choices' => [['message' => ['content' => 'প্রশিক্ষণ ক্যালেন্ডার দেখুন।']]],
     ])]);
@@ -25,9 +24,8 @@ it('answers a teacher and stores the conversation', function () {
         ->assertHasNoErrors()
         ->assertSee('প্রশিক্ষণ ক্যালেন্ডার দেখুন।');
 
-    $conversation = AiConversation::query()->firstOrFail();
-    expect($conversation->user_id)->toBe($teacher->id)
-        ->and($conversation->messages()->count())->toBe(2);
+    expect(Schema::hasTable('ai_conversations'))->toBeFalse()
+        ->and(Schema::hasTable('ai_messages'))->toBeFalse();
 
     Http::assertSent(fn ($request): bool => $request->hasHeader('Authorization', 'Bearer test-key')
         && str_contains($request['messages'][0]['content'], route('training.calendar')));
@@ -156,32 +154,18 @@ it('grounds public answers with matching college programs and a verified clickab
         && ! str_contains($request['messages'][0]['content'], 'SHERE BANGLA COLLEGE')
         && str_contains($request['messages'][0]['content'], route('public.colleges.show', $college)));
 
-    expect(AiConversation::query()->count())->toBe(0);
+    expect(Schema::hasTable('ai_conversations'))->toBeFalse();
 });
 
-it('deletes expired conversations and bounds messages in active conversations', function () {
-    AiSetting::query()->create([
-        'is_enabled' => true,
-        'provider' => 'openai',
-        'model' => 'gpt-4o-mini',
-        'endpoint' => 'https://api.openai.com/v1',
-        'api_key' => 'test-key',
-        'history_limit' => 10,
-        'retention_days' => 7,
-    ]);
-    $expired = AiConversation::query()->create(['guest_token' => fake()->uuid()]);
-    $expired->messages()->create(['role' => 'user', 'content' => 'Expired']);
-    $expired->forceFill(['created_at' => now()->subDays(10), 'updated_at' => now()->subDays(10)])->saveQuietly();
-    $active = AiConversation::query()->create(['guest_token' => fake()->uuid()]);
-    foreach (range(1, 30) as $number) {
-        $active->messages()->create(['role' => $number % 2 === 0 ? 'assistant' : 'user', 'content' => "Message {$number}"]);
-    }
+it('restores only safe temporary browser messages', function () {
+    $messages = collect(range(1, 35))->map(fn (int $number): array => [
+        'role' => $number % 2 === 0 ? 'assistant' : 'user',
+        'content' => "<script>alert(1)</script> Message {$number}",
+    ])->all();
 
-    $pruner = app(AiConversationPruner::class);
-    $pruner->trim($active, 10);
-    $deleted = $pruner->prune();
-
-    expect($deleted)->toBe(1)
-        ->and(AiConversation::query()->whereKey($expired->id)->exists())->toBeFalse()
-        ->and($active->messages()->count())->toBe(20);
+    Livewire::test(AiChat::class)
+        ->call('restoreMessages', $messages)
+        ->assertCount('messages', 30)
+        ->assertDontSee('<script>')
+        ->assertSee('Message 35');
 });

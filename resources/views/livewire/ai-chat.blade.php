@@ -1,4 +1,18 @@
-<div class="fixed bottom-5 right-5 z-50" x-data x-on:ai-message-added.window="$nextTick(() => { const box = $refs.messages; if (box) box.scrollTop = box.scrollHeight })">
+<div
+    class="fixed bottom-5 right-5 z-50"
+    x-data="{ storageKey: @js('ai-chat-messages-' . (auth()->id() ?? 'guest')) }"
+    x-init="
+        try {
+            const savedMessages = JSON.parse(sessionStorage.getItem(storageKey) || '[]');
+            if (Array.isArray(savedMessages) && savedMessages.length) $wire.restoreMessages(savedMessages);
+        } catch (error) {
+            sessionStorage.removeItem(storageKey);
+        }
+        $wire.$watch('messages', messages => sessionStorage.setItem(storageKey, JSON.stringify(messages)));
+    "
+    x-on:ai-conversation-reset.window="sessionStorage.removeItem(storageKey)"
+    x-on:ai-message-added.window="$nextTick(() => { const box = $refs.messages; if (box) box.scrollTop = box.scrollHeight })"
+>
     @if($open)
         <section class="mb-3 flex h-[min(680px,calc(100vh-7rem))] w-[min(420px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-700 dark:bg-zinc-900" aria-label="{{ __('AI Assistant') }}">
             <header class="flex items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">

@@ -29,6 +29,7 @@ it('renders live platform statistics and the next training', function () {
         ->assertOk()
         ->assertSee('AI Assistant')
         ->assertSee('Ask about this website...')
+        ->assertSee('sessionStorage', false)
         ->assertSee('Dynamic Teacher Training')
         ->assertSee('১')
         ->assertSee('নিবন্ধিত শিক্ষক')
