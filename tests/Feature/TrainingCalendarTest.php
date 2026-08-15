@@ -311,6 +311,22 @@ it('queues training status notifications for database and email delivery', funct
         fn (TrainingRegistrationStatusNotification $notification, array $channels): bool => $notification->status === 'Approved'
             && $channels === ['database', 'mail'],
     );
+
+    expect((new TrainingRegistrationStatusNotification($training, 'Approved'))->viaConnections()['mail'])->toBe('sync');
+});
+
+it('notifies a teacher when a training registration returns to pending review', function () {
+    $admin = User::factory()->create();
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create();
+    $training->participants()->attach($teacherUser, ['status' => 'Approved']);
+
+    Livewire::actingAs($admin)->test(TrainingRegistrationManagement::class)
+        ->call('updateRegistrationStatus', $training->id, $teacherUser->id, 'Pending')
+        ->assertHasNoErrors();
+
+    expect($teacherUser->unreadNotifications())->toHaveCount(1)
+        ->and($teacherUser->unreadNotifications()->firstOrFail()->data['status'])->toBe('Pending');
 });
 
 it('notifies a teacher when a training registration returns to pending review', function () {

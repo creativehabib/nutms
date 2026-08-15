@@ -209,6 +209,25 @@ it('notifies a teacher when their profile becomes approved pending or rejected',
         ]);
 });
 
+it('delivers teacher approval email without requiring a queue worker', function () {
+    $teacher = Teacher::query()->create([
+        'name' => 'Email Notification Teacher',
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    $notification = new TeacherApprovalStatusNotification($teacher, ApprovalStatus::Approved);
+
+    config([
+        'mail.approval_notifications_enabled' => true,
+        'queue.default' => 'database',
+    ]);
+
+    expect($notification->via(User::factory()->make()))->toBe(['database', 'mail'])
+        ->and($notification->viaConnections())->toMatchArray([
+            'database' => 'sync',
+            'mail' => 'sync',
+        ]);
+});
+
 it('searches teachers by profile, account, and college identifiers', function (string $searchTerm) {
     $college = College::query()->create([
         'college_code' => 'COL-SEARCH-01',

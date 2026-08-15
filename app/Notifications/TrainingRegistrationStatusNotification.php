@@ -30,7 +30,7 @@ class TrainingRegistrationStatusNotification extends Notification implements Sho
     {
         return [
             'database' => 'sync',
-            'mail' => (string) config('queue.default'),
+            'mail' => (string) config('mail.notifications_queue_connection', 'sync'),
         ];
     }
 

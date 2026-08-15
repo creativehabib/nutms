@@ -31,7 +31,7 @@ class TeacherApprovalStatusNotification extends Notification implements ShouldQu
     {
         return [
             'database' => 'sync',
-            'mail' => (string) config('queue.default'),
+            'mail' => (string) config('mail.notifications_queue_connection', 'sync'),
         ];
     }
 

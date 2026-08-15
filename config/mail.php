@@ -6,6 +6,8 @@ return [
 
     'approval_notifications_enabled' => env('APPROVAL_EMAILS_ENABLED', false),
 
+    'notifications_queue_connection' => env('MAIL_NOTIFICATIONS_QUEUE', 'sync'),
+
     /*
     |--------------------------------------------------------------------------
     | Default Mailer
