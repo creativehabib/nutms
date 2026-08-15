@@ -21,7 +21,7 @@ class AffiliatedCollegeDetails extends Component
         );
 
         $this->college = $college
-            ->load(['division:id,name,bn_name', 'district:id,name,bn_name', 'thana:id,name,bn_name', 'programs'])
+            ->load(['division:id,name,bn_name', 'district:id,name,bn_name', 'thana:id,name,bn_name', 'principal:id,name,college_id', 'programs'])
             ->loadCount('teachers');
     }
 

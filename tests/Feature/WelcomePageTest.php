@@ -74,15 +74,13 @@ it('lets public users browse affiliated colleges and their subjects', function (
 
     $this->get(route('public.colleges.show', $college))
         ->assertOk()
-        ->assertSee('Not specified')
-        ->assertDontSee('Role Holder Name')
-        ->assertDontSee('Public Principal')
+        ->assertSee('Role Holder Name')
         ->assertSee('বাংলা')
         ->assertSee('প্রধান নেভিগেশন')
         ->assertSee('ইতিহাস');
 });
 
-it('does not expose principal details on a public college profile', function () {
+it('shows the unassigned principal message on a public college profile', function () {
     $college = College::query()->create([
         'name' => 'Public College Without Principal',
         'is_active' => true,
@@ -91,8 +89,7 @@ it('does not expose principal details on a public college profile', function () 
 
     $this->get(route('public.colleges.show', $college))
         ->assertOk()
-        ->assertSee('Not specified')
-        ->assertDontSee('Outdated Public Principal');
+        ->assertSee('এখনো রুলস এসাইন করা হয়নি');
 });
 
 it('only exposes active approved colleges to public users', function () {
