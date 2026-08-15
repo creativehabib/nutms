@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PublicCollegeController;
 use App\Http\Controllers\ReportExportController;
 use App\Http\Controllers\TrainingCertificateController;
+use App\Http\Controllers\WelcomeController;
 use App\Livewire\Admin\LanguageManager;
 use App\Livewire\AdmissionInfoManager;
 use App\Livewire\AdmissionSummary;
@@ -28,7 +30,9 @@ use App\Livewire\TrainingCatalogManagement;
 use App\Models\AdmissionInfo;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::get('/', WelcomeController::class)->name('home');
+Route::get('/affiliated-colleges', [PublicCollegeController::class, 'index'])->name('public.colleges.index');
+Route::get('/affiliated-colleges/{college}', [PublicCollegeController::class, 'show'])->name('public.colleges.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
