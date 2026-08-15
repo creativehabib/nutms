@@ -276,6 +276,8 @@
 
         {{ $slot }}
 
+        <livewire:ai-chat wire:key="authenticated-ai-chat" />
+
         @persist('toast')
             <flux:toast.group>
                 <flux:toast />
