@@ -39,7 +39,6 @@ it('lets public users browse affiliated colleges and their subjects', function (
     $college = College::query()->create([
         'college_code' => '2020',
         'name' => 'Public Affiliated College',
-        'principal_name' => 'Public Principal',
         'is_active' => true,
         'approval_status' => ApprovalStatus::Approved,
     ]);
@@ -75,26 +74,22 @@ it('lets public users browse affiliated colleges and their subjects', function (
 
     $this->get(route('public.colleges.show', $college))
         ->assertOk()
-        ->assertSee('Not specified')
-        ->assertDontSee('Role Holder Name')
-        ->assertDontSee('Public Principal')
+        ->assertSee('Role Holder Name')
         ->assertSee('বাংলা')
         ->assertSee('প্রধান নেভিগেশন')
         ->assertSee('ইতিহাস');
 });
 
-it('does not expose principal details on a public college profile', function () {
+it('shows the unassigned principal message on a public college profile', function () {
     $college = College::query()->create([
         'name' => 'Public College Without Principal',
-        'principal_name' => 'Outdated Public Principal',
         'is_active' => true,
         'approval_status' => ApprovalStatus::Approved,
     ]);
 
     $this->get(route('public.colleges.show', $college))
         ->assertOk()
-        ->assertSee('Not specified')
-        ->assertDontSee('Outdated Public Principal');
+        ->assertSee('এখনো রুলস এসাইন করা হয়নি');
 });
 
 it('only exposes active approved colleges to public users', function () {

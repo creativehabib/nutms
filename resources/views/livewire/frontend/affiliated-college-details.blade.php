@@ -19,7 +19,7 @@
                 <dl class="divide-y divide-slate-100 dark:divide-slate-800">
                     @foreach([
                         'কলেজের ধরন' => ['government' => 'সরকারি', 'non_government' => 'বেসরকারি', 'other' => 'অন্যান্য'][$college->college_type] ?? 'উল্লেখ নেই',
-                        'অধ্যক্ষ' => 'Not specified',
+                        'অধ্যক্ষ' => $college->principal?->name ?: 'এখনো রুলস এসাইন করা হয়নি',
                         'ইমেইল' => $college->college_email ?: 'উল্লেখ নেই',
                         'ওয়েবসাইট' => $college->college_website ?: 'উল্লেখ নেই',
                     ] as $label => $value)
