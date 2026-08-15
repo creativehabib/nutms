@@ -2,18 +2,15 @@
 <html lang="bn">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.head', ['title' => $title ?? __('National University Teacher Training Department')])
 
-    <title>শিক্ষক ও প্রশিক্ষণ ব্যবস্থাপনা | জাতীয় বিশ্ববিদ্যালয়</title>
-
-    <meta name="description"
-          content="জাতীয় বিশ্ববিদ্যালয়ের শিক্ষক ব্যবস্থাপনা ও প্রশিক্ষণ পরিচালনা সংক্রান্ত সমন্বিত ডিজিটাল প্ল্যাটফর্ম।">
-
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script>
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet">
