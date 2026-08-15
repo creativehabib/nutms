@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PublicCollegeController;
 use App\Http\Controllers\ReportExportController;
 use App\Http\Controllers\TrainingCertificateController;
 use App\Http\Controllers\WelcomeController;
