@@ -10,6 +10,7 @@ use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\TeacherLevel;
 use App\Models\User;
+use App\Notifications\TeacherApprovalStatusNotification;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 
@@ -181,6 +182,50 @@ it('lets an admin reject a pending teacher profile from the table actions', func
     expect($teacher->refresh()->approval_status)->toBe(ApprovalStatus::Rejected)
         ->and($teacher->approved_by)->toBe(auth()->id())
         ->and($teacher->approved_at)->not->toBeNull();
+});
+
+it('notifies a teacher when their profile becomes approved pending or rejected', function () {
+    $teacherUser = User::factory()->withRole('teacher')->create();
+    $teacher = Teacher::query()->create([
+        'user_id' => $teacherUser->id,
+        'name' => 'Notification Teacher',
+        'approval_status' => ApprovalStatus::Pending,
+    ]);
+
+    Livewire::test(TeacherManagement::class)
+        ->call('approveTeacher', $teacher->id)
+        ->call('toggleTeacherApproval', $teacher->id)
+        ->call('rejectTeacher', $teacher->id)
+        ->assertHasNoErrors();
+
+    $notifications = $teacherUser->notifications()->oldest()->get();
+
+    expect($notifications)->toHaveCount(3)
+        ->and($notifications->pluck('type')->unique()->all())->toBe([TeacherApprovalStatusNotification::class])
+        ->and($notifications->pluck('data.status')->all())->toBe([
+            ApprovalStatus::Approved->value,
+            ApprovalStatus::Pending->value,
+            ApprovalStatus::Rejected->value,
+        ]);
+});
+
+it('delivers teacher approval email without requiring a queue worker', function () {
+    $teacher = Teacher::query()->create([
+        'name' => 'Email Notification Teacher',
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    $notification = new TeacherApprovalStatusNotification($teacher, ApprovalStatus::Approved);
+
+    config([
+        'mail.approval_notifications_enabled' => true,
+        'queue.default' => 'database',
+    ]);
+
+    expect($notification->via(User::factory()->make()))->toBe(['database', 'mail'])
+        ->and($notification->viaConnections())->toMatchArray([
+            'database' => 'sync',
+            'mail' => 'sync',
+        ]);
 });
 
 it('searches teachers by profile, account, and college identifiers', function (string $searchTerm) {

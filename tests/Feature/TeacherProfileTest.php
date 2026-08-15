@@ -382,5 +382,6 @@ it('allows a teacher to correct and resubmit a rejected profile', function () {
     expect($teacher->refresh()->approval_status)->toBe(ApprovalStatus::Pending)
         ->and($teacher->present_address)->toBe('Corrected present address')
         ->and($teacher->approved_by)->toBeNull()
-        ->and($teacher->approved_at)->toBeNull();
+        ->and($teacher->approved_at)->toBeNull()
+        ->and($user->unreadNotifications()->firstOrFail()->data['status'])->toBe(ApprovalStatus::Pending->value);
 });

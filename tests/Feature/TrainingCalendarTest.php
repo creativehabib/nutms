@@ -311,6 +311,22 @@ it('queues training status notifications for database and email delivery', funct
         fn (TrainingRegistrationStatusNotification $notification, array $channels): bool => $notification->status === 'Approved'
             && $channels === ['database', 'mail'],
     );
+
+    expect((new TrainingRegistrationStatusNotification($training, 'Approved'))->viaConnections()['mail'])->toBe('sync');
+});
+
+it('notifies a teacher when a training registration returns to pending review', function () {
+    $admin = User::factory()->create();
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create();
+    $training->participants()->attach($teacherUser, ['status' => 'Approved']);
+
+    Livewire::actingAs($admin)->test(TrainingRegistrationManagement::class)
+        ->call('updateRegistrationStatus', $training->id, $teacherUser->id, 'Pending')
+        ->assertHasNoErrors();
+
+    expect($teacherUser->unreadNotifications())->toHaveCount(1)
+        ->and($teacherUser->unreadNotifications()->firstOrFail()->data['status'])->toBe('Pending');
 });
 
 it('lets a teacher read a training notification from the header', function () {
@@ -325,6 +341,34 @@ it('lets a teacher read a training notification from the header', function () {
         ->assertRedirect(route('training.calendar'));
 
     expect($notification->fresh()->read_at)->not->toBeNull();
+});
+
+it('lets a teacher filter and manage their notification inbox', function () {
+    $teacherUser = registeredAffiliatedTeacher();
+    $training = Training::factory()->create();
+    $teacherUser->notify(new TrainingRegistrationStatusNotification($training, 'Approved'));
+    $teacherUser->notify(new TrainingRegistrationStatusNotification($training, 'Rejected'));
+    $teacherUser->notifications()->oldest()->firstOrFail()->markAsRead();
+
+    Livewire::actingAs($teacherUser)->test(NotificationMenu::class)
+        ->assertSee(__('All'))
+        ->call('setFilter', 'unread')
+        ->assertSet('filter', 'unread')
+        ->assertSee(__('Your registration for :training was not selected.', ['training' => $training->title]))
+        ->assertDontSee(__('You have been selected for :training.', ['training' => $training->title]))
+        ->call('markAllAsRead')
+        ->assertSee(__('You are all caught up.'))
+        ->call('setFilter', 'all')
+        ->call('clearRead')
+        ->assertSee(__('No notifications yet.'));
+
+    expect($teacherUser->notifications()->count())->toBe(0);
+});
+
+it('ignores unsupported notification filters', function () {
+    Livewire::actingAs(registeredAffiliatedTeacher())->test(NotificationMenu::class)
+        ->call('setFilter', 'archived')
+        ->assertSet('filter', 'all');
 });
 
 it('stores database notifications immediately when the production queue is asynchronous', function () {

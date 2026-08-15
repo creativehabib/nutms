@@ -13,6 +13,7 @@ use App\Models\TeacherOtherTraining;
 use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\User;
+use App\Notifications\TeacherApprovalStatusNotification;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -95,6 +96,7 @@ class TeacherManagement extends Component
         $teacher = $this->accessibleTeachersQuery()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
         $teacher->update(['approval_status' => ApprovalStatus::Approved, 'approved_by' => auth()->id(), 'approved_at' => now()]);
         $teacher->user?->update(['college_id' => $teacher->college_id]);
+        $teacher->user?->notify(new TeacherApprovalStatusNotification($teacher, ApprovalStatus::Approved));
         Flux::toast(variant: 'success', text: 'শিক্ষক প্রোফাইল অনুমোদিত হয়েছে।');
     }
 
@@ -115,6 +117,11 @@ class TeacherManagement extends Component
             $teacher->user?->update(['college_id' => $teacher->college_id]);
         }
 
+        $teacher->user?->notify(new TeacherApprovalStatusNotification(
+            $teacher,
+            $isApproved ? ApprovalStatus::Pending : ApprovalStatus::Approved,
+        ));
+
         Flux::toast(
             variant: 'success',
             text: $isApproved ? 'শিক্ষক প্রোফাইলের অনুমোদন বাতিল হয়েছে।' : 'শিক্ষক প্রোফাইল অনুমোদিত হয়েছে।',
@@ -126,6 +133,7 @@ class TeacherManagement extends Component
         abort_unless(auth()->user()->can('teachers.approve'), 403);
         $teacher = $this->accessibleTeachersQuery()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
         $teacher->update(['approval_status' => ApprovalStatus::Rejected, 'approved_by' => auth()->id(), 'approved_at' => now()]);
+        $teacher->user?->notify(new TeacherApprovalStatusNotification($teacher, ApprovalStatus::Rejected));
         Flux::toast(variant: 'success', text: 'শিক্ষক প্রোফাইল প্রত্যাখ্যান করা হয়েছে।');
     }
 

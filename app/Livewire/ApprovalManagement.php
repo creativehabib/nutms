@@ -6,6 +6,7 @@ use App\Enums\ApprovalStatus;
 use App\Models\College;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Notifications\TeacherApprovalStatusNotification;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -62,6 +63,7 @@ class ApprovalManagement extends Component
             $teacher->update(['approval_status' => ApprovalStatus::Approved, 'approved_by' => $user->id, 'approved_at' => now()]);
             $teacher->user?->update(['college_id' => $teacher->college_id]);
         });
+        $teacher->user?->notify(new TeacherApprovalStatusNotification($teacher, ApprovalStatus::Approved));
         Flux::toast(variant: 'success', text: 'শিক্ষক প্রোফাইল অনুমোদিত হয়েছে।');
     }
 
@@ -78,6 +80,7 @@ class ApprovalManagement extends Component
         $teacher = Teacher::query()->where('approval_status', ApprovalStatus::Pending)->findOrFail($teacherId);
         abort_unless($user->isAdmin() || ($user->isPrincipal() && $teacher->college_id === $user->college_id), 403);
         $teacher->update(['approval_status' => ApprovalStatus::Rejected, 'approved_by' => $user->id, 'approved_at' => now()]);
+        $teacher->user?->notify(new TeacherApprovalStatusNotification($teacher, ApprovalStatus::Rejected));
     }
 
     public function render(): View
