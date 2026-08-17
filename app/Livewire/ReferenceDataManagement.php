@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -61,6 +62,13 @@ class ReferenceDataManagement extends Component
         $this->resetPage();
     }
 
+    public function updatedName(string $name): void
+    {
+        if ($this->isProgramLevel() && $this->editingId === null) {
+            $this->slug = Str::slug($name);
+        }
+    }
+
     public function openCreateModal(): void
     {
         $this->resetForm();
@@ -82,6 +90,10 @@ class ReferenceDataManagement extends Component
 
     public function save(): void
     {
+        if ($this->isProgramLevel() && $this->editingId === null) {
+            $this->slug = Str::slug($this->name);
+        }
+
         $modelClass = $this->configuration()['model'];
         $table = (new $modelClass)->getTable();
         $nameRule = Rule::unique($table, 'name')->ignore($this->editingId);

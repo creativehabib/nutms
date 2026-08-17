@@ -134,7 +134,11 @@
                 @endif
 
                 <div class="space-y-1">
-                    <flux:input wire:model="name" :label="$title.__('Name')" :placeholder="__('Enter value')" required />
+                    @if ($isProgramLevel)
+                        <flux:input wire:model.live="name" :label="$title.__('Name')" :placeholder="__('Enter value')" required />
+                    @else
+                        <flux:input wire:model="name" :label="$title.__('Name')" :placeholder="__('Enter value')" required />
+                    @endif
                     @error('name') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
                 </div>
 
@@ -152,7 +156,7 @@
 
                 @if ($isProgramLevel)
                     <div class="space-y-1">
-                        <flux:input wire:model="slug" :label="__('Slug')" :placeholder="__('Example: honours')" required />
+                        <flux:input wire:model="slug" :label="__('Slug')" :placeholder="__('Generated from the program level name')" readonly />
                         @error('slug') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
                     </div>
                     <div class="space-y-1">

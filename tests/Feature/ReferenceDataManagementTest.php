@@ -18,7 +18,7 @@ it('creates updates and deletes program levels', function () {
     Livewire::test(ReferenceDataManagement::class, ['type' => 'program-levels'])
         ->call('openCreateModal')
         ->set('name', 'Postgraduate')
-        ->set('slug', 'postgraduate')
+        ->assertSet('slug', 'postgraduate')
         ->set('sortOrder', 60)
         ->call('save')
         ->assertHasNoErrors();
@@ -38,7 +38,7 @@ it('creates updates and deletes program levels', function () {
     expect($programLevel->fresh())->toBeNull();
 });
 
-it('validates program level slugs and prevents deleting levels in use', function () {
+it('generates unique program level slugs and prevents deleting levels in use', function () {
     $programLevel = ProgramLevel::query()->create([
         'name' => 'Honours',
         'slug' => 'honours',
@@ -48,8 +48,8 @@ it('validates program level slugs and prevents deleting levels in use', function
 
     Livewire::test(ReferenceDataManagement::class, ['type' => 'program-levels'])
         ->call('openCreateModal')
-        ->set('name', 'Invalid Level')
-        ->set('slug', 'invalid slug')
+        ->set('name', 'Honours!')
+        ->assertSet('slug', 'honours')
         ->call('save')
         ->assertHasErrors(['slug'])
         ->call('edit', $programLevel->id)
