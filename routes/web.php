@@ -46,7 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/teachers/{teacher}/edit', TeacherProfileForm::class)->middleware('permission:teachers.update')->name('teachers.edit');
     Route::get('/teachers/{teacher}', TeacherDetails::class)->middleware('permission:teachers.view')->name('teachers.show');
     Route::get('/reference-data/{type}', ReferenceDataManagement::class)->middleware(['role:admin', 'permission:reference-data.manage'])
-        ->whereIn('type', ['subjects', 'courses', 'designations', 'teacher-levels', 'employments'])
+        ->whereIn('type', ['subjects', 'courses', 'program-levels', 'designations', 'teacher-levels', 'employments'])
         ->name('reference-data.manage');
     Route::get('/roles-permissions', RolePermissionManagement::class)->middleware(['role:admin', 'permission:roles.manage'])->name('roles-permissions.manage');
     Route::get('/system-settings', SystemSettings::class)->middleware(['role:admin', 'permission:roles.manage'])->name('system-settings.manage');

@@ -32,7 +32,11 @@
                     @endif
                     <flux:table.column>{{ __('Name') }}</flux:table.column>
                     @if ($isCourse)<flux:table.column>{{ __('Program Level') }}</flux:table.column>@endif
-                    <flux:table.column>{{ $isCourse ? __('Affiliated Colleges') : __('Teachers Count') }}</flux:table.column>
+                    @if ($isProgramLevel)
+                        <flux:table.column>{{ __('Slug') }}</flux:table.column>
+                        <flux:table.column>{{ __('Sort Order') }}</flux:table.column>
+                    @endif
+                    <flux:table.column>{{ $isCourse ? __('Affiliated Colleges') : ($isProgramLevel ? __('Usage Count') : __('Teachers Count')) }}</flux:table.column>
                     <flux:table.column>{{ __('Status') }}</flux:table.column>
                     <flux:table.column class="text-right">{{ __('Action') }}</flux:table.column>
                 </flux:table.columns>
@@ -55,10 +59,15 @@
                                 <flux:table.cell>{{ $programLevels->firstWhere('slug', $record->level)?->name ?? $record->level }}</flux:table.cell>
                             @endif
 
+                            @if ($isProgramLevel)
+                                <flux:table.cell><span class="font-mono text-sm">{{ $record->slug }}</span></flux:table.cell>
+                                <flux:table.cell>{{ $record->sort_order }}</flux:table.cell>
+                            @endif
+
                             <flux:table.cell>
                                 <div class="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
                                     <flux:icon.users variant="micro" class="text-zinc-400" />
-                                    <span>{{ $usageCounts->get($record->id, 0) }} {{ $isCourse ? __('colleges') : __('teachers') }}</span>
+                                    <span>{{ $usageCounts->get($record->id, 0) }} {{ $isCourse ? __('colleges') : ($isProgramLevel ? __('uses') : __('teachers')) }}</span>
                                 </div>
                             </flux:table.cell>
 
@@ -78,7 +87,7 @@
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="{{ ($isCourse || $isCollege || $isSubject) ? 5 : 4 }}">
+                            <flux:table.cell colspan="{{ $isProgramLevel ? 6 : (($isCourse || $isCollege || $isSubject) ? 5 : 4) }}">
                                 <div class="flex flex-col items-center justify-center py-12 text-zinc-500 dark:text-zinc-400">
                                     <div class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 mb-3">
                                         <flux:icon.document-text class="h-6 w-6 text-zinc-400" />
@@ -138,6 +147,17 @@
                             @endforeach
                         </flux:select>
                         @error('level') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
+                    </div>
+                @endif
+
+                @if ($isProgramLevel)
+                    <div class="space-y-1">
+                        <flux:input wire:model="slug" :label="__('Slug')" :placeholder="__('Example: honours')" required />
+                        @error('slug') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="space-y-1">
+                        <flux:input wire:model="sortOrder" type="number" min="0" max="65535" :label="__('Sort Order')" required />
+                        @error('sortOrder') <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
                     </div>
                 @endif
 
