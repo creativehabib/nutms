@@ -5,6 +5,7 @@ use App\Livewire\Frontend\AffiliatedCollegeDirectory;
 use App\Models\College;
 use App\Models\District;
 use App\Models\Division;
+use App\Models\ProgramLevel;
 use App\Models\Teacher;
 use App\Models\Training;
 use App\Models\User;
@@ -39,6 +40,11 @@ it('renders live platform statistics and the next training', function () {
 });
 
 it('lets public users browse affiliated colleges and their subjects', function () {
+    ProgramLevel::query()->updateOrCreate(
+        ['slug' => 'postgraduate'],
+        ['name' => 'স্নাতকোত্তর', 'sort_order' => 60, 'is_active' => true],
+    );
+
     $college = College::query()->create([
         'college_code' => '2020',
         'name' => 'Public Affiliated College',
@@ -46,7 +52,7 @@ it('lets public users browse affiliated colleges and their subjects', function (
         'approval_status' => ApprovalStatus::Approved,
     ]);
     $college->programs()->create([
-        'level' => 'honours',
+        'level' => 'postgraduate',
         'name' => 'Honours',
         'items' => ['বাংলা', 'ইতিহাস'],
     ]);
@@ -78,6 +84,7 @@ it('lets public users browse affiliated colleges and their subjects', function (
     $this->get(route('public.colleges.show', $college))
         ->assertOk()
         ->assertSee('Role Holder Name')
+        ->assertSee('স্নাতকোত্তর')
         ->assertSee('বাংলা')
         ->assertSee('প্রধান নেভিগেশন')
         ->assertSee('ইতিহাস');

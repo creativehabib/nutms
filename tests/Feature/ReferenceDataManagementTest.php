@@ -3,6 +3,7 @@
 use App\Livewire\ReferenceDataManagement;
 use App\Models\College;
 use App\Models\Course;
+use App\Models\ProgramLevel;
 use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
@@ -11,7 +12,55 @@ use Livewire\Livewire;
 
 it('protects all reference data pages with authentication', function (string $type) {
     $this->get(route('reference-data.manage', $type))->assertRedirect(route('login'));
-})->with(['subjects', 'courses', 'designations', 'teacher-levels', 'employments']);
+})->with(['subjects', 'courses', 'program-levels', 'designations', 'teacher-levels', 'employments']);
+
+it('creates updates and deletes program levels', function () {
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'program-levels'])
+        ->call('openCreateModal')
+        ->set('name', 'Postgraduate')
+        ->assertSet('slug', 'postgraduate')
+        ->set('sortOrder', 60)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $programLevel = ProgramLevel::query()->where('slug', 'postgraduate')->firstOrFail();
+
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'program-levels'])
+        ->call('edit', $programLevel->id)
+        ->set('name', 'Postgraduate Level')
+        ->set('sortOrder', 70)
+        ->set('isActive', false)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->call('confirmDelete', $programLevel->id)
+        ->call('deleteConfirmed');
+
+    expect($programLevel->fresh())->toBeNull();
+});
+
+it('generates unique program level slugs and prevents deleting levels in use', function () {
+    $programLevel = ProgramLevel::query()->create([
+        'name' => 'Honours',
+        'slug' => 'honours',
+        'sort_order' => 20,
+    ]);
+    Course::query()->create(['name' => 'BA Honours', 'level' => 'honours']);
+
+    Livewire::test(ReferenceDataManagement::class, ['type' => 'program-levels'])
+        ->call('openCreateModal')
+        ->set('name', 'Honours!')
+        ->assertSet('slug', 'honours')
+        ->call('save')
+        ->assertHasErrors(['slug'])
+        ->call('edit', $programLevel->id)
+        ->set('slug', 'changed-honours')
+        ->call('save')
+        ->assertHasErrors(['slug'])
+        ->call('confirmDelete', $programLevel->id)
+        ->assertSet('showDeleteModal', false);
+
+    expect($programLevel->fresh())->not->toBeNull();
+});
 
 it('allows admins to create update and delete courses', function () {
     $this->seed(ProgramLevelSeeder::class);
