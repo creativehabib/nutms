@@ -233,6 +233,60 @@ it('stores a complete college profile with multiple academic programs', function
         ->and($college->programs->firstWhere('level', 'honours')->items)->toBe(['বাংলা']);
 });
 
+it('allows duplicate college names when creating and editing colleges', function () {
+    $division = Division::query()->where('name', 'Test Division One')->firstOrFail();
+    $district = District::query()->whereBelongsTo($division)->firstOrFail();
+    $thana = Thana::query()->whereBelongsTo($district)->firstOrFail();
+    College::query()->create(['college_code' => 'DUPLICATE-NAME-1', 'name' => 'Shared College Name']);
+
+    Livewire::test(CollegeForm::class)
+        ->set('college_code', 'DUPLICATE-NAME-2')
+        ->set('name', 'Shared College Name')
+        ->set('divisionId', (string) $division->id)
+        ->set('districtId', (string) $district->id)
+        ->set('thanaId', (string) $thana->id)
+        ->set('address', 'Second College Road')
+        ->set('collegeType', 'government')
+        ->set('hasComputerLab', '0')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $college = College::query()->create(['college_code' => 'DUPLICATE-NAME-3', 'name' => 'Name Before Edit']);
+
+    Livewire::test(CollegeForm::class, ['college' => $college])
+        ->set('name', 'Shared College Name')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(College::query()->where('name', 'Shared College Name')->count())->toBe(3);
+});
+
+it('requires college codes to remain unique when creating and editing colleges', function () {
+    $division = Division::query()->where('name', 'Test Division One')->firstOrFail();
+    $district = District::query()->whereBelongsTo($division)->firstOrFail();
+    $thana = Thana::query()->whereBelongsTo($district)->firstOrFail();
+    $existingCollege = College::query()->create(['college_code' => 'UNIQUE-CODE-1', 'name' => 'Existing College']);
+
+    Livewire::test(CollegeForm::class)
+        ->set('college_code', 'UNIQUE-CODE-1')
+        ->set('name', 'New College')
+        ->set('divisionId', (string) $division->id)
+        ->set('districtId', (string) $district->id)
+        ->set('thanaId', (string) $thana->id)
+        ->set('address', 'New College Road')
+        ->set('collegeType', 'government')
+        ->set('hasComputerLab', '0')
+        ->call('save')
+        ->assertHasErrors(['college_code' => 'unique']);
+
+    $editableCollege = College::query()->create(['college_code' => 'UNIQUE-CODE-2', 'name' => 'Editable College']);
+
+    Livewire::test(CollegeForm::class, ['college' => $editableCollege])
+        ->set('college_code', $existingCollege->college_code)
+        ->call('save')
+        ->assertHasErrors(['college_code' => 'unique']);
+});
+
 it('adds degree courses and honours subjects as unique tags', function () {
     \App\Models\Subject::query()->create(['name' => 'বাংলা']);
 

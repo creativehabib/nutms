@@ -154,7 +154,7 @@ class CollegeForm extends Component
     {
         $validated = $this->validate([
             'college_code' => ['nullable', 'string', 'max:255', Rule::unique('colleges', 'college_code')->ignore($this->editingId)],
-            'name' => ['required', 'string', 'max:255', Rule::unique('colleges', 'name')->ignore($this->editingId)],
+            'name' => ['required', 'string', 'max:255'],
             'divisionId' => ['required', Rule::exists('divisions', 'id')],
             'districtId' => ['required', Rule::exists('districts', 'id')],
             'thanaId' => ['required', Rule::exists('thanas', 'id')],
