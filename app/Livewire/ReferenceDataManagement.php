@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -32,6 +33,8 @@ class ReferenceDataManagement extends Component
     public string $name = '';
     public string $code = '';
     public string $level = '';
+    public string $slug = '';
+    public int $sortOrder = 0;
     public bool $isActive = true;
     public bool $showModal = false;
     public bool $showDeleteModal = false;
@@ -42,6 +45,7 @@ class ReferenceDataManagement extends Component
     private const TYPES = [
         'subjects' => ['model' => Subject::class, 'title' => 'সাবজেক্ট'],
         'courses' => ['model' => Course::class, 'title' => 'কোর্স'],
+        'program-levels' => ['model' => ProgramLevel::class, 'title' => 'প্রোগ্রাম লেভেল'],
         'designations' => ['model' => Designation::class, 'title' => 'পদবি'],
         'teacher-levels' => ['model' => TeacherLevel::class, 'title' => 'শিক্ষক স্তর'],
         'employments' => ['model' => Employment::class, 'title' => 'চাকরির ধরন'],
@@ -58,6 +62,13 @@ class ReferenceDataManagement extends Component
         $this->resetPage();
     }
 
+    public function updatedName(string $name): void
+    {
+        if ($this->isProgramLevel() && $this->editingId === null) {
+            $this->slug = Str::slug($name);
+        }
+    }
+
     public function openCreateModal(): void
     {
         $this->resetForm();
@@ -71,12 +82,18 @@ class ReferenceDataManagement extends Component
         $this->name = (string) $record->getAttribute('name');
         $this->code = (string) ($record->getAttribute('subject_code') ?? '');
         $this->level = (string) ($record->getAttribute('level') ?? '');
+        $this->slug = (string) ($record->getAttribute('slug') ?? '');
+        $this->sortOrder = (int) ($record->getAttribute('sort_order') ?? 0);
         $this->isActive = (bool) $record->getAttribute('is_active');
         $this->showModal = true;
     }
 
     public function save(): void
     {
+        if ($this->isProgramLevel() && $this->editingId === null) {
+            $this->slug = Str::slug($this->name);
+        }
+
         $modelClass = $this->configuration()['model'];
         $table = (new $modelClass)->getTable();
         $nameRule = Rule::unique($table, 'name')->ignore($this->editingId);
@@ -96,16 +113,30 @@ class ReferenceDataManagement extends Component
         if ($this->isSubject()) {
             $rules['code'] = ['nullable', 'string', 'max:255', Rule::unique($table, 'subject_code')->ignore($this->editingId)];
         }
+        if ($this->isProgramLevel()) {
+            $rules['slug'] = ['required', 'string', 'max:30', 'alpha_dash:ascii', Rule::unique($table, 'slug')->ignore($this->editingId)];
+            $rules['sortOrder'] = ['required', 'integer', 'min:0', 'max:65535'];
+        }
         $validated = $this->validate($rules, [
             'name.required' => 'নাম অবশ্যই দিতে হবে।',
             'name.unique' => 'এই নামটি ইতোমধ্যে আছে।',
             'code.unique' => 'এই সাবজেক্ট কোডটি ইতোমধ্যে আছে।',
+            'slug.unique' => 'এই স্লাগটি ইতোমধ্যে আছে।',
         ]);
 
         if ($this->isCourse() && $this->editingId !== null) {
             $course = $this->modelQuery()->findOrFail($this->editingId);
             if ($course->getAttribute('level') !== $validated['level'] && $this->usageCount($course) > 0) {
                 $this->addError('level', 'কলেজের সাথে অধিভুক্ত কোর্সের প্রোগ্রাম লেভেল পরিবর্তন করা যাবে না।');
+
+                return;
+            }
+        }
+
+        if ($this->isProgramLevel() && $this->editingId !== null) {
+            $programLevel = $this->modelQuery()->findOrFail($this->editingId);
+            if ($programLevel->getAttribute('slug') !== $validated['slug'] && $this->usageCount($programLevel) > 0) {
+                $this->addError('slug', 'ব্যবহৃত প্রোগ্রাম লেভেলের স্লাগ পরিবর্তন করা যাবে না।');
 
                 return;
             }
@@ -120,6 +151,7 @@ class ReferenceDataManagement extends Component
                 'is_active' => $validated['isActive'],
                 ...($this->isCourse() ? ['level' => $validated['level']] : []),
                 ...($this->isSubject() ? ['subject_code' => filled($validated['code']) ? $validated['code'] : null] : []),
+                ...($this->isProgramLevel() ? ['slug' => $validated['slug'], 'sort_order' => $validated['sortOrder']] : []),
             ]);
             $record->save();
 
@@ -137,7 +169,7 @@ class ReferenceDataManagement extends Component
     {
         $record = $this->modelQuery()->findOrFail($id);
         if ($this->usageCount($record) > 0) {
-            Flux::toast(variant: 'warning', text: $this->isCourse() ? 'কলেজের সাথে অধিভুক্ত থাকায় কোর্সটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।' : 'শিক্ষকের সাথে যুক্ত থাকায় তথ্যটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।');
+            Flux::toast(variant: 'warning', text: $this->deletionWarning());
             return;
         }
 
@@ -155,7 +187,7 @@ class ReferenceDataManagement extends Component
         $record = $this->modelQuery()->findOrFail($this->deletingId);
         if ($this->usageCount($record) > 0) {
             $this->cancelDelete();
-            Flux::toast(variant: 'warning', text: $this->isCourse() ? 'কলেজের সাথে অধিভুক্ত থাকায় কোর্সটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।' : 'শিক্ষকের সাথে যুক্ত থাকায় তথ্যটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।');
+            Flux::toast(variant: 'warning', text: $this->deletionWarning());
             return;
         }
 
@@ -184,7 +216,11 @@ class ReferenceDataManagement extends Component
                         ->when($this->isSubject(), fn (Builder $query): Builder => $query->orWhere('subject_code', 'like', "%{$this->search}%"));
                 });
             })
-            ->orderBy('name')->paginate(10);
+            ->when(
+                $this->isProgramLevel(),
+                fn (Builder $query): Builder => $query->orderBy('sort_order')->orderBy('name'),
+                fn (Builder $query): Builder => $query->orderBy('name'),
+            )->paginate(10);
 
         return view('livewire.reference-data-management', [
             'records' => $records,
@@ -192,6 +228,7 @@ class ReferenceDataManagement extends Component
             'isCollege' => false,
             'isSubject' => $this->isSubject(),
             'isCourse' => $this->isCourse(),
+            'isProgramLevel' => $this->isProgramLevel(),
             'programLevels' => $this->isCourse() ? ProgramLevel::query()->where('is_active', true)->whereIn('slug', ['degree', 'professional'])->orderBy('sort_order')->get(['name', 'slug']) : collect(),
             'usageCounts' => $records->getCollection()->mapWithKeys(fn (Model $record): array => [$record->getKey() => $this->usageCount($record)]),
         ]);
@@ -212,7 +249,7 @@ class ReferenceDataManagement extends Component
 
     private function resetForm(): void
     {
-        $this->reset('editingId', 'name', 'code', 'level');
+        $this->reset('editingId', 'name', 'code', 'level', 'slug', 'sortOrder');
         $this->isActive = true;
         $this->resetValidation();
     }
@@ -227,8 +264,18 @@ class ReferenceDataManagement extends Component
         return $this->type === 'subjects';
     }
 
+    private function isProgramLevel(): bool
+    {
+        return $this->type === 'program-levels';
+    }
+
     private function usageCount(Model $record): int
     {
+        if ($this->isProgramLevel()) {
+            return CollegeProgram::query()->where('level', $record->getAttribute('slug'))->count()
+                + Course::query()->where('level', $record->getAttribute('slug'))->count();
+        }
+
         if (! $this->isCourse()) {
             return $record->teachers()->count();
         }
@@ -236,6 +283,17 @@ class ReferenceDataManagement extends Component
         return CollegeProgram::query()->where('level', $record->getAttribute('level'))->get(['items'])
             ->filter(fn (CollegeProgram $program): bool => collect($program->items)->containsStrict($record->getAttribute('name')))
             ->count();
+    }
+
+    private function deletionWarning(): string
+    {
+        if ($this->isProgramLevel()) {
+            return 'কোর্স বা কলেজের সাথে যুক্ত থাকায় প্রোগ্রাম লেভেলটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।';
+        }
+
+        return $this->isCourse()
+            ? 'কলেজের সাথে অধিভুক্ত থাকায় কোর্সটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।'
+            : 'শিক্ষকের সাথে যুক্ত থাকায় তথ্যটি মুছতে পারবেন না। নিষ্ক্রিয় করতে পারেন।';
     }
 
     private function synchronizeCourseAffiliations(string $previousName, string $previousLevel, string $name): void
