@@ -4,6 +4,7 @@ namespace App\Livewire\Frontend;
 
 use App\Enums\ApprovalStatus;
 use App\Models\College;
+use App\Models\ProgramLevel;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -27,7 +28,13 @@ class AffiliatedCollegeDetails extends Component
 
     public function render(): View
     {
-        return view('livewire.frontend.affiliated-college-details')
+        $programLevelNames = ProgramLevel::query()
+            ->whereIn('slug', $this->college->programs->pluck('level'))
+            ->pluck('name', 'slug');
+
+        return view('livewire.frontend.affiliated-college-details', [
+            'programLevelNames' => $programLevelNames,
+        ])
             ->layout('layouts.frontend', ['title' => $this->college->name]);
     }
 }
