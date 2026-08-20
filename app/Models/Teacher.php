@@ -80,21 +80,17 @@ class Teacher extends Model
 
     public static function generateUniqueTtisId(): string
     {
-        $usedTtisIds = self::withTrashed()
-            ->pluck('ttis_id')
-            ->filter(fn (mixed $ttisId): bool => preg_match('/^\d{6}$/', (string) $ttisId) === 1)
-            ->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])
-            ->all();
+        $maxAttempts = 100;
 
-        if (count($usedTtisIds) >= 900000) {
-            throw new RuntimeException('No six-digit TTIS IDs are available.');
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $ttisId = (string) random_int(100000, 999999);
+
+            if (! self::withTrashed()->where('ttis_id', $ttisId)->exists()) {
+                return $ttisId;
+            }
         }
 
-        do {
-            $ttisId = (string) random_int(100000, 999999);
-        } while (isset($usedTtisIds[$ttisId]));
-
-        return $ttisId;
+        throw new RuntimeException("Could not generate a unique TTIS ID after {$maxAttempts} attempts.");
     }
 
     public function subject(): BelongsTo
