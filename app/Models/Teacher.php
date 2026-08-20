@@ -62,7 +62,7 @@ class Teacher extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (Teacher $teacher): void {
+        static::saving(function (Teacher $teacher): void {
             if (blank($teacher->ttis_id)) {
                 $teacher->ttis_id = self::generateUniqueTtisId();
             }
@@ -80,19 +80,17 @@ class Teacher extends Model
 
     public static function generateUniqueTtisId(): string
     {
-        $usedTtisIds = self::withTrashed()
-            ->pluck('ttis_id')
-            ->filter(fn (mixed $ttisId): bool => preg_match('/^\d{4,}$/', (string) $ttisId) === 1)
-            ->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])
-            ->all();
+        $maxAttempts = 100;
 
-        for ($candidate = 1000; ; $candidate++) {
-            $ttisId = (string) $candidate;
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $ttisId = (string) random_int(100000, 999999);
 
-            if (! isset($usedTtisIds[$ttisId])) {
+            if (! self::withTrashed()->where('ttis_id', $ttisId)->exists()) {
                 return $ttisId;
             }
         }
+
+        throw new RuntimeException("Could not generate a unique TTIS ID after {$maxAttempts} attempts.");
     }
 
     public function subject(): BelongsTo
