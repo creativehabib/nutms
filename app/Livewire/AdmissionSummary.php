@@ -77,7 +77,8 @@ class AdmissionSummary extends Component
 
         if ($this->selectedCollege) {
             $summaryData = AdmissionInfo::where('college_code', $this->selectedCollege)
-                ->select('subject_name', 'sess_24_25_total_admited')
+                ->selectRaw('subject_name, MAX(sess_24_25_total_admited) AS sess_24_25_total_admited')
+                ->groupBy('subject_name')
                 ->orderBy('subject_name')
                 ->get();
 
