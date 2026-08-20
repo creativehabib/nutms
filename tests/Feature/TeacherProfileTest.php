@@ -12,8 +12,6 @@ use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role as PermissionRole;
@@ -53,7 +51,7 @@ it('creates a teacher linked to a college with contact and bank information', fu
     $teacher = Teacher::query()->where('name', 'New Teacher')->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
         ->and($teacher->college->name)->toBe('Teacher College')
-        ->and($teacher->ttis_id)->toMatch('/^\d{4}$/')
+        ->and($teacher->ttis_id)->toMatch('/^\d{6}$/')
         ->and($teacher->present_address)->toBe('Present Address')
         ->and($teacher->bank_name)->toBe('Sonali Bank')
         ->and($teacher->bank_account_number)->toBe('1234567890123')
@@ -67,28 +65,21 @@ it('creates a teacher linked to a college with contact and bank information', fu
 });
 
 
-it('generates unique four digit TTIS IDs for new teacher profiles', function () {
+it('generates unique six digit TTIS IDs for new teacher profiles', function () {
     $teachers = collect(range(1, 10))->map(fn (int $index): Teacher => Teacher::query()->create(['name' => "Generated TTIS Teacher {$index}"]));
 
-    expect($teachers->pluck('ttis_id')->all())->toBe(array_map('strval', range(1000, 1009)));
+    expect($teachers->pluck('ttis_id')->all())->toBe(array_map('strval', range(100000, 100009)));
 
     $teachers->each(function (Teacher $teacher): void {
-        expect($teacher->ttis_id)->toMatch('/^\d{4}$/');
+        expect($teacher->ttis_id)->toMatch('/^\d{6}$/');
     });
 });
 
-it('continues generating TTIS IDs after all four digit values are used', function () {
-    collect(range(1000, 9999))
-        ->map(fn (int $ttisId): array => [
-            'ttis_id' => (string) $ttisId,
-            'name' => "Existing Teacher {$ttisId}",
-            'created_at' => now(),
-            'updated_at' => now(),
-        ])
-        ->chunk(100)
-        ->each(fn (Collection $teachers): bool => DB::table('teacher_profiles')->insert($teachers->all()));
+it('skips six digit TTIS IDs that are already assigned', function () {
+    Teacher::query()->create(['name' => 'Existing Teacher One', 'ttis_id' => '100000']);
+    Teacher::query()->create(['name' => 'Existing Teacher Two', 'ttis_id' => '100001']);
 
-    expect(Teacher::generateUniqueTtisId())->toBe('10000');
+    expect(Teacher::generateUniqueTtisId())->toBe('100002');
 });
 
 it('keeps an existing TTIS ID unchanged when a teacher profile is edited', function () {
@@ -138,6 +129,7 @@ it('submits a teacher profile under the selected college for principal approval'
 
     $teacher = Teacher::query()->where('user_id', $user->id)->firstOrFail();
     expect($teacher->college_id)->toBe($college->id)
+        ->and($teacher->ttis_id)->toMatch('/^\d{6}$/')
         ->and($teacher->approval_status)->toBe(ApprovalStatus::Pending)
         ->and($teacher->user?->email)->toBe('registered-teacher@example.com')
         ->and($user->refresh()->teacherProfile?->is($teacher))->toBeTrue()
