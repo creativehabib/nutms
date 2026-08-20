@@ -196,6 +196,10 @@
                     <flux:sidebar.item icon="identification" :href="route('admission.summary')" :current="request()->routeIs('admission.summary')" wire:navigate>
                         {{ __('Admission Summary') }}
                     </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="server-stack" :href="route('cache.manager')" :current="request()->routeIs('cache.manager')" wire:navigate>
+                        {{ __('Cache Management') }}
+                    </flux:sidebar.item>
                 @endif
                 @if(auth()->user()->hasRole('principal') && auth()->user()->isApproved())
                     <flux:sidebar.item icon="building-library" :href="route('colleges.show', auth()->user()->college_id)" :current="request()->routeIs('colleges.show', 'colleges.edit') && (int) request()->route('college')?->id === auth()->user()->college_id" wire:navigate>{{ __('College Profile') }}</flux:sidebar.item>

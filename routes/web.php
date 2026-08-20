@@ -19,6 +19,7 @@ use App\Livewire\ReferenceDataManagement;
 use App\Livewire\RolePermissionManagement;
 use App\Livewire\StudentSurveyForm;
 use App\Livewire\SurveyReport;
+use App\Livewire\System\CacheManager;
 use App\Livewire\SystemSettings;
 use App\Livewire\TeacherDetails;
 use App\Livewire\TeacherManagement;
@@ -63,6 +64,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/lab-summary', CollegeLabSummary::class)->middleware(['role:admin', 'permission:reports.view'])->name('lab.summary');
     Route::get('/ict-training-summary', IctTrainingSummary::class)->middleware(['role:admin', 'permission:reports.view'])->name('ict.summary');
     Route::get('admin/survey/report', SurveyReport::class)->name('admin.survey.report');
+
+    Route::get('/system/cache-manager', CacheManager::class)->name('cache.manager');
 });
 
 // Survey Route
