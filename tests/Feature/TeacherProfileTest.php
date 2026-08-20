@@ -12,6 +12,7 @@ use App\Models\TrainingInstitute;
 use App\Models\TrainingType;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role as PermissionRole;
@@ -83,6 +84,22 @@ it('keeps an existing TTIS ID unchanged when a teacher profile is edited', funct
     $teacher->update(['name' => 'Updated Imported Teacher']);
 
     expect($teacher->refresh()->ttis_id)->toBe('LEGACY-TTIS-100');
+});
+
+it('generates a TTIS ID when an imported profile without one is edited', function () {
+    $teacherId = DB::table('teacher_profiles')->insertGetId([
+        'name' => 'Imported Teacher Without TTIS ID',
+        'ttis_id' => null,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $teacher = Teacher::query()->findOrFail($teacherId);
+    expect($teacher->ttis_id)->toBeNull();
+
+    $teacher->update(['name' => 'Edited Imported Teacher']);
+
+    expect($teacher->refresh()->ttis_id)->toMatch('/^\d{6}$/');
 });
 
 it('uses the linked user name as the canonical teacher display name', function () {

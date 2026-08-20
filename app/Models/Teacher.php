@@ -62,7 +62,7 @@ class Teacher extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (Teacher $teacher): void {
+        static::saving(function (Teacher $teacher): void {
             if (blank($teacher->ttis_id)) {
                 $teacher->ttis_id = self::generateUniqueTtisId();
             }
