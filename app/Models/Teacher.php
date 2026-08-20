@@ -86,13 +86,15 @@ class Teacher extends Model
             ->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])
             ->all();
 
-        for ($candidate = 1000; ; $candidate++) {
+        for ($candidate = 100000; $candidate <= 999999; $candidate++) {
             $ttisId = (string) $candidate;
 
             if (! isset($usedTtisIds[$ttisId])) {
                 return $ttisId;
             }
         }
+
+        throw new RuntimeException('No six-digit TTIS IDs are available.');
     }
 
     public function subject(): BelongsTo
