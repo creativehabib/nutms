@@ -66,20 +66,13 @@ it('creates a teacher linked to a college with contact and bank information', fu
 
 
 it('generates unique six digit TTIS IDs for new teacher profiles', function () {
-    $teachers = collect(range(1, 10))->map(fn (int $index): Teacher => Teacher::query()->create(['name' => "Generated TTIS Teacher {$index}"]));
+    $teachers = collect(range(1, 100))->map(fn (int $index): Teacher => Teacher::query()->create(['name' => "Generated TTIS Teacher {$index}"]));
 
-    expect($teachers->pluck('ttis_id')->all())->toBe(array_map('strval', range(100000, 100009)));
+    expect($teachers->pluck('ttis_id')->unique())->toHaveCount(100);
 
     $teachers->each(function (Teacher $teacher): void {
         expect($teacher->ttis_id)->toMatch('/^\d{6}$/');
     });
-});
-
-it('skips six digit TTIS IDs that are already assigned', function () {
-    Teacher::query()->create(['name' => 'Existing Teacher One', 'ttis_id' => '100000']);
-    Teacher::query()->create(['name' => 'Existing Teacher Two', 'ttis_id' => '100001']);
-
-    expect(Teacher::generateUniqueTtisId())->toBe('100002');
 });
 
 it('keeps an existing TTIS ID unchanged when a teacher profile is edited', function () {

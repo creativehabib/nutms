@@ -82,19 +82,19 @@ class Teacher extends Model
     {
         $usedTtisIds = self::withTrashed()
             ->pluck('ttis_id')
-            ->filter(fn (mixed $ttisId): bool => preg_match('/^\d{4,}$/', (string) $ttisId) === 1)
+            ->filter(fn (mixed $ttisId): bool => preg_match('/^\d{6}$/', (string) $ttisId) === 1)
             ->mapWithKeys(fn (string $ttisId): array => [$ttisId => true])
             ->all();
 
-        for ($candidate = 100000; $candidate <= 999999; $candidate++) {
-            $ttisId = (string) $candidate;
-
-            if (! isset($usedTtisIds[$ttisId])) {
-                return $ttisId;
-            }
+        if (count($usedTtisIds) >= 900000) {
+            throw new RuntimeException('No six-digit TTIS IDs are available.');
         }
 
-        throw new RuntimeException('No six-digit TTIS IDs are available.');
+        do {
+            $ttisId = (string) random_int(100000, 999999);
+        } while (isset($usedTtisIds[$ttisId]));
+
+        return $ttisId;
     }
 
     public function subject(): BelongsTo
