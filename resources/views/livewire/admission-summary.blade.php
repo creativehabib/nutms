@@ -13,10 +13,16 @@
                             <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
                                 {{ __('Admission Summary') }}
                             </flux:heading>
+
                             <flux:badge color="indigo" size="sm" class="font-medium shadow-sm">
                                 {{ __('Total Colleges:') }} {{ $totalColleges }}
                             </flux:badge>
+
+                            <flux:badge color="emerald" size="sm" class="font-medium shadow-sm">
+                                {{ __('Total Students (24-25):') }} {{ $globalTotalStudents }}
+                            </flux:badge>
                         </div>
+
                         <flux:text class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                             {{ __('Select a college to view subject-wise admitted students for Session 24-25.') }}
                         </flux:text>

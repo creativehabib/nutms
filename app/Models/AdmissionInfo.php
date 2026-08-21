@@ -14,6 +14,9 @@ class AdmissionInfo extends Model
         return $this->belongsTo(College::class, 'college_code', 'college_code');
     }
 
+    /**
+     * Get the college associated with the admission info.
+     */
     public function college(): BelongsTo
     {
         return $this->belongsTo(College::class, 'college_code', 'college_code');

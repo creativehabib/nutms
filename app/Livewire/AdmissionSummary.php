@@ -17,13 +17,12 @@ class AdmissionSummary extends Component
     public $collegeType = '';
     public $file;
 
-    // ডুপ্লিকেট মেসেজ শো করার জন্য নতুন প্রোপার্টি
+    // ডুপ্লিকেট মেসেজ শো করার জন্য প্রোপার্টি
     public $duplicateMessage = '';
 
     public function updatedSelectedCollege(mixed $value): void
     {
         $selectedCollege = is_array($value) ? reset($value) : $value;
-
         $this->selectedCollege = is_scalar($selectedCollege) ? (string) $selectedCollege : '';
     }
 
@@ -42,7 +41,7 @@ class AdmissionSummary extends Component
             // ইম্পোর্ট করার পরে মোট ডেটার সংখ্যা
             $countAfter = AdmissionInfo::count();
 
-            // যদি নতুন কোনো ডেটা ইনসার্ট না হয়ে থাকে (অর্থাৎ ডুপ্লিকেট আপডেট হয়েছে)
+            // যদি নতুন কোনো ডেটা ইনসার্ট না হয়ে থাকে (অর্থাৎ ডুপ্লিকেট আপডেট হয়েছে)
             if ($countBefore === $countAfter && $countAfter > 0) {
                 $this->duplicateMessage = 'এই ফাইলের ডেটা ইতোমধ্যেই ইম্পোর্ট করা হয়েছে। বিদ্যমান তথ্যগুলো আপডেট করা হয়েছে।';
                 $this->reset('file'); // শুধু ফাইল রিসেট হবে, মডাল খোলা থাকবে
@@ -58,7 +57,7 @@ class AdmissionSummary extends Component
         }
     }
 
-    // মডাল বন্ধ হলে ওয়ার্নিং মেসেজ মুছে ফেলার জন্য
+    // মডাল বন্ধ হলে ওয়ার্নিং মেসেজ মুছে ফেলার জন্য
     public function resetImportState()
     {
         $this->reset(['file', 'duplicateMessage']);
@@ -66,18 +65,21 @@ class AdmissionSummary extends Component
 
     public function render()
     {
+        // কলেজের লিস্ট (ডুপ্লিকেট নাম ছাড়া)
         $colleges = AdmissionInfo::select('college_code', 'college_name')
             ->distinct()
             ->orderBy('college_name')
             ->get();
 
         $totalColleges = $colleges->count();
+        $globalTotalStudents = AdmissionInfo::sum('sess_24_25_total_admited');
         $summaryData = [];
         $totalStudents = 0;
 
+        // নির্দিষ্ট কলেজ সিলেক্ট করা থাকলে তার ভ্যালিড ডেটা
         if ($this->selectedCollege) {
             $summaryData = AdmissionInfo::where('college_code', $this->selectedCollege)
-                ->selectRaw('subject_name, MAX(sess_24_25_total_admited) AS sess_24_25_total_admited')
+                ->selectRaw('subject_name, MAX(CAST(sess_24_25_total_admited AS UNSIGNED)) AS sess_24_25_total_admited')
                 ->groupBy('subject_name')
                 ->orderBy('subject_name')
                 ->get();
@@ -85,6 +87,7 @@ class AdmissionSummary extends Component
             $totalStudents = $summaryData->sum('sess_24_25_total_admited');
         }
 
-        return view('livewire.admission-summary', compact('colleges', 'summaryData', 'totalStudents', 'totalColleges'))->layout('layouts.app',['title'=> 'Admission Summary']);
+        return view('livewire.admission-summary', compact('colleges', 'summaryData', 'totalStudents', 'totalColleges', 'globalTotalStudents'))
+            ->layout('layouts.app', ['title' => 'Admission Summary']);
     }
 }
