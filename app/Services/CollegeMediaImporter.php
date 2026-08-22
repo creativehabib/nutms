@@ -10,6 +10,8 @@ use RuntimeException;
 
 class CollegeMediaImporter
 {
+    private const DEFAULT_MEDIA_URL = 'https://collegeportal.nu.ac.bd/uploads';
+
     private const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     /**
@@ -22,9 +24,10 @@ class CollegeMediaImporter
         'image/webp' => 'webp',
     ];
 
-    public function import(string $reference, string $directory, int $collegeId): string
+    public function import(string $reference): string
     {
         $url = $this->sourceUrl($reference);
+        $path = $this->storagePath($reference);
 
         try {
             $response = Http::accept('image/*')
@@ -53,8 +56,6 @@ class CollegeMediaImporter
             throw new RuntimeException("The image from {$url} is empty or larger than 5 MB.");
         }
 
-        $path = "{$directory}/{$collegeId}-".sha1($contents).".{$extension}";
-
         if (! Storage::disk('public')->put($path, $contents)) {
             throw new RuntimeException("The downloaded image could not be saved to {$path}.");
         }
@@ -64,7 +65,8 @@ class CollegeMediaImporter
 
     private function sourceUrl(string $reference): string
     {
-        $baseUrl = rtrim((string) config('services.college_portal.media_url'), '/');
+        $configuredBaseUrl = trim((string) config('services.college_portal.media_url'));
+        $baseUrl = rtrim($configuredBaseUrl !== '' ? $configuredBaseUrl : self::DEFAULT_MEDIA_URL, '/');
         $reference = trim($reference);
 
         if (filter_var($reference, FILTER_VALIDATE_URL)) {
@@ -85,5 +87,21 @@ class CollegeMediaImporter
         }
 
         return $baseUrl.'/'.implode('/', array_map('rawurlencode', explode('/', $reference)));
+    }
+
+    private function storagePath(string $reference): string
+    {
+        if (filter_var($reference, FILTER_VALIDATE_URL)) {
+            $reference = (string) parse_url($reference, PHP_URL_PATH);
+        }
+
+        $path = Str::after(ltrim(trim($reference), '/'), 'uploads/');
+        $path = rawurldecode($path);
+
+        if ($path === '' || str_contains($path, '..') || Str::startsWith($path, '/')) {
+            throw new RuntimeException('The college media storage path is invalid.');
+        }
+
+        return $path;
     }
 }

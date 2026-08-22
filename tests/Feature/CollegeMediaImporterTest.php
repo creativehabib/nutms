@@ -7,24 +7,25 @@ use Illuminate\Support\Facades\Storage;
 it('downloads National University college media to public storage', function () {
     Storage::fake('public');
     Http::preventStrayRequests();
+    config()->set('services.college_portal.media_url', '');
     $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', true);
     Http::fake([
-        'https://collegeportal.nu.ac.bd/uploads/logos/college.png' => Http::response($png, 200, ['Content-Type' => 'image/png']),
-        'https://collegeportal.nu.ac.bd/uploads/banners/college.jpg' => Http::response($png, 200, ['Content-Type' => 'image/png']),
+        'https://collegeportal.nu.ac.bd/uploads/0205_logo.jpg' => Http::response($png, 200, ['Content-Type' => 'image/png']),
+        'https://collegeportal.nu.ac.bd/uploads/0205_banner.jpg' => Http::response($png, 200, ['Content-Type' => 'image/png']),
     ]);
 
     $college = College::query()->create([
         'name' => 'College With Remote Media',
-        'logo' => 'logos/college.png',
-        'banner' => 'banners/college.jpg',
+        'logo' => '0205_logo.jpg',
+        'banner' => '0205_banner.jpg',
     ]);
 
     $this->artisan('colleges:download-media')->assertSuccessful();
 
     $college->refresh();
 
-    expect($college->logo)->toStartWith("college-logos/{$college->id}-")
-        ->and($college->banner)->toStartWith("college-banners/{$college->id}-");
+    expect($college->logo)->toBe('0205_logo.jpg')
+        ->and($college->banner)->toBe('0205_banner.jpg');
     Storage::disk('public')->assertExists($college->logo);
     Storage::disk('public')->assertExists($college->banner);
 });

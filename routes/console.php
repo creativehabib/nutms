@@ -27,7 +27,7 @@ Artisan::command('colleges:download-media', function (CollegeMediaImporter $impo
         ->where(fn (Builder $query) => $query->whereNotNull('logo')->orWhereNotNull('banner'))
         ->lazyById()
         ->each(function (College $college) use ($importer, &$downloaded, &$failed): void {
-            foreach (['logo' => 'college-logos', 'banner' => 'college-banners'] as $attribute => $directory) {
+            foreach (['logo', 'banner'] as $attribute) {
                 $reference = $college->{$attribute};
 
                 if (blank($reference) || Storage::disk('public')->exists($reference)) {
@@ -35,9 +35,7 @@ Artisan::command('colleges:download-media', function (CollegeMediaImporter $impo
                 }
 
                 try {
-                    $college->forceFill([
-                        $attribute => $importer->import($reference, $directory, $college->id),
-                    ])->save();
+                    $importer->import($reference);
                     $downloaded++;
                 } catch (\RuntimeException $exception) {
                     $this->warn("College {$college->college_code} {$attribute}: {$exception->getMessage()}");
