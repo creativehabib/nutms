@@ -76,6 +76,13 @@
             <p class="text-sm mt-1 text-gray-700">College Code: <strong>{{ $college->college_code ?: 'N/A' }}</strong></p>
         </div>
 
+        @if($college->about)
+            <div class="mb-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <h3 class="font-semibold text-zinc-800 dark:text-zinc-200">{{ __('About College') }}</h3>
+                <p class="mt-2 whitespace-pre-line text-sm leading-6 text-zinc-600 dark:text-zinc-300">{{ $college->about }}</p>
+            </div>
+        @endif
+
         <div class="grid gap-6 lg:grid-cols-2 print:block print:space-y-6">
 
             <!-- Left Column -->
@@ -97,6 +104,30 @@
                             <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100">
                                 {{ ['government'=>__('Government'),'non_government'=>__('Non-government'),'other'=>__('Other')][$college->college_type] ?? __('Not specified') }}
                             </td>
+                        </tr>
+                        <tr>
+                            <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('College Name (Bangla)') }}</th>
+                            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100">{{ $college->college_name_bn ?: __('Not specified') }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('EIIN') }}</th>
+                            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100">{{ $college->eiin ?: __('Not specified') }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('Establishment Year') }}</th>
+                            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100">{{ $college->establish_year ?: __('Not specified') }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('Student Type') }}</th>
+                            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100">{{ ['male' => __('Male'), 'female' => __('Female'), 'co_education' => __('Co-education')][$college->male_female] ?? __('Not specified') }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('Total Land') }}</th>
+                            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100">{{ $college->total_land ?: __('Not specified') }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('Phone') }}</th>
+                            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100">{{ $college->college_phone ?: __('Not specified') }}</td>
                         </tr>
                         <tr>
                             <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('Principal') }}</th>

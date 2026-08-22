@@ -14,7 +14,7 @@ class College extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'college_code', 'name', 'division_id', 'district_id', 'thana_id', 'address',
+        'college_code', 'name', 'college_name_bn', 'college_phone', 'male_female', 'total_land', 'establish_year', 'about', 'logo', 'banner', 'eiin', 'division_id', 'district_id', 'thana_id', 'address',
         'college_email', 'college_website', 'college_type', 'has_computer_lab', 'lab_equipment_type',
         'desktop_count', 'laptop_count', 'is_active', 'submitted_by', 'approval_status', 'approved_by', 'approved_at',
     ];
