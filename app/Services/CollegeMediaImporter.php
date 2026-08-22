@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
+use UnexpectedValueException;
 
 class CollegeMediaImporter
 {
@@ -33,10 +34,13 @@ class CollegeMediaImporter
             $response = Http::accept('image/*')
                 ->connectTimeout(5)
                 ->timeout(20)
-                ->retry([250, 500], throw: false)
                 ->get($url);
         } catch (ConnectionException $exception) {
             throw new RuntimeException("Could not connect to {$url}.", previous: $exception);
+        }
+
+        if ($response->notFound()) {
+            throw new UnexpectedValueException("No image exists at {$url} (HTTP 404).");
         }
 
         if ($response->failed()) {
@@ -49,11 +53,11 @@ class CollegeMediaImporter
         $extension = self::EXTENSIONS_BY_MIME[Str::lower($mimeType)] ?? null;
 
         if ($extension === null) {
-            throw new RuntimeException("The response from {$url} is not a supported image.");
+            throw new UnexpectedValueException("The response from {$url} is not a supported image.");
         }
 
         if ($contents === '' || strlen($contents) > self::MAX_FILE_SIZE) {
-            throw new RuntimeException("The image from {$url} is empty or larger than 5 MB.");
+            throw new UnexpectedValueException("The image from {$url} is empty or larger than 5 MB.");
         }
 
         if (! Storage::disk('public')->put($path, $contents)) {

@@ -44,3 +44,25 @@ it('rejects media outside the approved National University uploads directory', f
     Http::assertNothingSent();
     Storage::disk('public')->assertDirectoryEmpty('college-logos');
 });
+
+it('clears references that are missing or are not images', function () {
+    Storage::fake('public');
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://collegeportal.nu.ac.bd/uploads/missing-logo.jpg' => Http::response(status: 404),
+        'https://collegeportal.nu.ac.bd/uploads/invalid-banner.jpg' => Http::response('<html>Not an image</html>'),
+    ]);
+
+    $college = College::query()->create([
+        'name' => 'College With Unavailable Media',
+        'logo' => 'missing-logo.jpg',
+        'banner' => 'invalid-banner.jpg',
+    ]);
+
+    $this->artisan('colleges:download-media')
+        ->expectsOutputToContain('2 unavailable references cleared')
+        ->assertSuccessful();
+
+    expect($college->refresh()->logo)->toBeNull()
+        ->and($college->banner)->toBeNull();
+});

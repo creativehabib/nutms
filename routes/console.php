@@ -21,12 +21,13 @@ Artisan::command('inspire', function () {
 
 Artisan::command('colleges:download-media', function (CollegeMediaImporter $importer): int {
     $downloaded = 0;
+    $unavailable = 0;
     $failed = 0;
 
     College::query()
         ->where(fn (Builder $query) => $query->whereNotNull('logo')->orWhereNotNull('banner'))
         ->lazyById()
-        ->each(function (College $college) use ($importer, &$downloaded, &$failed): void {
+        ->each(function (College $college) use ($importer, &$downloaded, &$unavailable, &$failed): void {
             foreach (['logo', 'banner'] as $attribute) {
                 $reference = $college->{$attribute};
 
@@ -37,6 +38,10 @@ Artisan::command('colleges:download-media', function (CollegeMediaImporter $impo
                 try {
                     $importer->import($reference);
                     $downloaded++;
+                } catch (\UnexpectedValueException $exception) {
+                    $college->forceFill([$attribute => null])->save();
+                    $this->warn("College {$college->college_code} {$attribute}: {$exception->getMessage()} Reference cleared.");
+                    $unavailable++;
                 } catch (\RuntimeException $exception) {
                     $this->warn("College {$college->college_code} {$attribute}: {$exception->getMessage()}");
                     $failed++;
@@ -44,7 +49,7 @@ Artisan::command('colleges:download-media', function (CollegeMediaImporter $impo
             }
         });
 
-    $this->info("Downloaded {$downloaded} college images; {$failed} failed.");
+    $this->info("Downloaded {$downloaded} college images; {$unavailable} unavailable references cleared; {$failed} failed.");
 
     return $failed === 0 ? Command::SUCCESS : Command::FAILURE;
 })->purpose('Download National University college logos and banners to public storage');
