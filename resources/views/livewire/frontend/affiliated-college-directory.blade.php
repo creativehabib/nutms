@@ -184,6 +184,8 @@
                         <dl class="space-y-2.5">
                             @foreach([
                                     'কলেজের ধরন' => ['government' => 'সরকারি', 'non_government' => 'বেসরকারি', 'other' => 'অন্যান্য'][$selectedCollege->college_type] ?? 'উল্লেখ নেই',
+                                    'শিক্ষার্থীভিত্তিক ধরন' => ['B' => 'বয়েজ এন্ড গার্লস মিশ্র কলেজ', 'F' => 'শুধু গার্লস কলেজ'][$selectedCollege->male_female] ?? 'উল্লেখ নেই',
+                                    'মোট জমি' => $selectedCollege->total_land ?: 'উল্লেখ নেই',
                                     'অধ্যক্ষ' => $selectedCollege->principal?->name ?: 'উল্লেখ নেই',
                                     'প্রতিষ্ঠার বছর' => $selectedCollege->establish_year ?: 'উল্লেখ নেই',
                                     'ফোন' => $selectedCollege->college_phone ?: 'উল্লেখ নেই',
