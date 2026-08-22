@@ -125,49 +125,43 @@
         </div>
     @endif
 
-    <flux:modal wire:model="showCollegeModal" name="affiliated-college-details" @close="$wire.closeCollegeModal()" class="w-full max-w-4xl overflow-hidden p-0">
+    <flux:modal wire:model="showCollegeModal" name="affiliated-college-details" @close="$wire.closeCollegeModal()" class="max-w-3xl">
         @if($selectedCollege)
-            <div class="max-h-[85vh] overflow-y-auto" data-affiliated-college-modal>
-                <div class="relative overflow-hidden bg-gradient-to-br from-emerald-800 to-teal-900 px-5 py-7 text-white sm:px-8 sm:py-9">
-                    @if($selectedCollege->banner)
-                        <img src="{{ asset('storage/'.$selectedCollege->banner) }}" alt="" class="absolute inset-0 size-full object-cover opacity-20">
-                    @endif
-                    <div class="relative flex flex-col gap-5 sm:flex-row sm:items-center">
-                        @if($selectedCollege->logo)
-                            <img src="{{ asset('storage/'.$selectedCollege->logo) }}" alt="{{ $selectedCollege->name }} লোগো" class="size-20 shrink-0 rounded-2xl bg-white object-contain p-2 shadow-lg sm:size-24">
-                        @else
-                            <div class="flex size-20 shrink-0 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/20 sm:size-24">
-                                <flux:icon.building-office-2 class="size-10 text-emerald-100" />
-                            </div>
+            <div class="space-y-4" data-affiliated-college-modal>
+                <div class="flex items-start gap-3">
+                    <flux:avatar
+                        size="xl"
+                        :name="$selectedCollege->college_name_bn ?: $selectedCollege->name"
+                        :src="$selectedCollege->logo ? asset('storage/'.$selectedCollege->logo) : null"
+                    />
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <flux:heading size="xl">{{ $selectedCollege->college_name_bn ?: $selectedCollege->name }}</flux:heading>
+                            <flux:badge color="emerald" size="sm">অধিভুক্ত</flux:badge>
+                        </div>
+                        @if($selectedCollege->college_name_bn)
+                            <flux:text class="mt-1">{{ $selectedCollege->name }}</flux:text>
                         @endif
-                        <div class="min-w-0">
-                            <p class="text-xs font-bold uppercase tracking-[0.18em] text-emerald-200">অধিভুক্ত কলেজ</p>
-                            <flux:heading size="xl" class="mt-2 text-white">{{ $selectedCollege->college_name_bn ?: $selectedCollege->name }}</flux:heading>
-                            @if($selectedCollege->college_name_bn)
-                                <p class="mt-1 text-sm text-emerald-100/80">{{ $selectedCollege->name }}</p>
-                            @endif
-                            <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-emerald-50/90">
-                                <span>কলেজ কোড: {{ $selectedCollege->college_code ?: 'উল্লেখ নেই' }}</span>
-                                <span>EIIN: {{ $selectedCollege->eiin ?: 'উল্লেখ নেই' }}</span>
-                                <span>{{ $selectedCollege->teachers_count }} জন শিক্ষক</span>
-                            </div>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <flux:badge size="sm">কোড: {{ $selectedCollege->college_code ?: 'উল্লেখ নেই' }}</flux:badge>
+                            <flux:badge size="sm">EIIN: {{ $selectedCollege->eiin ?: 'উল্লেখ নেই' }}</flux:badge>
+                            <flux:badge size="sm" icon="users">{{ $selectedCollege->teachers_count }} জন শিক্ষক</flux:badge>
                         </div>
                     </div>
                 </div>
 
-                <div class="space-y-6 p-5 sm:p-8">
-                    @if($selectedCollege->about)
-                        <div>
-                            <flux:heading size="lg">কলেজ পরিচিতি</flux:heading>
-                            <flux:text class="mt-2 whitespace-pre-line leading-7">{{ $selectedCollege->about }}</flux:text>
-                        </div>
-                    @endif
+                @if($selectedCollege->about)
+                    <flux:callout variant="info" icon="information-circle" heading="কলেজ পরিচিতি" class="whitespace-pre-line">
+                        {{ $selectedCollege->about }}
+                    </flux:callout>
+                @endif
 
-                    <div class="grid gap-4 md:grid-cols-2">
-                        <section class="rounded-2xl border border-slate-200 p-5 dark:border-slate-700">
-                            <flux:heading size="lg">কলেজের তথ্য</flux:heading>
-                            <dl class="mt-4 space-y-3 text-sm">
-                                @foreach([
+                <div class="grid gap-3 md:grid-cols-2">
+                    <flux:card class="space-y-3 p-4">
+                        <flux:heading>কলেজের তথ্য</flux:heading>
+                        <flux:separator variant="subtle" />
+                        <dl class="space-y-2.5">
+                            @foreach([
                                     'কলেজের ধরন' => ['government' => 'সরকারি', 'non_government' => 'বেসরকারি', 'other' => 'অন্যান্য'][$selectedCollege->college_type] ?? 'উল্লেখ নেই',
                                     'অধ্যক্ষ' => $selectedCollege->principal?->name ?: 'উল্লেখ নেই',
                                     'প্রতিষ্ঠার বছর' => $selectedCollege->establish_year ?: 'উল্লেখ নেই',
@@ -175,53 +169,56 @@
                                     'ইমেইল' => $selectedCollege->college_email ?: 'উল্লেখ নেই',
                                     'ওয়েবসাইট' => $selectedCollege->college_website ?: 'উল্লেখ নেই',
                                 ] as $label => $value)
-                                    <div class="grid gap-1 sm:grid-cols-3 sm:gap-3">
-                                        <dt class="font-semibold text-slate-500">{{ $label }}</dt>
-                                        <dd class="break-words text-slate-900 sm:col-span-2 dark:text-slate-100">{{ $value }}</dd>
-                                    </div>
-                                @endforeach
-                            </dl>
-                        </section>
+                                <div class="grid grid-cols-[7rem_1fr] gap-2">
+                                    <dt><flux:text size="sm">{{ $label }}</flux:text></dt>
+                                    <dd><flux:text size="sm" class="break-words font-medium text-zinc-900 dark:text-white">{{ $value }}</flux:text></dd>
+                                </div>
+                            @endforeach
+                        </dl>
+                    </flux:card>
 
-                        <section class="rounded-2xl border border-slate-200 p-5 dark:border-slate-700">
-                            <flux:heading size="lg">ঠিকানা ও অবস্থান</flux:heading>
-                            <dl class="mt-4 space-y-3 text-sm">
-                                @foreach([
+                    <flux:card class="space-y-3 p-4">
+                        <flux:heading>ঠিকানা ও অবস্থান</flux:heading>
+                        <flux:separator variant="subtle" />
+                        <dl class="space-y-2.5">
+                            @foreach([
                                     'বিভাগ' => $selectedCollege->division?->bn_name ?: $selectedCollege->division?->name ?: 'উল্লেখ নেই',
                                     'জেলা' => $selectedCollege->district?->bn_name ?: $selectedCollege->district?->name ?: 'উল্লেখ নেই',
                                     'থানা' => $selectedCollege->thana?->bn_name ?: $selectedCollege->thana?->name ?: 'উল্লেখ নেই',
                                     'ঠিকানা' => $selectedCollege->address ?: 'উল্লেখ নেই',
                                 ] as $label => $value)
-                                    <div class="grid gap-1 sm:grid-cols-3 sm:gap-3">
-                                        <dt class="font-semibold text-slate-500">{{ $label }}</dt>
-                                        <dd class="break-words text-slate-900 sm:col-span-2 dark:text-slate-100">{{ $value }}</dd>
-                                    </div>
-                                @endforeach
-                            </dl>
-                        </section>
-                    </div>
-
-                    <section>
-                        <flux:heading size="lg">অধিভুক্ত বিষয় ও কোর্সসমূহ</flux:heading>
-                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                            @forelse($selectedCollege->programs as $program)
-                                <div class="rounded-xl bg-emerald-50 p-4 dark:bg-emerald-500/10">
-                                    <p class="font-bold text-emerald-800 dark:text-emerald-300">{{ $programLevelNames->get($program->level, $program->level) }}</p>
-                                    <div class="mt-2 flex flex-wrap gap-2">
-                                        @foreach($program->items ?: [$program->name] as $subject)
-                                            <flux:badge color="emerald" size="sm">{{ $subject }}</flux:badge>
-                                        @endforeach
-                                    </div>
+                                <div class="grid grid-cols-[4rem_1fr] gap-2">
+                                    <dt><flux:text size="sm">{{ $label }}</flux:text></dt>
+                                    <dd><flux:text size="sm" class="break-words font-medium text-zinc-900 dark:text-white">{{ $value }}</flux:text></dd>
                                 </div>
-                            @empty
-                                <flux:text class="sm:col-span-2">এই কলেজে এখনো কোনো অধিভুক্ত বিষয় বা কোর্স যোগ করা হয়নি।</flux:text>
-                            @endforelse
-                        </div>
-                    </section>
+                            @endforeach
+                        </dl>
+                    </flux:card>
+                </div>
 
-                    <div class="flex justify-end border-t border-slate-200 pt-5 dark:border-slate-700">
-                        <flux:button type="button" variant="primary" wire:click="closeCollegeModal">বন্ধ করুন</flux:button>
+                <flux:card class="space-y-3 p-4">
+                    <flux:heading>অধিভুক্ত বিষয় ও কোর্সসমূহ</flux:heading>
+                    <flux:separator variant="subtle" />
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        @forelse($selectedCollege->programs as $program)
+                            <flux:card class="space-y-2 p-3">
+                                <flux:heading size="sm">{{ $programLevelNames->get($program->level, $program->level) }}</flux:heading>
+                                <div class="flex flex-wrap gap-1.5">
+                                    @foreach($program->items ?: [$program->name] as $subject)
+                                        <flux:badge color="emerald" size="sm">{{ $subject }}</flux:badge>
+                                    @endforeach
+                                </div>
+                            </flux:card>
+                        @empty
+                            <flux:text class="sm:col-span-2">এই কলেজে এখনো কোনো অধিভুক্ত বিষয় বা কোর্স যোগ করা হয়নি।</flux:text>
+                        @endforelse
                     </div>
+                </flux:card>
+
+                <div class="flex justify-end">
+                    <flux:modal.close>
+                        <flux:button type="button" variant="primary" wire:click="closeCollegeModal">বন্ধ করুন</flux:button>
+                    </flux:modal.close>
                 </div>
             </div>
         @endif
