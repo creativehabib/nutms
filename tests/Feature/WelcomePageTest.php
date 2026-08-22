@@ -82,7 +82,22 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->assertSee('প্রধান নেভিগেশন')
         ->assertSee('অধিভুক্ত কলেজ ডিরেক্টরি');
 
+    $this->get(route('public.colleges.index', ['college' => $college->id]))
+        ->assertOk()
+        ->assertSeeHtml('data-affiliated-college-modal')
+        ->assertSee('college@example.com')
+        ->assertSee('বাংলা');
+
     Livewire::test(AffiliatedCollegeDirectory::class)
+        ->call('viewCollege', $college->id)
+        ->assertSet('selectedCollegeId', $college->id)
+        ->assertSet('showCollegeModal', true)
+        ->assertSeeHtml('data-affiliated-college-modal')
+        ->assertSee('college@example.com')
+        ->assertSee('বাংলা')
+        ->call('closeCollegeModal')
+        ->assertSet('selectedCollegeId', null)
+        ->assertSet('showCollegeModal', false)
         ->set('search', 'ইতিহাস')
         ->assertSee('Public Affiliated College')
         ->set('search', 'Not available')
