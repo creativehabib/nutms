@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'college_portal' => [
+        'media_url' => env('COLLEGE_PORTAL_MEDIA_URL', 'https://collegeportal.nu.ac.bd/uploads'),
+    ],
+
 ];
