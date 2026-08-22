@@ -51,6 +51,8 @@ class AffiliatedCollegeSeeder extends Seeder
                     'college_code' => $this->normalizeCollegeCode(Arr::get($college, 'college_code')),
                     'name' => Arr::get($college, 'college_name'),
                     'college_email' => Arr::get($college, 'email'),
+                    'logo' => Arr::get($college, 'logo', Arr::get($college, 'college_logo')),
+                    'banner' => Arr::get($college, 'banner', Arr::get($college, 'college_banner')),
                     'division_id' => $divisionId,
                     'district_id' => $districtId,
                     'thana_id' => $thanaId,
@@ -70,7 +72,7 @@ class AffiliatedCollegeSeeder extends Seeder
                 $chunk->all(),
                 ['college_code'],
                 [
-                    'name', 'college_email', 'division_id', 'district_id', 'thana_id', 'address',
+                    'name', 'college_email', 'logo', 'banner', 'division_id', 'district_id', 'thana_id', 'address',
                     'college_type', 'is_active', 'approval_status', 'updated_at',
                 ],
             );
