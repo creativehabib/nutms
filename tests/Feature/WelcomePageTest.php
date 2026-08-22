@@ -50,6 +50,8 @@ it('lets public users browse affiliated colleges and their subjects', function (
         'name' => 'Public Affiliated College',
         'college_email' => 'college@example.com',
         'college_type' => 'government',
+        'male_female' => 'B',
+        'total_land' => '3.5 acres',
         'about' => str_repeat('কলেজ সম্পর্কে বিস্তারিত পরিচিতি। ', 12),
         'is_active' => true,
         'approval_status' => ApprovalStatus::Approved,
@@ -95,6 +97,10 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->assertSet('showCollegeModal', true)
         ->assertSeeHtml('data-affiliated-college-modal')
         ->assertSee('কলেজের তথ্য')
+        ->assertSee('শিক্ষার্থীভিত্তিক ধরন')
+        ->assertSee('বয়েজ এন্ড গার্লস মিশ্র কলেজ')
+        ->assertSee('মোট জমি')
+        ->assertSee('3.5 acres')
         ->assertSee('ঠিকানা ও অবস্থান')
         ->assertSee('অধিভুক্ত বিষয় ও কোর্সসমূহ')
         ->assertSeeHtml('data-expand-college-about')
