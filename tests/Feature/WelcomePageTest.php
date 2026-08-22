@@ -85,12 +85,6 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->assertSee('প্রধান নেভিগেশন')
         ->assertSee('অধিভুক্ত কলেজ ডিরেক্টরি');
 
-    $this->get(route('public.colleges.index', ['college' => $college->id]))
-        ->assertOk()
-        ->assertSeeHtml('data-affiliated-college-modal')
-        ->assertSee('college@example.com')
-        ->assertSee('বাংলা');
-
     Livewire::test(AffiliatedCollegeDirectory::class)
         ->call('viewCollege', $college->id)
         ->assertSet('selectedCollegeId', $college->id)
@@ -187,6 +181,15 @@ it('filters public colleges by type division and district', function () {
         'district_id' => $secondDistrict->id,
     ]);
 
+    foreach (range(1, 13) as $collegeNumber) {
+        College::query()->create([
+            'name' => "Government Paginated College {$collegeNumber}",
+            'college_type' => 'government',
+            'division_id' => $firstDivision->id,
+            'district_id' => $firstDistrict->id,
+        ]);
+    }
+
     Livewire::test(AffiliatedCollegeDirectory::class)
         ->assertSeeHtml('data-public-district-filter')
         ->assertSeeHtml('disabled')
@@ -198,11 +201,25 @@ it('filters public colleges by type division and district', function () {
         ->set('district', (string) $firstDistrict->id)
         ->assertSee('Government District College')
         ->assertDontSee('Private District College')
+        ->call('setPage', 2)
+        ->assertSet('paginators.page', 2)
+        ->assertDontSee('?page=', false)
         ->set('collegeType', 'non_government')
+        ->assertSet('collegeType', 'non_government')
+        ->assertSet('paginators.page', 1)
+        ->assertDontSee('collegeType=', false)
+        ->assertDontSee('?page=', false)
         ->assertDontSee('Government District College')
         ->set('division', (string) $secondDivision->id)
         ->assertSet('district', '')
         ->assertSee('Private District College');
+
+    Livewire::withQueryParams([
+        'collegeType' => 'government',
+        'page' => 2,
+    ])->test(AffiliatedCollegeDirectory::class)
+        ->assertSet('collegeType', '')
+        ->assertSet('paginators.page', 1);
 });
 
 it('renders an empty state when no public training is available', function () {
