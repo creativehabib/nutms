@@ -70,58 +70,53 @@
         <p class="text-sm text-slate-500">পৃষ্ঠা {{ $colleges->currentPage() }} / {{ $colleges->lastPage() }}</p>
     </div>
 
-    <div wire:loading.class="opacity-50" wire:target="search,collegeType,division,district,clearFilters" class="grid gap-5 transition-opacity sm:grid-cols-2 xl:grid-cols-3">
-        @forelse($colleges as $college)
-            @php
-                $subjects = $college->programs->flatMap(fn ($program) => $program->items ?: [$program->name])->filter()->unique()->values();
-            @endphp
-            <article wire:key="college-{{ $college->id }}" class="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-900/10 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-800">
-                <div class="h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
-                <div class="flex flex-1 flex-col p-5 sm:p-6">
-                    <div class="flex items-start justify-between gap-4">
-                        <div class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
-                            <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="m3 21 18 0M5 21V9m14 12V9M3 9l9-6 9 6M9 21v-6h6v6M8 12h.01M12 12h.01M16 12h.01"/></svg>
-                        </div>
-                        @if($college->college_code)
-                            <span class="max-w-36 truncate rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">কোড: {{ $college->college_code }}</span>
-                        @endif
-                    </div>
+    <div data-affiliated-colleges-table wire:loading.class="opacity-50" wire:target="search,collegeType,division,district,clearFilters" class="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-opacity dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+        <flux:table>
+            <flux:table.columns>
+                <flux:table.column>কলেজ কোড</flux:table.column>
+                <flux:table.column>কলেজের নাম</flux:table.column>
+                <flux:table.column>ইমেইল</flux:table.column>
+                <flux:table.column>কলেজের ধরন</flux:table.column>
+                <flux:table.column class="text-right">অ্যাকশন</flux:table.column>
+            </flux:table.columns>
 
-                    <h3 class="mt-5 line-clamp-2 text-lg font-black leading-7 text-slate-900 transition group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-400">{{ $college->name }}</h3>
-                    <p class="mt-2 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                        <svg class="size-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11Z"/><circle cx="12" cy="10" r="2"/></svg>
-                        <span class="truncate">{{ $college->district?->bn_name ?: $college->district?->name ?: 'জেলা উল্লেখ নেই' }}{{ $college->division ? ', '.($college->division->bn_name ?: $college->division->name) : '' }}</span>
-                    </p>
-
-                    <div class="mt-5 flex-1 border-t border-slate-100 pt-4 dark:border-slate-800">
-                        <p class="text-[11px] font-black uppercase tracking-wider text-slate-400">অধিভুক্ত বিষয় / কোর্স</p>
-                        <div class="mt-3 flex flex-wrap gap-2">
-                            @forelse($subjects->take(4) as $subject)
-                                <span class="max-w-full truncate rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">{{ $subject }}</span>
-                            @empty
-                                <span class="text-sm text-slate-400">বিষয়ের তথ্য যোগ করা হয়নি</span>
-                            @endforelse
-                            @if($subjects->count() > 4)
-                                <span class="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">+{{ $subjects->count() - 4 }} আরও</span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <a href="{{ route('public.colleges.show', $college) }}" wire:navigate
-                       class="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500">
-                        কলেজের বিস্তারিত
-                        <svg class="size-4 transition group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"/></svg>
-                    </a>
-                </div>
-            </article>
-        @empty
-            <div class="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center sm:col-span-2 xl:col-span-3 dark:border-slate-700 dark:bg-slate-900">
-                <div class="mx-auto flex size-16 items-center justify-center rounded-2xl bg-slate-100 text-3xl dark:bg-slate-800">🔎</div>
-                <h3 class="mt-5 text-lg font-black text-slate-900 dark:text-white">কোনো কলেজ পাওয়া যায়নি</h3>
-                <p class="mt-2 text-sm text-slate-500">অনুসন্ধান পরিবর্তন করে আবার চেষ্টা করুন।</p>
-                <button wire:click="clearFilters" class="mt-5 text-sm font-bold text-emerald-700 hover:underline dark:text-emerald-400">সব কলেজ দেখুন</button>
-            </div>
-        @endforelse
+            <flux:table.rows>
+                @forelse($colleges as $college)
+                    <flux:table.row wire:key="college-{{ $college->id }}" class="transition-colors hover:bg-emerald-50/60 dark:hover:bg-emerald-500/5">
+                        <flux:table.cell class="whitespace-nowrap font-mono font-semibold text-slate-700 dark:text-slate-300">
+                            {{ $college->college_code ?: '—' }}
+                        </flux:table.cell>
+                        <flux:table.cell class="font-semibold text-slate-900 dark:text-white">
+                            {{ $college->name }}
+                        </flux:table.cell>
+                        <flux:table.cell class="whitespace-nowrap text-slate-600 dark:text-slate-300">
+                            {{ $college->college_email ?: '—' }}
+                        </flux:table.cell>
+                        <flux:table.cell class="whitespace-nowrap">
+                            <flux:badge :color="$college->college_type === 'government' ? 'emerald' : 'zinc'" size="sm">
+                                {{ ['government' => 'সরকারি', 'non_government' => 'বেসরকারি', 'other' => 'অন্যান্য'][$college->college_type] ?? 'উল্লেখ নেই' }}
+                            </flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell class="whitespace-nowrap text-right">
+                            <flux:button :href="route('public.colleges.show', $college)" wire:navigate variant="primary" size="sm" icon="eye">
+                                দেখুন
+                            </flux:button>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="5">
+                            <div class="px-6 py-12 text-center">
+                                <div class="mx-auto flex size-16 items-center justify-center rounded-2xl bg-slate-100 text-3xl dark:bg-slate-800">🔎</div>
+                                <h3 class="mt-5 text-lg font-black text-slate-900 dark:text-white">কোনো কলেজ পাওয়া যায়নি</h3>
+                                <p class="mt-2 text-sm text-slate-500">অনুসন্ধান পরিবর্তন করে আবার চেষ্টা করুন।</p>
+                                <button wire:click="clearFilters" class="mt-5 text-sm font-bold text-emerald-700 hover:underline dark:text-emerald-400">সব কলেজ দেখুন</button>
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
     </div>
 
     @if($colleges->hasPages())

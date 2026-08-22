@@ -58,7 +58,6 @@ class AffiliatedCollegeDirectory extends Component
     public function render(): View
     {
         $colleges = $this->publicColleges()
-            ->with(['division:id,name,bn_name', 'district:id,name,bn_name', 'programs:id,college_id,level,name,items'])
             ->when($this->search !== '', function (Builder $query): void {
                 $query->where(function (Builder $query): void {
                     $query->where('name', 'like', "%{$this->search}%")
