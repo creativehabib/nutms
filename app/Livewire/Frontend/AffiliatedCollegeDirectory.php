@@ -9,38 +9,25 @@ use App\Models\Division;
 use App\Models\ProgramLevel;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
 
 class AffiliatedCollegeDirectory extends Component
 {
-    use WithPagination;
+    use WithPagination, WithoutUrlPagination;
 
-    #[Url(history: true)]
     public string $search = '';
 
-    #[Url(history: true)]
     public string $division = '';
 
-    #[Url(history: true)]
     public string $district = '';
 
-    #[Url(history: true)]
     public string $collegeType = '';
 
     public bool $showCollegeModal = false;
 
-    #[Url(as: 'college', history: true)]
     public ?int $selectedCollegeId = null;
-
-    public function mount(): void
-    {
-        if ($this->selectedCollegeId !== null) {
-            $this->publicColleges()->findOrFail($this->selectedCollegeId);
-            $this->showCollegeModal = true;
-        }
-    }
 
     public function updatedSearch(): void
     {
