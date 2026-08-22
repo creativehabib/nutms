@@ -25,10 +25,10 @@ class CollegeMediaImporter
         'image/webp' => 'webp',
     ];
 
-    public function import(string $reference): string
+    public function import(string $reference, string $directory): string
     {
         $url = $this->sourceUrl($reference);
-        $path = $this->storagePath($reference);
+        $path = $this->storagePath($reference, $directory);
 
         try {
             $response = Http::accept('image/*')
@@ -73,6 +73,10 @@ class CollegeMediaImporter
         $baseUrl = rtrim($configuredBaseUrl !== '' ? $configuredBaseUrl : self::DEFAULT_MEDIA_URL, '/');
         $reference = trim($reference);
 
+        if (Str::startsWith(ltrim($reference, '/'), ['college-logos/', 'college-banners/'])) {
+            $reference = basename($reference);
+        }
+
         if (filter_var($reference, FILTER_VALIDATE_URL)) {
             $host = Str::lower((string) parse_url($reference, PHP_URL_HOST));
             $path = (string) parse_url($reference, PHP_URL_PATH);
@@ -93,7 +97,7 @@ class CollegeMediaImporter
         return $baseUrl.'/'.implode('/', array_map('rawurlencode', explode('/', $reference)));
     }
 
-    private function storagePath(string $reference): string
+    private function storagePath(string $reference, string $directory): string
     {
         if (filter_var($reference, FILTER_VALIDATE_URL)) {
             $reference = (string) parse_url($reference, PHP_URL_PATH);
@@ -106,6 +110,6 @@ class CollegeMediaImporter
             throw new RuntimeException('The college media storage path is invalid.');
         }
 
-        return $path;
+        return trim($directory, '/').'/'.basename($path);
     }
 }

@@ -24,10 +24,28 @@ it('downloads National University college media to public storage', function () 
 
     $college->refresh();
 
-    expect($college->logo)->toBe('0205_logo.jpg')
-        ->and($college->banner)->toBe('0205_banner.jpg');
+    expect($college->logo)->toBe('college-logos/0205_logo.jpg')
+        ->and($college->banner)->toBe('college-banners/0205_banner.jpg');
     Storage::disk('public')->assertExists($college->logo);
     Storage::disk('public')->assertExists($college->banner);
+});
+
+it('moves previously downloaded root media into college media directories', function () {
+    Storage::fake('public');
+    Http::preventStrayRequests();
+    Storage::disk('public')->put('0205_logo.jpg', 'existing-logo');
+
+    $college = College::query()->create([
+        'name' => 'College With Root Media',
+        'logo' => '0205_logo.jpg',
+    ]);
+
+    $this->artisan('colleges:download-media')->assertSuccessful();
+
+    expect($college->refresh()->logo)->toBe('college-logos/0205_logo.jpg');
+    Storage::disk('public')->assertMissing('0205_logo.jpg');
+    Storage::disk('public')->assertExists('college-logos/0205_logo.jpg');
+    Http::assertNothingSent();
 });
 
 it('rejects media outside the approved National University uploads directory', function () {

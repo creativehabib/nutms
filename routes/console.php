@@ -28,15 +28,33 @@ Artisan::command('colleges:download-media', function (CollegeMediaImporter $impo
         ->where(fn (Builder $query) => $query->whereNotNull('logo')->orWhereNotNull('banner'))
         ->lazyById()
         ->each(function (College $college) use ($importer, &$downloaded, &$unavailable, &$failed): void {
-            foreach (['logo', 'banner'] as $attribute) {
+            foreach (['logo' => 'college-logos', 'banner' => 'college-banners'] as $attribute => $directory) {
                 $reference = $college->{$attribute};
 
-                if (blank($reference) || Storage::disk('public')->exists($reference)) {
+                if (blank($reference)) {
+                    continue;
+                }
+
+                if (Storage::disk('public')->exists($reference)) {
+                    if (str_starts_with($reference, $directory.'/')) {
+                        continue;
+                    }
+
+                    $path = $directory.'/'.basename($reference);
+                    if (Storage::disk('public')->exists($path)) {
+                        Storage::disk('public')->delete($reference);
+                    } else {
+                        Storage::disk('public')->move($reference, $path);
+                    }
+                    $college->forceFill([$attribute => $path])->save();
+                    $downloaded++;
+
                     continue;
                 }
 
                 try {
-                    $importer->import($reference);
+                    $path = $importer->import($reference, $directory);
+                    $college->forceFill([$attribute => $path])->save();
                     $downloaded++;
                 } catch (\UnexpectedValueException $exception) {
                     $college->forceFill([$attribute => null])->save();
