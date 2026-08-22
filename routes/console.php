@@ -35,17 +35,31 @@ Artisan::command('colleges:download-media', function (CollegeMediaImporter $impo
                     continue;
                 }
 
-                if (Storage::disk('public')->exists($reference)) {
-                    if (str_starts_with($reference, $directory.'/')) {
-                        continue;
+                $rootPath = basename($reference);
+                $path = $directory.'/'.$rootPath;
+
+                if (Storage::disk('public')->exists($rootPath)) {
+                    if (Storage::disk('public')->exists($path)) {
+                        Storage::disk('public')->delete($rootPath);
+                    } else {
+                        Storage::disk('public')->move($rootPath, $path);
+                    }
+                    $college->forceFill([$attribute => $path])->save();
+                    $downloaded++;
+
+                    continue;
+                }
+
+                if (Storage::disk('public')->exists($path)) {
+                    if ($reference !== $path) {
+                        $college->forceFill([$attribute => $path])->save();
                     }
 
-                    $path = $directory.'/'.basename($reference);
-                    if (Storage::disk('public')->exists($path)) {
-                        Storage::disk('public')->delete($reference);
-                    } else {
-                        Storage::disk('public')->move($reference, $path);
-                    }
+                    continue;
+                }
+
+                if (Storage::disk('public')->exists($reference)) {
+                    Storage::disk('public')->move($reference, $path);
                     $college->forceFill([$attribute => $path])->save();
                     $downloaded++;
 

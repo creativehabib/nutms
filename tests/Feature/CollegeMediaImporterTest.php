@@ -37,7 +37,7 @@ it('moves previously downloaded root media into college media directories', func
 
     $college = College::query()->create([
         'name' => 'College With Root Media',
-        'logo' => '0205_logo.jpg',
+        'logo' => '/0205_logo.jpg',
     ]);
 
     $this->artisan('colleges:download-media')->assertSuccessful();
