@@ -127,7 +127,7 @@ it('grounds public answers with matching college programs and a verified clickab
         'name' => 'Honours Courses',
         'items' => ['Bangla', 'English', 'Economics'],
     ]);
-    $collegeUrl = route('public.colleges.show', $college);
+    $collegeUrl = route('public.colleges.index', ['college' => $college->id]);
     Http::fake(['https://api.openai.com/v1/chat/completions' => Http::response([
         'choices' => [['message' => ['content' => "**বিস্তারিত:**\n[{$collegeUrl}]({$collegeUrl}) — {$collegeUrl}"]]],
     ])]);
@@ -153,7 +153,7 @@ it('grounds public answers with matching college programs and a verified clickab
     Http::assertSent(fn ($request): bool => str_contains($request['messages'][0]['content'], 'Bangla, English, Economics')
         && str_contains($request['messages'][0]['content'], 'BHAWAL BADRE ALAM GOVT. COLLEGE')
         && ! str_contains($request['messages'][0]['content'], 'SHERE BANGLA COLLEGE')
-        && str_contains($request['messages'][0]['content'], route('public.colleges.show', $college)));
+        && str_contains($request['messages'][0]['content'], $collegeUrl));
 
     expect(Schema::hasTable('ai_conversations'))->toBeFalse();
 });
@@ -190,5 +190,5 @@ it('matches a joined misspelled college name against a spaced verified name', fu
     expect($context)->toContain('ANANDA MOHAN COLLEGE')
         ->toContain('code: 1762')
         ->toContain('BA, BSS, BBS, BSc')
-        ->toContain(route('public.colleges.show', $college));
+        ->toContain(route('public.colleges.index', ['college' => $college->id]));
 });
