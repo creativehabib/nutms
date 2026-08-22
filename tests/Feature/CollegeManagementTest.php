@@ -247,7 +247,7 @@ it('stores and displays every college profile field defined by the colleges tabl
         ->set('name', 'Complete Profile College')
         ->set('collegeNameBn', 'সম্পূর্ণ প্রোফাইল কলেজ')
         ->set('collegePhone', '01700000000')
-        ->set('maleFemale', 'co_education')
+        ->set('maleFemale', 'B')
         ->set('totalLand', '3.5 acres')
         ->set('establishYear', '1998')
         ->set('about', 'A complete public profile for this college.')
@@ -266,7 +266,7 @@ it('stores and displays every college profile field defined by the colleges tabl
 
     expect($college->college_name_bn)->toBe('সম্পূর্ণ প্রোফাইল কলেজ')
         ->and($college->college_phone)->toBe('01700000000')
-        ->and($college->male_female)->toBe('co_education')
+        ->and($college->male_female)->toBe('B')
         ->and($college->total_land)->toBe('3.5 acres')
         ->and($college->establish_year)->toBe('1998')
         ->and($college->about)->toBe('A complete public profile for this college.')
@@ -277,11 +277,27 @@ it('stores and displays every college profile field defined by the colleges tabl
     $this->get(route('public.colleges.show', $college))
         ->assertSuccessful()
         ->assertSee('সম্পূর্ণ প্রোফাইল কলেজ')
+        ->assertSee('বয়েজ এন্ড গার্লস মিশ্র কলেজ')
         ->assertSee('01700000000')
         ->assertSee('3.5 acres')
         ->assertSee('A complete public profile for this college.')
         ->assertSee('123456');
 });
+
+it('uses the colleges table B and F gender codes', function (string $code, string $label) {
+    $college = College::query()->create([
+        'name' => "Gender Type {$code} College",
+        'male_female' => $code,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    $this->get(route('public.colleges.show', $college))
+        ->assertSuccessful()
+        ->assertSee($label);
+})->with([
+    'boys and girls college' => ['B', 'বয়েজ এন্ড গার্লস মিশ্র কলেজ'],
+    'girls college only' => ['F', 'শুধু গার্লস কলেজ'],
+]);
 
 it('allows duplicate college names when creating and editing colleges', function () {
     $division = Division::query()->where('name', 'Test Division One')->firstOrFail();

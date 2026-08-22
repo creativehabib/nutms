@@ -182,7 +182,7 @@ class CollegeForm extends Component
             'name' => ['required', 'string', 'max:255'],
             'collegeNameBn' => ['nullable', 'string', 'max:255'],
             'collegePhone' => ['nullable', 'string', 'max:255'],
-            'maleFemale' => ['nullable', Rule::in(['male', 'female', 'co_education'])],
+            'maleFemale' => ['nullable', Rule::in(['B', 'F'])],
             'totalLand' => ['nullable', 'string', 'max:255'],
             'establishYear' => ['nullable', 'integer', 'digits:4', 'min:1800', 'max:'.now()->year],
             'about' => ['nullable', 'string', 'max:5000'],

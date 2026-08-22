@@ -36,11 +36,10 @@
                     <flux:input wire:model="collegeWebsite" type="url" :label="__('College Website')" :placeholder="__('https://example.edu')" />
                     <flux:input wire:model="establishYear" type="number" min="1800" max="{{ now()->year }}" :label="__('Establishment Year')" :placeholder="__('YYYY')" />
                     <flux:input wire:model="totalLand" :label="__('Total Land')" :placeholder="__('Example: 2.5 acres')" />
-                    <flux:select wire:model="maleFemale" :label="__('Student Type')">
+                    <flux:select wire:model="maleFemale" :label="__('College Gender Type')">
                         <option value="">{{ __('Select...') }}</option>
-                        <option value="male">{{ __('Male') }}</option>
-                        <option value="female">{{ __('Female') }}</option>
-                        <option value="co_education">{{ __('Co-education') }}</option>
+                        <option value="B">{{ __('B - Boys and Girls College') }}</option>
+                        <option value="F">{{ __('F - Girls College Only') }}</option>
                     </flux:select>
                     <flux:select wire:model="collegeType" :label="__('College Type')" required>
                         <option value="">{{ __('Select...') }}</option>

@@ -39,7 +39,7 @@
                         'কলেজের ধরন' => ['government' => 'সরকারি', 'non_government' => 'বেসরকারি', 'other' => 'অন্যান্য'][$college->college_type] ?? 'উল্লেখ নেই',
                         'অধ্যক্ষ' => $college->principal?->name ?: 'উল্লেখ নেই',
                         'প্রতিষ্ঠার বছর' => $college->establish_year ?: 'উল্লেখ নেই',
-                        'শিক্ষার্থী ধরন' => ['male' => 'ছাত্র', 'female' => 'ছাত্রী', 'co_education' => 'সহশিক্ষা'][$college->male_female] ?? 'উল্লেখ নেই',
+                        'শিক্ষার্থীভিত্তিক ধরন' => ['B' => 'বয়েজ এন্ড গার্লস মিশ্র কলেজ', 'F' => 'শুধু গার্লস কলেজ'][$college->male_female] ?? 'উল্লেখ নেই',
                         'মোট জমি' => $college->total_land ?: 'উল্লেখ নেই',
                         'ফোন' => $college->college_phone ?: 'উল্লেখ নেই',
                         'ইমেইল' => $college->college_email ?: 'উল্লেখ নেই',
