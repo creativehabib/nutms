@@ -49,7 +49,7 @@ class WebsiteKnowledgeService
                     "code: {$college->college_code}",
                     'location: '.collect([$college->district?->name, $college->division?->name])->filter()->implode(', '),
                     $programs !== '' ? "programs/courses: {$programs}" : null,
-                    'verified page: '.route('public.colleges.show', $college),
+                    'verified profile link: '.route('public.colleges.index', ['college' => $college->id]),
                 ]));
             });
 

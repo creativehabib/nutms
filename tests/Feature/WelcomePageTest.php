@@ -48,6 +48,8 @@ it('lets public users browse affiliated colleges and their subjects', function (
     $college = College::query()->create([
         'college_code' => '2020',
         'name' => 'Public Affiliated College',
+        'college_email' => 'college@example.com',
+        'college_type' => 'government',
         'is_active' => true,
         'approval_status' => ApprovalStatus::Approved,
     ]);
@@ -70,12 +72,35 @@ it('lets public users browse affiliated colleges and their subjects', function (
 
     $this->get(route('public.colleges.index'))
         ->assertOk()
+        ->assertSeeHtml('data-affiliated-colleges-table')
+        ->assertSeeInOrder(['কলেজ কোড', 'কলেজের নাম', 'ইমেইল', 'কলেজের ধরন', 'অ্যাকশন'])
+        ->assertSee('2020')
         ->assertSee('Public Affiliated College')
-        ->assertSee('বাংলা')
+        ->assertSee('college@example.com')
+        ->assertSee('সরকারি')
+        ->assertSee('দেখুন')
         ->assertSee('প্রধান নেভিগেশন')
         ->assertSee('অধিভুক্ত কলেজ ডিরেক্টরি');
 
+    $this->get(route('public.colleges.index', ['college' => $college->id]))
+        ->assertOk()
+        ->assertSeeHtml('data-affiliated-college-modal')
+        ->assertSee('college@example.com')
+        ->assertSee('বাংলা');
+
     Livewire::test(AffiliatedCollegeDirectory::class)
+        ->call('viewCollege', $college->id)
+        ->assertSet('selectedCollegeId', $college->id)
+        ->assertSet('showCollegeModal', true)
+        ->assertSeeHtml('data-affiliated-college-modal')
+        ->assertSee('কলেজের তথ্য')
+        ->assertSee('ঠিকানা ও অবস্থান')
+        ->assertSee('অধিভুক্ত বিষয় ও কোর্সসমূহ')
+        ->assertSee('college@example.com')
+        ->assertSee('বাংলা')
+        ->call('closeCollegeModal')
+        ->assertSet('selectedCollegeId', null)
+        ->assertSet('showCollegeModal', false)
         ->set('search', 'ইতিহাস')
         ->assertSee('Public Affiliated College')
         ->set('search', 'Not available')
