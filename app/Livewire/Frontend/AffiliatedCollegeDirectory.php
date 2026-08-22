@@ -6,6 +6,7 @@ use App\Enums\ApprovalStatus;
 use App\Models\College;
 use App\Models\District;
 use App\Models\Division;
+use App\Models\ProgramLevel;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
@@ -27,6 +28,19 @@ class AffiliatedCollegeDirectory extends Component
 
     #[Url(history: true)]
     public string $collegeType = '';
+
+    public bool $showCollegeModal = false;
+
+    #[Url(as: 'college', history: true)]
+    public ?int $selectedCollegeId = null;
+
+    public function mount(): void
+    {
+        if ($this->selectedCollegeId !== null) {
+            $this->publicColleges()->findOrFail($this->selectedCollegeId);
+            $this->showCollegeModal = true;
+        }
+    }
 
     public function updatedSearch(): void
     {
@@ -55,10 +69,22 @@ class AffiliatedCollegeDirectory extends Component
         $this->resetPage();
     }
 
+    public function viewCollege(int $collegeId): void
+    {
+        $college = $this->publicColleges()->findOrFail($collegeId);
+
+        $this->selectedCollegeId = $college->id;
+        $this->showCollegeModal = true;
+    }
+
+    public function closeCollegeModal(): void
+    {
+        $this->reset('showCollegeModal', 'selectedCollegeId');
+    }
+
     public function render(): View
     {
         $colleges = $this->publicColleges()
-            ->with(['division:id,name,bn_name', 'district:id,name,bn_name', 'programs:id,college_id,level,name,items'])
             ->when($this->search !== '', function (Builder $query): void {
                 $query->where(function (Builder $query): void {
                     $query->where('name', 'like', "%{$this->search}%")
@@ -88,8 +114,33 @@ class AffiliatedCollegeDirectory extends Component
                 ->orderBy('name')
                 ->get(['id', 'division_id', 'name', 'bn_name']);
 
-        return view('livewire.frontend.affiliated-college-directory', compact('colleges', 'districts', 'divisions'))
+        $selectedCollege = $this->selectedCollege();
+        $programLevelNames = $selectedCollege === null
+            ? collect()
+            : ProgramLevel::query()
+                ->whereIn('slug', $selectedCollege->programs->pluck('level'))
+                ->pluck('name', 'slug');
+
+        return view('livewire.frontend.affiliated-college-directory', compact(
+            'colleges',
+            'districts',
+            'divisions',
+            'programLevelNames',
+            'selectedCollege',
+        ))
             ->layout('layouts.frontend', ['title' => 'অধিভুক্ত কলেজসমূহ']);
+    }
+
+    private function selectedCollege(): ?College
+    {
+        if ($this->selectedCollegeId === null) {
+            return null;
+        }
+
+        return $this->publicColleges()
+            ->with(['division:id,name,bn_name', 'district:id,name,bn_name', 'thana:id,name,bn_name', 'principal:id,name,college_id', 'programs'])
+            ->withCount('teachers')
+            ->find($this->selectedCollegeId);
     }
 
     /** @return Builder<College> */
