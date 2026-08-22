@@ -48,6 +48,8 @@ it('lets public users browse affiliated colleges and their subjects', function (
     $college = College::query()->create([
         'college_code' => '2020',
         'name' => 'Public Affiliated College',
+        'college_email' => 'college@example.com',
+        'college_type' => 'government',
         'is_active' => true,
         'approval_status' => ApprovalStatus::Approved,
     ]);
@@ -70,8 +72,13 @@ it('lets public users browse affiliated colleges and their subjects', function (
 
     $this->get(route('public.colleges.index'))
         ->assertOk()
+        ->assertSeeHtml('data-affiliated-colleges-table')
+        ->assertSeeInOrder(['কলেজ কোড', 'কলেজের নাম', 'ইমেইল', 'কলেজের ধরন', 'অ্যাকশন'])
+        ->assertSee('2020')
         ->assertSee('Public Affiliated College')
-        ->assertSee('বাংলা')
+        ->assertSee('college@example.com')
+        ->assertSee('সরকারি')
+        ->assertSee('দেখুন')
         ->assertSee('প্রধান নেভিগেশন')
         ->assertSee('অধিভুক্ত কলেজ ডিরেক্টরি');
 
