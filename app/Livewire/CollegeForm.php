@@ -15,15 +15,31 @@ use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 class CollegeForm extends Component
 {
+    use WithFileUploads;
+
     public ?int $editingId = null;
     public string $college_code = '';
     public string $name = '';
+    public string $collegeNameBn = '';
+    public string $collegePhone = '';
+    public string $maleFemale = '';
+    public string $totalLand = '';
+    public string $establishYear = '';
+    public string $about = '';
+    public string $eiin = '';
+    public $logo = null;
+    public $banner = null;
+    public ?string $existingLogo = null;
+    public ?string $existingBanner = null;
     public string $divisionId = '';
     public string $districtId = '';
     public string $thanaId = '';
@@ -129,6 +145,15 @@ class CollegeForm extends Component
         $this->editingId = $college->id;
         $this->college_code = (string) ($college->college_code ?? '');
         $this->name = $college->name;
+        $this->collegeNameBn = (string) ($college->college_name_bn ?? '');
+        $this->collegePhone = (string) ($college->college_phone ?? '');
+        $this->maleFemale = (string) ($college->male_female ?? '');
+        $this->totalLand = (string) ($college->total_land ?? '');
+        $this->establishYear = (string) ($college->establish_year ?? '');
+        $this->about = (string) ($college->about ?? '');
+        $this->eiin = (string) ($college->eiin ?? '');
+        $this->existingLogo = $college->logo;
+        $this->existingBanner = $college->banner;
         $this->divisionId = (string) ($college->division_id ?? '');
         $this->districtId = (string) ($college->district_id ?? '');
         $this->thanaId = (string) ($college->thana_id ?? '');
@@ -155,6 +180,15 @@ class CollegeForm extends Component
         $validated = $this->validate([
             'college_code' => ['nullable', 'string', 'max:255', Rule::unique('colleges', 'college_code')->ignore($this->editingId)],
             'name' => ['required', 'string', 'max:255'],
+            'collegeNameBn' => ['nullable', 'string', 'max:255'],
+            'collegePhone' => ['nullable', 'string', 'max:255'],
+            'maleFemale' => ['nullable', Rule::in(['male', 'female', 'co_education'])],
+            'totalLand' => ['nullable', 'string', 'max:255'],
+            'establishYear' => ['nullable', 'integer', 'digits:4', 'min:1800', 'max:'.now()->year],
+            'about' => ['nullable', 'string', 'max:5000'],
+            'eiin' => ['nullable', 'string', 'max:255'],
+            'logo' => ['nullable', 'image', 'max:2048'],
+            'banner' => ['nullable', 'image', 'max:4096'],
             'divisionId' => ['required', Rule::exists('divisions', 'id')],
             'districtId' => ['required', Rule::exists('districts', 'id')],
             'thanaId' => ['required', Rule::exists('thanas', 'id')],
@@ -202,6 +236,15 @@ class CollegeForm extends Component
             $college = College::query()->updateOrCreate(['id' => $this->editingId], [
                 'college_code' => blank($validated['college_code']) ? null : $validated['college_code'],
                 'name' => $validated['name'],
+                'college_name_bn' => blank($validated['collegeNameBn']) ? null : $validated['collegeNameBn'],
+                'college_phone' => blank($validated['collegePhone']) ? null : $validated['collegePhone'],
+                'male_female' => blank($validated['maleFemale']) ? null : $validated['maleFemale'],
+                'total_land' => blank($validated['totalLand']) ? null : $validated['totalLand'],
+                'establish_year' => blank($validated['establishYear']) ? null : $validated['establishYear'],
+                'about' => blank($validated['about']) ? null : $validated['about'],
+                'eiin' => blank($validated['eiin']) ? null : $validated['eiin'],
+                'logo' => $this->storeImage($this->logo, 'college-logos', $this->existingLogo),
+                'banner' => $this->storeImage($this->banner, 'college-banners', $this->existingBanner),
                 'division_id' => $validated['divisionId'],
                 'district_id' => $validated['districtId'],
                 'thana_id' => $validated['thanaId'],
@@ -270,6 +313,19 @@ class CollegeForm extends Component
                 }
             }
         }
+    }
+
+    private function storeImage(?TemporaryUploadedFile $image, string $directory, ?string $existingPath): ?string
+    {
+        if ($image === null) {
+            return $existingPath;
+        }
+
+        if ($existingPath !== null) {
+            Storage::disk('public')->delete($existingPath);
+        }
+
+        return $image->store($directory, 'public');
     }
 
     private function inferLabEquipmentType(?int $desktopCount, ?int $laptopCount): string

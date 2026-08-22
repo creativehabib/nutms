@@ -27,16 +27,46 @@
 
             <div class="p-6">
                 <div class="grid gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="college_code"  :label="__('College Code')" :placeholder="__('Enter college code')" />
-                    <flux:input wire:model="name"  :label="__('College Name')" :placeholder="__('Enter college name')" required />
+                    <flux:input wire:model="college_code" :label="__('College Code')" :placeholder="__('Enter college code')" />
+                    <flux:input wire:model="eiin" :label="__('EIIN')" :placeholder="__('Enter EIIN')" />
+                    <flux:input wire:model="name" :label="__('College Name')" :placeholder="__('Enter college name')" required />
+                    <flux:input wire:model="collegeNameBn" :label="__('College Name (Bangla)')" :placeholder="__('বাংলায় কলেজের নাম')" />
+                    <flux:input wire:model="collegePhone" type="tel" :label="__('College Phone')" :placeholder="__('Enter phone number')" />
                     <flux:input wire:model="collegeEmail" type="email" :label="__('College Email')" :placeholder="__('college@example.com')" />
                     <flux:input wire:model="collegeWebsite" type="url" :label="__('College Website')" :placeholder="__('https://example.edu')" />
+                    <flux:input wire:model="establishYear" type="number" min="1800" max="{{ now()->year }}" :label="__('Establishment Year')" :placeholder="__('YYYY')" />
+                    <flux:input wire:model="totalLand" :label="__('Total Land')" :placeholder="__('Example: 2.5 acres')" />
+                    <flux:select wire:model="maleFemale" :label="__('Student Type')">
+                        <option value="">{{ __('Select...') }}</option>
+                        <option value="male">{{ __('Male') }}</option>
+                        <option value="female">{{ __('Female') }}</option>
+                        <option value="co_education">{{ __('Co-education') }}</option>
+                    </flux:select>
                     <flux:select wire:model="collegeType" :label="__('College Type')" required>
                         <option value="">{{ __('Select...') }}</option>
                         <option value="government">{{ __('Government') }}</option>
                         <option value="non_government">{{ __('Non-government') }}</option>
                         <option value="other">{{ __('Other') }}</option>
                     </flux:select>
+                    <div class="sm:col-span-2">
+                        <flux:textarea wire:model="about" :label="__('About College')" rows="4" :placeholder="__('Write a short college profile')" />
+                    </div>
+                    <div>
+                        <flux:input wire:model="logo" type="file" accept="image/*" :label="__('College Logo')" />
+                        @if($logo)
+                            <img src="{{ $logo->temporaryUrl() }}" alt="{{ __('New college logo preview') }}" class="mt-3 size-24 rounded-xl border object-contain p-2">
+                        @elseif($existingLogo)
+                            <img src="{{ asset('storage/'.$existingLogo) }}" alt="{{ __('Current college logo') }}" class="mt-3 size-24 rounded-xl border object-contain p-2">
+                        @endif
+                    </div>
+                    <div>
+                        <flux:input wire:model="banner" type="file" accept="image/*" :label="__('College Banner')" />
+                        @if($banner)
+                            <img src="{{ $banner->temporaryUrl() }}" alt="{{ __('New college banner preview') }}" class="mt-3 h-24 w-full rounded-xl border object-cover">
+                        @elseif($existingBanner)
+                            <img src="{{ asset('storage/'.$existingBanner) }}" alt="{{ __('Current college banner') }}" class="mt-3 h-24 w-full rounded-xl border object-cover">
+                        @endif
+                    </div>
                 </div>
             </div>
         </flux:card>
