@@ -22,6 +22,15 @@ return new class extends Migration
             $table->id();
             $table->string('college_code')->nullable()->unique();
             $table->string('name');
+            $table->string('college_name_bn')->nullable();
+            $table->string('college_phone')->nullable();
+            $table->string('male_female')->nullable();
+            $table->string('total_land')->nullable();
+            $table->string('establish_year')->nullable();
+            $table->text('about')->nullable();
+            $table->string('logo')->nullable();
+            $table->string('banner')->nullable();
+            $table->string('eiin')->nullable();
             $table->foreignId('division_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('district_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('thana_id')->nullable()->constrained()->nullOnDelete();

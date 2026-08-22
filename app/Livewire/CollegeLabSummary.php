@@ -75,7 +75,14 @@ class CollegeLabSummary extends Component
             ->select(['id', 'college_code', 'name'])
             ->selectRaw('(COALESCE(desktop_count, 0) + COALESCE(laptop_count, 0)) as total_computers')
             ->where('is_active', true)
-            ->where('has_computer_lab', $hasLab)
+            ->when($hasLab, function (Builder $query) {
+                $query->where('has_computer_lab', true);
+            }, function (Builder $query) {
+                $query->where(function (Builder $q) {
+                    $q->where('has_computer_lab', false)
+                        ->orWhereNull('has_computer_lab');
+                });
+            })
             ->orderBy('college_code')
             ->orderBy('name');
     }
