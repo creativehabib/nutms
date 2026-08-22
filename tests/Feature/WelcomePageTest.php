@@ -50,6 +50,7 @@ it('lets public users browse affiliated colleges and their subjects', function (
         'name' => 'Public Affiliated College',
         'college_email' => 'college@example.com',
         'college_type' => 'government',
+        'about' => str_repeat('কলেজ সম্পর্কে বিস্তারিত পরিচিতি। ', 12),
         'is_active' => true,
         'approval_status' => ApprovalStatus::Approved,
     ]);
@@ -96,6 +97,10 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->assertSee('কলেজের তথ্য')
         ->assertSee('ঠিকানা ও অবস্থান')
         ->assertSee('অধিভুক্ত বিষয় ও কোর্সসমূহ')
+        ->assertSeeHtml('data-expand-college-about')
+        ->assertSeeHtml("'line-clamp-3': ! expanded")
+        ->assertSee('আরও দেখুন')
+        ->assertSee('কম দেখুন')
         ->assertSee('college@example.com')
         ->assertSee('বাংলা')
         ->call('closeCollegeModal')

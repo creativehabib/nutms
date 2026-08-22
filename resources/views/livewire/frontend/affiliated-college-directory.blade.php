@@ -125,7 +125,7 @@
         </div>
     @endif
 
-    <flux:modal wire:model="showCollegeModal" name="affiliated-college-details" @close="$wire.closeCollegeModal()" class="max-w-3xl">
+    <flux:modal wire:model="showCollegeModal" name="affiliated-college-details" @close="$wire.closeCollegeModal()" class="max-w-3xl bg-white text-zinc-900 dark:bg-zinc-900 dark:text-white">
         @if($selectedCollege)
             <div class="space-y-4" data-affiliated-college-modal>
                 <div class="flex items-start gap-3">
@@ -151,13 +151,34 @@
                 </div>
 
                 @if($selectedCollege->about)
-                    <flux:callout variant="info" icon="information-circle" heading="কলেজ পরিচিতি" class="whitespace-pre-line">
-                        {{ $selectedCollege->about }}
+                    @php($collegeAbout = trim($selectedCollege->about))
+                    <flux:callout
+                        wire:key="college-about-{{ $selectedCollege->id }}"
+                        x-data="{ expanded: false }"
+                        variant="info"
+                        icon="information-circle"
+                        heading="কলেজ পরিচিতি"
+                    >
+                        <flux:text class="leading-6" x-bind:class="{ 'line-clamp-3': ! expanded }">
+                            {{ $collegeAbout }}
+                        </flux:text>
+                        @if(mb_strlen($collegeAbout) > 180)
+                            <flux:button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                class="mt-1"
+                                x-on:click="expanded = ! expanded"
+                                x-bind:aria-expanded="expanded"
+                                x-text="expanded ? 'কম দেখুন' : 'আরও দেখুন'"
+                                data-expand-college-about
+                            />
+                        @endif
                     </flux:callout>
                 @endif
 
                 <div class="grid gap-3 md:grid-cols-2">
-                    <flux:card class="space-y-3 p-4">
+                    <flux:card class="space-y-3 bg-white p-4 dark:bg-zinc-800">
                         <flux:heading>কলেজের তথ্য</flux:heading>
                         <flux:separator variant="subtle" />
                         <dl class="space-y-2.5">
@@ -177,7 +198,7 @@
                         </dl>
                     </flux:card>
 
-                    <flux:card class="space-y-3 p-4">
+                    <flux:card class="space-y-3 bg-white p-4 dark:bg-zinc-800">
                         <flux:heading>ঠিকানা ও অবস্থান</flux:heading>
                         <flux:separator variant="subtle" />
                         <dl class="space-y-2.5">
@@ -196,12 +217,12 @@
                     </flux:card>
                 </div>
 
-                <flux:card class="space-y-3 p-4">
+                <flux:card class="space-y-3 bg-white p-4 dark:bg-zinc-800">
                     <flux:heading>অধিভুক্ত বিষয় ও কোর্সসমূহ</flux:heading>
                     <flux:separator variant="subtle" />
                     <div class="grid gap-3 sm:grid-cols-2">
                         @forelse($selectedCollege->programs as $program)
-                            <flux:card class="space-y-2 p-3">
+                            <flux:card class="space-y-2 bg-zinc-50 p-3 dark:bg-zinc-900">
                                 <flux:heading size="sm">{{ $programLevelNames->get($program->level, $program->level) }}</flux:heading>
                                 <div class="flex flex-wrap gap-1.5">
                                     @foreach($program->items ?: [$program->name] as $subject)
