@@ -238,10 +238,13 @@
                     </div>
                 </flux:card>
 
-                <div class="flex justify-end">
+                <div class="flex flex-wrap justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button type="button" variant="primary" wire:click="closeCollegeModal">বন্ধ করুন</flux:button>
+                        <flux:button type="button" variant="ghost" wire:click="closeCollegeModal">বন্ধ করুন</flux:button>
                     </flux:modal.close>
+                    <flux:button :href="$selectedCollege->publicProfileUrl()" wire:navigate variant="primary" icon-trailing="arrow-up-right" data-college-profile-link>
+                        সম্পূর্ণ প্রোফাইল দেখুন
+                    </flux:button>
                 </div>
             </div>
         @endif

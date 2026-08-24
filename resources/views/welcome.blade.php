@@ -524,7 +524,7 @@
                         </div>
                     </div>
 
-                    <a href="{{ route('public.colleges.show', $college) }}"
+                    <a href="{{ $college->publicProfileUrl() }}"
                        class="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800">
                         বিস্তারিত দেখুন <span aria-hidden="true">→</span>
                     </a>
