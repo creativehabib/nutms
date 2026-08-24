@@ -1,16 +1,5 @@
 <div
     class="fixed bottom-5 right-5 z-50"
-    x-data="{ storageKey: @js('ai-chat-messages-' . (auth()->id() ?? 'guest')) }"
-    x-init="
-        try {
-            const savedMessages = JSON.parse(sessionStorage.getItem(storageKey) || '[]');
-            if (Array.isArray(savedMessages) && savedMessages.length) $wire.restoreMessages(savedMessages);
-        } catch (error) {
-            sessionStorage.removeItem(storageKey);
-        }
-        $wire.$watch('messages', messages => sessionStorage.setItem(storageKey, JSON.stringify(messages)));
-    "
-    x-on:ai-conversation-reset.window="sessionStorage.removeItem(storageKey)"
     x-on:ai-message-added.window="$nextTick(() => { const box = $refs.messages; if (box) box.scrollTop = box.scrollHeight })"
 >
     @if($open)
@@ -51,7 +40,9 @@
         </section>
     @endif
 
-    <flux:button wire:click="$toggle('open')" variant="primary" icon="sparkles" class="rounded-full shadow-lg">
-        {{ $open ? __('Close') : __('AI Assistant') }}
-    </flux:button>
+    @unless($open)
+        <flux:button wire:click="$toggle('open')" variant="primary" icon="sparkles" class="rounded-full shadow-lg" data-test="ai-chat-launcher">
+            {{ __('AI Assistant') }}
+        </flux:button>
+    @endunless
 </div>
