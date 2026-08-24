@@ -33,9 +33,21 @@ class AffiliatedCollegeDetails extends Component
         $programLevelNames = ProgramLevel::query()
             ->whereIn('slug', $this->college->programs->pluck('level'))
             ->pluck('name', 'slug');
+        $relatedColleges = $this->college->division_id === null
+            ? College::newCollection()
+            : College::query()
+                ->whereKeyNot($this->college->getKey())
+                ->where('division_id', $this->college->division_id)
+                ->where('is_active', true)
+                ->where('approval_status', ApprovalStatus::Approved)
+                ->orderByRaw('CASE WHEN district_id = ? THEN 0 ELSE 1 END', [$this->college->district_id])
+                ->orderBy('name')
+                ->limit(4)
+                ->get(['id', 'name', 'college_name_bn', 'college_code', 'logo', 'district_id', 'division_id']);
 
         return view('livewire.frontend.affiliated-college-details', [
             'programLevelNames' => $programLevelNames,
+            'relatedColleges' => $relatedColleges,
         ])
             ->layout('layouts.frontend', [
                 'title' => $this->college->name,

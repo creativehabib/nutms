@@ -103,6 +103,8 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->assertSee('কম দেখুন')
         ->assertSee('college@example.com')
         ->assertSee('বাংলা')
+        ->assertSeeHtml('data-college-profile-link')
+        ->assertSee($college->publicProfileUrl())
         ->call('closeCollegeModal')
         ->assertSet('selectedCollegeId', null)
         ->assertSet('showCollegeModal', false)
@@ -148,6 +150,65 @@ it('uses one canonical SEO-friendly URL for a public college profile', function 
 
     $this->get(route('public.colleges.show', ['college' => $college, 'slug' => 'incorrect-name']))
         ->assertNotFound();
+});
+
+it('suggests other approved colleges from the same region on a college profile', function () {
+    $division = Division::query()->create([
+        'country_id' => 1,
+        'name' => 'Suggestion Division',
+        'bn_name' => 'সাজেশন বিভাগ',
+    ]);
+    $district = District::query()->create([
+        'division_id' => $division->id,
+        'name' => 'Suggestion District',
+        'bn_name' => 'সাজেশন জেলা',
+    ]);
+    $otherDistrict = District::query()->create([
+        'division_id' => $division->id,
+        'name' => 'Nearby District',
+        'bn_name' => 'নিকটবর্তী জেলা',
+    ]);
+    $otherDivision = Division::query()->create([
+        'country_id' => 1,
+        'name' => 'Unrelated Division',
+        'bn_name' => 'অন্য বিভাগ',
+    ]);
+
+    $college = College::query()->create([
+        'name' => 'Visited Regional College',
+        'division_id' => $division->id,
+        'district_id' => $district->id,
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    $sameDistrictCollege = College::query()->create([
+        'name' => 'Same District College',
+        'division_id' => $division->id,
+        'district_id' => $district->id,
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    $sameDivisionCollege = College::query()->create([
+        'name' => 'Same Division College',
+        'division_id' => $division->id,
+        'district_id' => $otherDistrict->id,
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    College::query()->create([
+        'name' => 'Unrelated Regional College',
+        'division_id' => $otherDivision->id,
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    $this->get($college->publicProfileUrl())
+        ->assertOk()
+        ->assertSeeHtml('data-related-colleges')
+        ->assertSeeInOrder(['Same District College', 'Same Division College'])
+        ->assertSee($sameDistrictCollege->publicProfileUrl())
+        ->assertSee($sameDivisionCollege->publicProfileUrl())
+        ->assertDontSee('Unrelated Regional College');
 });
 
 it('only exposes active approved colleges to public users', function () {
