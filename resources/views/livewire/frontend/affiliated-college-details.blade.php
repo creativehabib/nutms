@@ -103,4 +103,41 @@
                 @endforelse
             </div>
     </section>
+
+    @if($relatedColleges->isNotEmpty())
+        <section class="space-y-4" aria-labelledby="related-colleges-heading" data-related-colleges>
+            <div>
+                <h2 id="related-colleges-heading" class="text-2xl font-black text-slate-900 dark:text-white">এই অঞ্চলের আরও কলেজ</h2>
+                <p class="mt-1 text-sm text-slate-500">একই বিভাগে থাকা অন্যান্য অনুমোদিত কলেজ প্রোফাইল দেখুন।</p>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                @foreach($relatedColleges as $relatedCollege)
+                    <a
+                        wire:key="related-college-{{ $relatedCollege->id }}"
+                        href="{{ $relatedCollege->publicProfileUrl() }}"
+                        wire:navigate
+                        class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700"
+                    >
+                        <div class="flex items-start gap-3">
+                            <flux:avatar
+                                size="lg"
+                                :name="$relatedCollege->college_name_bn ?: $relatedCollege->name"
+                                :src="$relatedCollege->logo ? asset('storage/'.$relatedCollege->logo) : null"
+                            />
+                            <div class="min-w-0">
+                                <h3 class="font-bold leading-6 text-slate-900 group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-400">
+                                    {{ $relatedCollege->college_name_bn ?: $relatedCollege->name }}
+                                </h3>
+                                @if($relatedCollege->college_name_bn)
+                                    <p class="mt-1 text-xs text-slate-500">{{ $relatedCollege->name }}</p>
+                                @endif
+                                <p class="mt-2 text-xs font-semibold text-slate-500">কলেজ কোড: {{ $relatedCollege->college_code ?: 'উল্লেখ নেই' }}</p>
+                            </div>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
 </div>
