@@ -14,10 +14,12 @@ class AffiliatedCollegeDetails extends Component
     #[Locked]
     public College $college;
 
-    public function mount(College $college): void
+    public function mount(College $college, string $slug): void
     {
         abort_unless(
-            $college->is_active && $college->approval_status === ApprovalStatus::Approved,
+            $college->is_active
+                && $college->approval_status === ApprovalStatus::Approved
+                && hash_equals($college->publicProfileSlug(), $slug),
             404,
         );
 
@@ -35,6 +37,13 @@ class AffiliatedCollegeDetails extends Component
         return view('livewire.frontend.affiliated-college-details', [
             'programLevelNames' => $programLevelNames,
         ])
-            ->layout('layouts.frontend', ['title' => $this->college->name]);
+            ->layout('layouts.frontend', [
+                'title' => $this->college->name,
+                'description' => str(strip_tags($this->college->about ?: $this->college->name.' affiliated college profile, courses, contact information, and location.'))
+                    ->limit(160, '')
+                    ->toString(),
+                'keywords' => implode(', ', array_filter([$this->college->name, $this->college->college_name_bn, $this->college->college_code, 'National University affiliated college'])),
+                'image' => $this->college->logo ? asset('storage/'.$this->college->logo) : null,
+            ]);
     }
 }
