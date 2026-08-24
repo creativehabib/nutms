@@ -71,7 +71,7 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->assertSee('Public Affiliated College')
         ->assertSee('বাংলা')
         ->assertSee('প্রধান নেভিগেশন')
-        ->assertSee(route('public.colleges.show', $college));
+        ->assertSee($college->publicProfileUrl());
 
     $this->get(route('public.colleges.index'))
         ->assertOk()
@@ -103,6 +103,8 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->assertSee('কম দেখুন')
         ->assertSee('college@example.com')
         ->assertSee('বাংলা')
+        ->assertSeeHtml('data-college-profile-link')
+        ->assertSee($college->publicProfileUrl())
         ->call('closeCollegeModal')
         ->assertSet('selectedCollegeId', null)
         ->assertSet('showCollegeModal', false)
@@ -111,8 +113,9 @@ it('lets public users browse affiliated colleges and their subjects', function (
         ->set('search', 'Not available')
         ->assertDontSee('Public Affiliated College');
 
-    $this->get(route('public.colleges.show', $college))
+    $this->get($college->publicProfileUrl())
         ->assertOk()
+        ->assertSee('<link rel="canonical" href="'.$college->publicProfileUrl().'" />', false)
         ->assertSee('Role Holder Name')
         ->assertSee('স্নাতকোত্তর')
         ->assertSee('বাংলা')
@@ -127,9 +130,96 @@ it('shows the unassigned principal message on a public college profile', functio
         'approval_status' => ApprovalStatus::Approved,
     ]);
 
-    $this->get(route('public.colleges.show', $college))
+    $this->get($college->publicProfileUrl())
         ->assertOk()
         ->assertSee('এখনো রুলস এসাইন করা হয়নি');
+});
+
+it('uses one canonical SEO-friendly URL for a public college profile', function () {
+    $college = College::query()->create([
+        'name' => 'SEO Friendly Public College',
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    expect($college->publicProfileUrl())->toEndWith('/affiliated-colleges/'.$college->id.'/seo-friendly-public-college');
+
+    $this->get(route('public.colleges.legacy-show', $college))
+        ->assertMovedPermanently()
+        ->assertRedirect($college->publicProfileUrl());
+
+    $this->get(route('public.colleges.show', ['college' => $college, 'slug' => 'incorrect-name']))
+        ->assertNotFound();
+});
+
+it('suggests other approved colleges from the same region on a college profile', function () {
+    $division = Division::query()->create([
+        'country_id' => 1,
+        'name' => 'Suggestion Division',
+        'bn_name' => 'সাজেশন বিভাগ',
+    ]);
+    $district = District::query()->create([
+        'division_id' => $division->id,
+        'name' => 'Suggestion District',
+        'bn_name' => 'সাজেশন জেলা',
+    ]);
+    $otherDistrict = District::query()->create([
+        'division_id' => $division->id,
+        'name' => 'Nearby District',
+        'bn_name' => 'নিকটবর্তী জেলা',
+    ]);
+    $otherDivision = Division::query()->create([
+        'country_id' => 1,
+        'name' => 'Unrelated Division',
+        'bn_name' => 'অন্য বিভাগ',
+    ]);
+
+    $college = College::query()->create([
+        'name' => 'Visited Regional College',
+        'division_id' => $division->id,
+        'district_id' => $district->id,
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    $sameDistrictCollege = College::query()->create([
+        'name' => 'Same District College',
+        'division_id' => $division->id,
+        'district_id' => $district->id,
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    $sameDivisionCollege = College::query()->create([
+        'name' => 'Same Division College',
+        'division_id' => $division->id,
+        'district_id' => $otherDistrict->id,
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    $additionalColleges = collect(range(1, 3))->map(fn (int $number): College => College::query()->create([
+        'name' => "Regional Carousel College {$number}",
+        'division_id' => $division->id,
+        'district_id' => $otherDistrict->id,
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]));
+    College::query()->create([
+        'name' => 'Unrelated Regional College',
+        'division_id' => $otherDivision->id,
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+
+    $this->get($college->publicProfileUrl())
+        ->assertOk()
+        ->assertSeeHtml('data-related-colleges')
+        ->assertSeeHtml('data-related-colleges-carousel')
+        ->assertSeeHtml('x-on:click="scrollPage(-1)"')
+        ->assertSeeHtml('x-on:click="scrollPage(1)"')
+        ->assertSeeInOrder(['Same District College', 'Same Division College'])
+        ->assertSee($sameDistrictCollege->publicProfileUrl())
+        ->assertSee($sameDivisionCollege->publicProfileUrl())
+        ->assertSee($additionalColleges->last()->publicProfileUrl())
+        ->assertDontSee('Unrelated Regional College');
 });
 
 it('only exposes active approved colleges to public users', function () {
@@ -143,7 +233,7 @@ it('only exposes active approved colleges to public users', function () {
         ->assertOk()
         ->assertDontSee('Pending Private College');
 
-    $this->get(route('public.colleges.show', $college))->assertNotFound();
+    $this->get($college->publicProfileUrl())->assertNotFound();
 });
 
 it('filters public colleges by type division and district', function () {
