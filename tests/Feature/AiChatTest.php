@@ -215,6 +215,13 @@ it('keeps the same session history when authentication context changes between U
         ->assertSee('Remember this answer');
 });
 
+it('hides the bottom launcher while the chat box is open', function () {
+    Livewire::test(AiChat::class)
+        ->assertSeeHtml('data-test="ai-chat-launcher"')
+        ->set('open', true)
+        ->assertDontSeeHtml('data-test="ai-chat-launcher"');
+});
+
 it('matches a joined misspelled college name against a spaced verified name', function () {
     $college = College::query()->create([
         'name' => 'ANANDA MOHAN COLLEGE',

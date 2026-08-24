@@ -40,7 +40,9 @@
         </section>
     @endif
 
-    <flux:button wire:click="$toggle('open')" variant="primary" icon="sparkles" class="rounded-full shadow-lg">
-        {{ $open ? __('Close') : __('AI Assistant') }}
-    </flux:button>
+    @unless($open)
+        <flux:button wire:click="$toggle('open')" variant="primary" icon="sparkles" class="rounded-full shadow-lg" data-test="ai-chat-launcher">
+            {{ __('AI Assistant') }}
+        </flux:button>
+    @endunless
 </div>
