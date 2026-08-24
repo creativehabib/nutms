@@ -110,11 +110,6 @@
             aria-labelledby="related-colleges-heading"
             data-related-colleges
             data-related-colleges-carousel
-            x-data="{
-                scrollPage(direction) {
-                    this.$refs.track.scrollBy({ left: direction * this.$refs.track.clientWidth, behavior: 'smooth' });
-                }
-            }"
         >
             <div class="flex items-end justify-between gap-4">
                 <div>
@@ -124,39 +119,41 @@
 
                 @if($relatedColleges->count() > 1)
                     <div class="flex shrink-0 gap-2">
-                        <flux:button type="button" variant="outline" size="sm" icon="chevron-left" x-on:click="scrollPage(-1)" aria-label="{{ __('Previous colleges') }}" />
-                        <flux:button type="button" variant="outline" size="sm" icon="chevron-right" x-on:click="scrollPage(1)" aria-label="{{ __('Next colleges') }}" />
+                        <flux:button type="button" variant="outline" size="sm" icon="chevron-left" data-carousel-previous aria-label="{{ __('Previous colleges') }}" />
+                        <flux:button type="button" variant="outline" size="sm" icon="chevron-right" data-carousel-next aria-label="{{ __('Next colleges') }}" />
                     </div>
                 @endif
             </div>
 
-            <div x-ref="track" class="-mx-2 flex snap-x snap-mandatory overflow-x-auto scroll-smooth pb-2">
-                @foreach($relatedColleges as $relatedCollege)
-                    <div wire:key="related-college-{{ $relatedCollege->id }}" class="w-full shrink-0 snap-start px-2 sm:w-1/2 lg:w-1/4">
-                        <a
-                            href="{{ $relatedCollege->publicProfileUrl() }}"
-                            wire:navigate
-                            class="group block h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700"
-                        >
-                            <div class="flex items-start gap-3">
-                                <flux:avatar
-                                    size="lg"
-                                    :name="$relatedCollege->college_name_bn ?: $relatedCollege->name"
-                                    :src="$relatedCollege->logo ? asset('storage/'.$relatedCollege->logo) : null"
-                                />
-                                <div class="min-w-0">
-                                    <h3 class="font-bold leading-6 text-slate-900 group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-400">
-                                        {{ $relatedCollege->college_name_bn ?: $relatedCollege->name }}
-                                    </h3>
-                                    @if($relatedCollege->college_name_bn)
-                                        <p class="mt-1 text-xs text-slate-500">{{ $relatedCollege->name }}</p>
-                                    @endif
-                                    <p class="mt-2 text-xs font-semibold text-slate-500">কলেজ কোড: {{ $relatedCollege->college_code ?: 'উল্লেখ নেই' }}</p>
+            <div class="overflow-hidden" data-carousel-viewport>
+                <div class="-mx-2 flex pb-2">
+                    @foreach($relatedColleges as $relatedCollege)
+                        <div wire:key="related-college-{{ $relatedCollege->id }}" class="min-w-0 flex-[0_0_100%] px-2 sm:flex-[0_0_50%] lg:flex-[0_0_25%]">
+                            <a
+                                href="{{ $relatedCollege->publicProfileUrl() }}"
+                                wire:navigate
+                                class="group block h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700"
+                            >
+                                <div class="flex items-start gap-3">
+                                    <flux:avatar
+                                        size="lg"
+                                        :name="$relatedCollege->college_name_bn ?: $relatedCollege->name"
+                                        :src="$relatedCollege->logo ? asset('storage/'.$relatedCollege->logo) : null"
+                                    />
+                                    <div class="min-w-0">
+                                        <h3 class="font-bold leading-6 text-slate-900 group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-400">
+                                            {{ $relatedCollege->college_name_bn ?: $relatedCollege->name }}
+                                        </h3>
+                                        @if($relatedCollege->college_name_bn)
+                                            <p class="mt-1 text-xs text-slate-500">{{ $relatedCollege->name }}</p>
+                                        @endif
+                                        <p class="mt-2 text-xs font-semibold text-slate-500">কলেজ কোড: {{ $relatedCollege->college_code ?: 'উল্লেখ নেই' }}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
-                @endforeach
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </section>
     @endif
