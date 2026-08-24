@@ -195,6 +195,13 @@ it('suggests other approved colleges from the same region on a college profile',
         'is_active' => true,
         'approval_status' => ApprovalStatus::Approved,
     ]);
+    $additionalColleges = collect(range(1, 3))->map(fn (int $number): College => College::query()->create([
+        'name' => "Regional Carousel College {$number}",
+        'division_id' => $division->id,
+        'district_id' => $otherDistrict->id,
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]));
     College::query()->create([
         'name' => 'Unrelated Regional College',
         'division_id' => $otherDivision->id,
@@ -205,9 +212,11 @@ it('suggests other approved colleges from the same region on a college profile',
     $this->get($college->publicProfileUrl())
         ->assertOk()
         ->assertSeeHtml('data-related-colleges')
+        ->assertSeeHtml('data-related-colleges-carousel')
         ->assertSeeInOrder(['Same District College', 'Same Division College'])
         ->assertSee($sameDistrictCollege->publicProfileUrl())
         ->assertSee($sameDivisionCollege->publicProfileUrl())
+        ->assertSee($additionalColleges->last()->publicProfileUrl())
         ->assertDontSee('Unrelated Regional College');
 });
 

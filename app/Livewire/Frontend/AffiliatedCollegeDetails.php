@@ -42,7 +42,6 @@ class AffiliatedCollegeDetails extends Component
                 ->where('approval_status', ApprovalStatus::Approved)
                 ->orderByRaw('CASE WHEN district_id = ? THEN 0 ELSE 1 END', [$this->college->district_id])
                 ->orderBy('name')
-                ->limit(4)
                 ->get(['id', 'name', 'college_name_bn', 'college_code', 'logo', 'district_id', 'division_id']);
 
         return view('livewire.frontend.affiliated-college-details', [
