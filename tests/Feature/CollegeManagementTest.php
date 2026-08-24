@@ -274,7 +274,7 @@ it('stores and displays every college profile field defined by the colleges tabl
     Storage::disk('public')->assertExists($college->logo);
     Storage::disk('public')->assertExists($college->banner);
 
-    $this->get(route('public.colleges.show', $college))
+    $this->get($college->publicProfileUrl())
         ->assertSuccessful()
         ->assertSee('সম্পূর্ণ প্রোফাইল কলেজ')
         ->assertSee('বয়েজ এন্ড গার্লস মিশ্র কলেজ')
@@ -291,7 +291,7 @@ it('uses the colleges table B and F gender codes', function (string $code, strin
         'approval_status' => ApprovalStatus::Approved,
     ]);
 
-    $this->get(route('public.colleges.show', $college))
+    $this->get($college->publicProfileUrl())
         ->assertSuccessful()
         ->assertSee($label);
 })->with([

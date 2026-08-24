@@ -35,7 +35,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', WelcomeController::class)->name('home');
 Route::get('/affiliated-colleges', AffiliatedCollegeDirectory::class)->name('public.colleges.index');
-Route::get('/affiliated-colleges/{college}', AffiliatedCollegeDetails::class)->name('public.colleges.show');
+Route::get('/affiliated-colleges/{college}/{slug}', AffiliatedCollegeDetails::class)->name('public.colleges.show');
+Route::get('/affiliated-colleges/{college}', fn (\App\Models\College $college) => redirect()->to($college->publicProfileUrl(), 301))
+    ->name('public.colleges.legacy-show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

@@ -23,7 +23,12 @@ class AiChat extends Component
 
     public function mount(): void
     {
-        $this->messages = [['role' => 'assistant', 'content' => __('Hello! I am the website AI assistant. How can I help you today?')]];
+        $this->messages = $this->sanitizeMessages(session()->get($this->sessionKey(), []));
+
+        if ($this->messages === []) {
+            $this->messages = [['role' => 'assistant', 'content' => __('Hello! I am the website AI assistant. How can I help you today?')]];
+            $this->persistMessages();
+        }
     }
 
     public function send(AiChatService $chatService, WebsiteKnowledgeService $knowledgeService): void
@@ -41,11 +46,13 @@ class AiChat extends Component
         $question = trim($validated['question']);
         $this->question = '';
         $this->messages[] = ['role' => 'user', 'content' => $question];
+        $this->persistMessages();
 
         $setting = AiSetting::query()->latest('id')->first();
 
         if ($setting === null || ! $setting->is_enabled) {
             $this->messages[] = ['role' => 'assistant', 'content' => __('The AI assistant is currently unavailable.')];
+            $this->persistMessages();
 
             return;
         }
@@ -69,20 +76,25 @@ class AiChat extends Component
         }
 
         $this->messages[] = ['role' => 'assistant', 'content' => $reply];
+        $this->persistMessages();
         $this->dispatch('ai-message-added');
     }
 
     public function resetConversation(): void
     {
         $this->resetErrorBag();
+        session()->forget($this->sessionKey());
         $this->mount();
         $this->dispatch('ai-conversation-reset');
     }
 
-    /** @param array<int, mixed> $messages */
-    public function restoreMessages(array $messages): void
+    /**
+     * @param  array<int, mixed>  $messages
+     * @return array<int, array{role: string, content: string}>
+     */
+    private function sanitizeMessages(array $messages): array
     {
-        $restoredMessages = collect($messages)
+        return collect($messages)
             ->filter(fn (mixed $message): bool => is_array($message)
                 && in_array($message['role'] ?? null, ['user', 'assistant'], true)
                 && is_string($message['content'] ?? null))
@@ -93,10 +105,17 @@ class AiChat extends Component
             ->take(-30)
             ->values()
             ->all();
+    }
 
-        if ($restoredMessages !== []) {
-            $this->messages = $restoredMessages;
-        }
+    private function persistMessages(): void
+    {
+        $this->messages = $this->sanitizeMessages($this->messages);
+        session()->put($this->sessionKey(), $this->messages);
+    }
+
+    private function sessionKey(): string
+    {
+        return 'ai_chat_messages';
     }
 
     public function renderAssistantMessage(string $message): HtmlString
