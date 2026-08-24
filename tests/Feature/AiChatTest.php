@@ -127,7 +127,7 @@ it('grounds public answers with matching college programs and a verified clickab
         'name' => 'Honours Courses',
         'items' => ['Bangla', 'English', 'Economics'],
     ]);
-    $collegeUrl = route('public.colleges.index', ['college' => $college->id]);
+    $collegeUrl = $college->publicProfileUrl();
     Http::fake(['https://api.openai.com/v1/chat/completions' => Http::response([
         'choices' => [['message' => ['content' => "**বিস্তারিত:**\n[{$collegeUrl}]({$collegeUrl}) — {$collegeUrl}"]]],
     ])]);
@@ -253,5 +253,5 @@ it('matches a joined misspelled college name against a spaced verified name', fu
     expect($context)->toContain('ANANDA MOHAN COLLEGE')
         ->toContain('code: 1762')
         ->toContain('BA, BSS, BBS, BSc')
-        ->toContain(route('public.colleges.index', ['college' => $college->id]));
+        ->toContain($college->publicProfileUrl());
 });

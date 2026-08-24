@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class College extends Model
 {
@@ -29,6 +30,25 @@ class College extends Model
             'approval_status' => ApprovalStatus::class,
             'approved_at' => 'datetime',
         ];
+    }
+
+    /** @return array{college: int, slug: string} */
+    public function publicProfileRouteParameters(): array
+    {
+        return [
+            'college' => $this->getKey(),
+            'slug' => $this->publicProfileSlug(),
+        ];
+    }
+
+    public function publicProfileSlug(): string
+    {
+        return Str::slug($this->name) ?: 'college-'.$this->getKey();
+    }
+
+    public function publicProfileUrl(): string
+    {
+        return route('public.colleges.show', $this->publicProfileRouteParameters());
     }
 
     public function teachers(): HasMany
