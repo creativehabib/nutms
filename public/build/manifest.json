@@ -27,6 +27,22 @@
     "file": "assets/instrument-sans-600-normal-B9e8oLYv.woff",
     "src": "_instrument-sans-600-normal-B9e8oLYv.woff"
   },
+  "node_modules/choices.js/public/assets/scripts/choices.mjs": {
+    "file": "assets/choices-BvInNBb6.js",
+    "name": "choices",
+    "src": "node_modules/choices.js/public/assets/scripts/choices.mjs",
+    "isDynamicEntry": true
+  },
+  "node_modules/choices.js/public/assets/styles/choices.min.css": {
+    "file": "assets/choices-CXcFv5Wz.css",
+    "src": "node_modules/choices.js/public/assets/styles/choices.min.css"
+  },
+  "node_modules/embla-carousel/esm/embla-carousel.esm.js": {
+    "file": "assets/embla-carousel.esm-B0DRsTTa.js",
+    "name": "embla-carousel.esm",
+    "src": "node_modules/embla-carousel/esm/embla-carousel.esm.js",
+    "isDynamicEntry": true
+  },
   "resources/css/app.css": {
     "file": "assets/app-0y1Wwc7j.css",
     "name": "app",
@@ -37,12 +53,13 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-Dk2cnDDy.js",
+    "file": "assets/app-RcVZoKcJ.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
-    "css": [
-      "assets/app-CXcFv5Wz.css"
+    "dynamicImports": [
+      "node_modules/embla-carousel/esm/embla-carousel.esm.js",
+      "node_modules/choices.js/public/assets/scripts/choices.mjs"
     ]
   },
   "resources/js/passkeys.js": {
