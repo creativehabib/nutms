@@ -213,6 +213,8 @@ it('suggests other approved colleges from the same region on a college profile',
         ->assertOk()
         ->assertSeeHtml('data-related-colleges')
         ->assertSeeHtml('data-related-colleges-carousel')
+        ->assertSeeHtml('x-on:click="scrollPage(-1)"')
+        ->assertSeeHtml('x-on:click="scrollPage(1)"')
         ->assertSeeInOrder(['Same District College', 'Same Division College'])
         ->assertSee($sameDistrictCollege->publicProfileUrl())
         ->assertSee($sameDivisionCollege->publicProfileUrl())

@@ -105,15 +105,34 @@
     </section>
 
     @if($relatedColleges->isNotEmpty())
-        <section class="space-y-4" aria-labelledby="related-colleges-heading" data-related-colleges>
-            <div>
-                <h2 id="related-colleges-heading" class="text-2xl font-black text-slate-900 dark:text-white">এই অঞ্চলের আরও কলেজ</h2>
-                <p class="mt-1 text-sm text-slate-500">একই বিভাগে থাকা অন্যান্য অনুমোদিত কলেজ প্রোফাইল দেখুন।</p>
+        <section
+            class="space-y-4"
+            aria-labelledby="related-colleges-heading"
+            data-related-colleges
+            data-related-colleges-carousel
+            x-data="{
+                scrollPage(direction) {
+                    this.$refs.track.scrollBy({ left: direction * this.$refs.track.clientWidth, behavior: 'smooth' });
+                }
+            }"
+        >
+            <div class="flex items-end justify-between gap-4">
+                <div>
+                    <h2 id="related-colleges-heading" class="text-2xl font-black text-slate-900 dark:text-white">এই অঞ্চলের আরও কলেজ</h2>
+                    <p class="mt-1 text-sm text-slate-500">একই বিভাগে থাকা অন্যান্য অনুমোদিত কলেজ প্রোফাইল দেখুন।</p>
+                </div>
+
+                @if($relatedColleges->count() > 1)
+                    <div class="flex shrink-0 gap-2">
+                        <flux:button type="button" variant="outline" size="sm" icon="chevron-left" x-on:click="scrollPage(-1)" aria-label="{{ __('Previous colleges') }}" />
+                        <flux:button type="button" variant="outline" size="sm" icon="chevron-right" x-on:click="scrollPage(1)" aria-label="{{ __('Next colleges') }}" />
+                    </div>
+                @endif
             </div>
 
-            <flux:carousel advance="page" class="-mx-2" data-related-colleges-carousel>
+            <div x-ref="track" class="-mx-2 flex snap-x snap-mandatory overflow-x-auto scroll-smooth pb-2">
                 @foreach($relatedColleges as $relatedCollege)
-                    <flux:carousel.item wire:key="related-college-{{ $relatedCollege->id }}" class="w-full px-2 sm:w-1/2 lg:w-1/4">
+                    <div wire:key="related-college-{{ $relatedCollege->id }}" class="w-full shrink-0 snap-start px-2 sm:w-1/2 lg:w-1/4">
                         <a
                             href="{{ $relatedCollege->publicProfileUrl() }}"
                             wire:navigate
@@ -136,9 +155,9 @@
                                 </div>
                             </div>
                         </a>
-                    </flux:carousel.item>
+                    </div>
                 @endforeach
-            </flux:carousel>
+            </div>
         </section>
     @endif
 </div>
