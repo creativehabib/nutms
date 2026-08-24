@@ -115,7 +115,7 @@ class AiChat extends Component
 
     private function sessionKey(): string
     {
-        return 'ai_chat.messages.'.(auth()->id() ?? 'guest');
+        return 'ai_chat_messages';
     }
 
     public function renderAssistantMessage(string $message): HtmlString
