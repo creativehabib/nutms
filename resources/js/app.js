@@ -1,12 +1,17 @@
-import Choices from 'choices.js';
-import EmblaCarousel from 'embla-carousel';
-import 'choices.js/public/assets/styles/choices.min.css';
-
 const searchableSelects = new WeakMap();
 const relatedCollegeCarousels = new WeakMap();
 
-const initializeRelatedCollegeCarousels = () => {
-    document.querySelectorAll('[data-related-colleges-carousel]').forEach((carousel) => {
+const initializeRelatedCollegeCarousels = async () => {
+    const carousels = [...document.querySelectorAll('[data-related-colleges-carousel]')]
+        .filter((carousel) => ! relatedCollegeCarousels.has(carousel));
+
+    if (carousels.length === 0) {
+        return;
+    }
+
+    const { default: EmblaCarousel } = await import('embla-carousel');
+
+    carousels.forEach((carousel) => {
         if (relatedCollegeCarousels.has(carousel)) {
             return;
         }
@@ -44,12 +49,20 @@ const initializeRelatedCollegeCarousels = () => {
     });
 };
 
-const initializeSearchableSelects = () => {
-    document.querySelectorAll('[data-searchable-select]').forEach((select) => {
-        if (select.dataset.choice === 'active') {
-            return;
-        }
+const initializeSearchableSelects = async () => {
+    const selects = [...document.querySelectorAll('[data-searchable-select]')]
+        .filter((select) => select.dataset.choice !== 'active');
 
+    if (selects.length === 0) {
+        return;
+    }
+
+    const [{ default: Choices }] = await Promise.all([
+        import('choices.js'),
+        import('choices.js/public/assets/styles/choices.min.css'),
+    ]);
+
+    selects.forEach((select) => {
         const choices = new Choices(select, {
             allowHTML: false,
             itemSelectText: '',

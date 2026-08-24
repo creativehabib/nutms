@@ -39,6 +39,19 @@ it('renders live platform statistics and the next training', function () {
         ->assertSee('৫০ জন');
 });
 
+it('counts registrations with one aggregate query and excludes draft trainings', function () {
+    $publishedTraining = Training::factory()->create(['status' => 'Upcoming']);
+    $draftTraining = Training::factory()->create(['status' => 'Draft']);
+    $publishedTraining->participants()->attach(User::factory()->create());
+    $draftTraining->participants()->attach(User::factory()->create());
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk();
+
+    expect($response->viewData('statistics')['registrations'])->toBe(1);
+});
+
 it('lets public users browse affiliated colleges and their subjects', function () {
     ProgramLevel::query()->updateOrCreate(
         ['slug' => 'postgraduate'],
