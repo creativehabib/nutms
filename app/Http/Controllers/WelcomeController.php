@@ -25,7 +25,7 @@ class WelcomeController extends Controller
                 'trainings' => Training::query()->where('status', '!=', 'Draft')->count(),
                 'colleges' => College::query()->where('is_active', true)->count(),
                 'registrations' => Training::query()
-                    ->where('status', '!=', 'Draft')
+                    ->where('trainings.status', '!=', 'Draft')
                     ->join('training_user', 'trainings.id', '=', 'training_user.training_id')
                     ->count('training_user.id'),
             ],
