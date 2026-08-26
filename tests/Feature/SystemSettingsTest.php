@@ -22,6 +22,36 @@ it('allows an admin to configure the teacher retirement age', function () {
     expect(SystemSetting::retirementAge())->toBe(60);
 });
 
+it('allows an admin to configure the frontend light and dark themes', function () {
+    $admin = User::factory()->withRole('admin')->create();
+
+    Livewire::actingAs($admin)->test(SystemSettings::class)
+        ->set('themeMode', 'dark')
+        ->set('themePrimaryLight', '#1d4ed8')
+        ->set('themePrimaryDark', '#93c5fd')
+        ->set('themeAccentLight', '#7e22ce')
+        ->set('themeAccentDark', '#d8b4fe')
+        ->call('saveThemeSettings')
+        ->assertHasNoErrors();
+
+    expect(SystemSetting::theme())->toBe([
+        'mode' => 'dark',
+        'primary_light' => '#1d4ed8',
+        'primary_dark' => '#93c5fd',
+        'accent_light' => '#7e22ce',
+        'accent_dark' => '#d8b4fe',
+    ]);
+});
+
+it('validates frontend theme colors before saving them', function () {
+    $admin = User::factory()->withRole('admin')->create();
+
+    Livewire::actingAs($admin)->test(SystemSettings::class)
+        ->set('themePrimaryLight', 'not-a-color')
+        ->call('saveThemeSettings')
+        ->assertHasErrors(['themePrimaryLight']);
+});
+
 it('stores encrypted SMTP settings and synchronizes the environment file', function () {
     $admin = User::factory()->withRole('admin')->create();
     mock(EnvironmentFileUpdater::class)

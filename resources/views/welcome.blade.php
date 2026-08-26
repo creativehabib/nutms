@@ -1,11 +1,27 @@
+@php
+    $frontendTheme ??= [
+        'mode' => 'system',
+        'primary_light' => '#047857',
+        'primary_dark' => '#34d399',
+        'accent_light' => '#0f766e',
+        'accent_dark' => '#5eead4',
+    ];
+@endphp
+
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="bn" style="--theme-primary-light: {{ $frontendTheme['primary_light'] }}; --theme-primary-dark: {{ $frontendTheme['primary_dark'] }}; --theme-accent-light: {{ $frontendTheme['accent_light'] }}; --theme-accent-dark: {{ $frontendTheme['accent_dark'] }}">
 
 <head>
     @include('partials.head', ['title' => $title ?? __('National University Teacher Training Department')])
 
     <script>
-        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        const savedTheme = localStorage.getItem('color-theme');
+        const defaultTheme = @js($frontendTheme['mode']);
+        const useDarkTheme = savedTheme === 'dark'
+            || (!savedTheme && defaultTheme === 'dark')
+            || (!savedTheme && defaultTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        if (useDarkTheme) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
@@ -47,7 +63,7 @@
 {{-- =========================
     HERO
 ========================== --}}
-<section id="home" class="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900">
+<section id="home" class="theme-hero-bg relative overflow-hidden">
     <div class="absolute inset-0 opacity-10">
         <div class="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white"></div>
         <div class="absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-white"></div>
@@ -64,7 +80,7 @@
 
                 <h2 class="text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
                     শিক্ষক ব্যবস্থাপনা
-                    <span class="text-emerald-300">ও প্রশিক্ষণের</span>
+                    <span class="theme-accent-text">ও প্রশিক্ষণের</span>
                     আধুনিক সমাধান
                 </h2>
 
@@ -102,7 +118,7 @@
                             <div class="grid grid-cols-3 gap-3">
                                 <div class="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 p-4">
                                     <div class="text-xs text-slate-500 dark:text-slate-400">মোট শিক্ষক</div>
-                                    <div class="mt-2 text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+                                    <div class="mt-2 text-2xl font-bold theme-primary-text">
                                         {{ $toBengaliNumber(number_format($statistics['teachers'])) }}
                                     </div>
                                 </div>
@@ -123,12 +139,12 @@
                             <div class="mt-5 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                                 <div class="flex items-center justify-between">
                                     <span class="font-semibold text-slate-800 dark:text-slate-200">লাইভ প্ল্যাটফর্ম চিত্র</span>
-                                    <span class="text-xs text-emerald-700 dark:text-emerald-400">সর্বশেষ তথ্য</span>
+                                    <span class="text-xs theme-primary-text">সর্বশেষ তথ্য</span>
                                 </div>
                                 <div class="mt-5 space-y-3 text-sm">
                                     <div class="flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-700/50 px-3 py-2">
                                         <span class="text-slate-600 dark:text-slate-300">নিবন্ধিত শিক্ষক</span>
-                                        <span class="font-bold text-emerald-700 dark:text-emerald-400">{{ $toBengaliNumber(number_format($statistics['teachers'])) }}</span>
+                                        <span class="font-bold theme-primary-text">{{ $toBengaliNumber(number_format($statistics['teachers'])) }}</span>
                                     </div>
                                     <div class="flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-700/50 px-3 py-2">
                                         <span class="text-slate-600 dark:text-slate-300">সক্রিয় কলেজ</span>
@@ -155,25 +171,25 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-xl sm:grid-cols-2 lg:grid-cols-4 border border-slate-100 dark:border-slate-700">
             <div class="border-b border-slate-100 dark:border-slate-700 p-6 text-center sm:border-r lg:border-b-0">
-                <div class="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
+                <div class="text-3xl font-extrabold theme-primary-text">
                     {{ $toBengaliNumber(number_format($statistics['teachers'])) }}
                 </div>
                 <div class="mt-1 text-sm text-slate-500 dark:text-slate-400">নিবন্ধিত শিক্ষক</div>
             </div>
             <div class="border-b border-slate-100 dark:border-slate-700 p-6 text-center lg:border-b-0 lg:border-r">
-                <div class="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
+                <div class="text-3xl font-extrabold theme-primary-text">
                     {{ $toBengaliNumber(number_format($statistics['trainings'])) }}
                 </div>
                 <div class="mt-1 text-sm text-slate-500 dark:text-slate-400">প্রশিক্ষণ কার্যক্রম</div>
             </div>
             <div class="border-b border-slate-100 dark:border-slate-700 p-6 text-center sm:border-r lg:border-b-0">
-                <div class="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
+                <div class="text-3xl font-extrabold theme-primary-text">
                     {{ $toBengaliNumber(number_format($statistics['colleges'])) }}
                 </div>
                 <div class="mt-1 text-sm text-slate-500 dark:text-slate-400">অধিভুক্ত কলেজ</div>
             </div>
             <div class="p-6 text-center">
-                <div class="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
+                <div class="text-3xl font-extrabold theme-primary-text">
                     {{ $toBengaliNumber(number_format($statistics['registrations'])) }}
                 </div>
                 <div class="mt-1 text-sm text-slate-500 dark:text-slate-400">মোট প্রশিক্ষণ নিবন্ধন</div>
@@ -189,7 +205,7 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid items-center gap-12 lg:grid-cols-2">
             <div>
-                <span class="text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                <span class="text-sm font-bold uppercase tracking-wider theme-primary-text">
                     আমাদের প্ল্যাটফর্ম
                 </span>
                 <h2 class="mt-3 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
@@ -206,7 +222,7 @@
                         'স্বয়ংক্রিয় রিপোর্ট ও ড্যাশবোর্ড'
                     ] as $item)
                         <div class="flex items-center gap-3">
-                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 theme-primary-text">
                                 ✓
                             </div>
                             <span class="text-slate-700 dark:text-slate-300">{{ $item }}</span>
@@ -216,7 +232,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-                <div class="rounded-2xl bg-emerald-700 p-7 text-white shadow-lg">
+                <div class="rounded-2xl theme-primary-bg p-7 text-white shadow-lg">
                     <div class="text-4xl">👨‍🏫</div>
                     <h3 class="mt-5 text-xl font-bold">শিক্ষক ব্যবস্থাপনা</h3>
                     <p class="mt-3 text-sm leading-6 text-emerald-50/80">
@@ -255,7 +271,7 @@
 <section id="services" class="bg-white dark:bg-slate-800 py-20 lg:py-28 transition-colors duration-200">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-2xl text-center">
-            <span class="text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+            <span class="text-sm font-bold uppercase tracking-wider theme-primary-text">
                 প্রধান সেবাসমূহ
             </span>
             <h2 class="mt-3 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
@@ -289,7 +305,7 @@
                     <p class="mt-3 leading-7 text-slate-500 dark:text-slate-400">
                         {{ $service['description'] }}
                     </p>
-                    <a href="{{ $entryRoute }}" class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                    <a href="{{ $entryRoute }}" class="mt-5 inline-flex items-center gap-2 text-sm font-bold theme-primary-text">
                         বিস্তারিত <span>→</span>
                     </a>
                 </div>
@@ -305,13 +321,13 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
             <div class="max-w-2xl">
-                <span class="text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">অধিভুক্ত প্রতিষ্ঠান</span>
+                <span class="text-sm font-bold uppercase tracking-wider theme-primary-text">অধিভুক্ত প্রতিষ্ঠান</span>
                 <h2 class="mt-3 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">অধিভুক্ত কলেজ ও বিষয়সমূহ</h2>
                 <p class="mt-4 leading-7 text-slate-500 dark:text-slate-400">
                     কলেজের অবস্থান এবং অধিভুক্ত কোর্স ও বিষয়গুলো দেখুন। বিস্তারিত তথ্য জানতে কলেজের প্রোফাইল খুলুন।
                 </p>
             </div>
-            <a href="{{ route('public.colleges.index') }}" class="inline-flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400 transition hover:text-emerald-800 dark:hover:text-emerald-300">
+            <a href="{{ route('public.colleges.index') }}" class="inline-flex items-center gap-2 font-bold theme-primary-text transition hover:text-emerald-800 dark:hover:text-emerald-300">
                 সকল কলেজ দেখুন <span aria-hidden="true">→</span>
             </a>
         </div>
@@ -349,7 +365,7 @@
                             @endif
                         </div>
                     </div>
-                    <a href="{{ $college->publicProfileUrl() }}" class="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 dark:bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 dark:hover:bg-emerald-500">
+                    <a href="{{ $college->publicProfileUrl() }}" class="mt-6 inline-flex items-center justify-center gap-2 rounded-xl theme-primary-bg dark:bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 dark:hover:bg-emerald-500">
                         বিস্তারিত দেখুন <span aria-hidden="true">→</span>
                     </a>
                 </article>
@@ -467,10 +483,10 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-                <span class="text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">সর্বশেষ আপডেট</span>
+                <span class="text-sm font-bold uppercase tracking-wider theme-primary-text">সর্বশেষ আপডেট</span>
                 <h2 class="mt-3 text-3xl font-extrabold text-slate-900 dark:text-white">নোটিশ ও ঘোষণা</h2>
             </div>
-            <a href="{{ $entryRoute }}" class="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">
+            <a href="{{ $entryRoute }}" class="font-semibold theme-primary-text hover:underline">
                 সকল নোটিশ →
             </a>
         </div>
@@ -529,7 +545,7 @@
         <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
             <div>
                 <div class="flex items-center gap-3">
-                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-700 text-white">🎓</div>
+                    <div class="flex h-11 w-11 items-center justify-center rounded-xl theme-primary-bg text-white">🎓</div>
                     <div>
                         <div class="font-bold text-white">জাতীয় বিশ্ববিদ্যালয়</div>
                         <div class="text-xs text-slate-500">শিক্ষক ও প্রশিক্ষণ ব্যবস্থাপনা</div>
