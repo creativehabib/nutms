@@ -23,7 +23,16 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        SystemSetting::query()->updateOrCreate(['key' => SystemSetting::RETIREMENT_AGE], ['value' => '59']);
+        foreach ([
+            SystemSetting::RETIREMENT_AGE => '59',
+            SystemSetting::THEME_MODE => 'system',
+            SystemSetting::THEME_PRIMARY_LIGHT => '#047857',
+            SystemSetting::THEME_PRIMARY_DARK => '#34d399',
+            SystemSetting::THEME_ACCENT_LIGHT => '#0f766e',
+            SystemSetting::THEME_ACCENT_DARK => '#5eead4',
+        ] as $key => $value) {
+            SystemSetting::query()->updateOrCreate(['key' => $key], ['value' => $value]);
+        }
         $this->call([
             DivisionSeeder::class,
             DistrictSeeder::class,

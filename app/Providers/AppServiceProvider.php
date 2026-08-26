@@ -3,12 +3,15 @@
 namespace App\Providers;
 
 use App\Models\EmailSetting;
+use App\Models\SystemSetting;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View as IlluminateView;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +30,22 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureDatabaseMailSettings();
+        $this->configureFrontendTheme();
+    }
+
+    private function configureFrontendTheme(): void
+    {
+        View::composer('layouts.app.welcome', function (IlluminateView $view): void {
+            $view->with('frontendTheme', Schema::hasTable('system_settings')
+                ? SystemSetting::theme()
+                : [
+                    'mode' => 'system',
+                    'primary_light' => '#047857',
+                    'primary_dark' => '#34d399',
+                    'accent_light' => '#0f766e',
+                    'accent_dark' => '#5eead4',
+                ]);
+        });
     }
 
     private function configureDatabaseMailSettings(): void

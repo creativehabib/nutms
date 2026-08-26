@@ -1,14 +1,14 @@
 <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <a href="{{ route('home') }}" wire:navigate class="flex min-w-0 items-center gap-3">
-            <div class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white shadow">
+            <div class="theme-primary-bg flex size-12 shrink-0 items-center justify-center rounded-xl text-white shadow">
                 <svg class="size-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 14l9-5-9-5-9 5 9 5z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 12v5c4 3 10 3 14 0v-5"/>
                 </svg>
             </div>
             <div class="min-w-0">
-                <span class="block truncate text-lg font-bold leading-tight text-emerald-800 dark:text-emerald-400">জাতীয় বিশ্ববিদ্যালয়</span>
+                <span class="theme-primary-text block truncate text-lg font-bold leading-tight">জাতীয় বিশ্ববিদ্যালয়</span>
                 <span class="block truncate text-xs text-slate-500 dark:text-slate-400">শিক্ষক ও প্রশিক্ষণ ব্যবস্থাপনা</span>
             </div>
         </a>
@@ -25,7 +25,7 @@
 
         <div class="flex items-center gap-2">
             <a href="{{ auth()->check() ? route('dashboard') : route('login') }}"
-               class="hidden items-center gap-2 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 sm:inline-flex">
+               class="theme-primary-bg theme-primary-hover hidden items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition sm:inline-flex">
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4m-5-4l5-5m0 0l-5-5m5 5H3"/>
                 </svg>
@@ -59,7 +59,7 @@
                 </a>
             @endforeach
             <a href="{{ auth()->check() ? route('dashboard') : route('login') }}"
-               class="mt-2 rounded-lg bg-emerald-700 px-4 py-3 text-center text-sm font-bold text-white sm:hidden">
+               class="theme-primary-bg mt-2 rounded-lg px-4 py-3 text-center text-sm font-bold text-white sm:hidden">
                 {{ auth()->check() ? 'ড্যাশবোর্ড' : 'লগইন' }}
             </a>
         </div>

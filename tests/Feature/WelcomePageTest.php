@@ -6,6 +6,7 @@ use App\Models\College;
 use App\Models\District;
 use App\Models\Division;
 use App\Models\ProgramLevel;
+use App\Models\SystemSetting;
 use App\Models\Teacher;
 use App\Models\Training;
 use App\Models\User;
@@ -37,6 +38,25 @@ it('renders live platform statistics and the next training', function () {
         ->assertSee('প্রশিক্ষণ কার্যক্রম')
         ->assertSee('অধিভুক্ত কলেজ')
         ->assertSee('৫০ জন');
+});
+
+it('applies saved frontend theme colors and default mode', function () {
+    foreach ([
+        SystemSetting::THEME_MODE => 'dark',
+        SystemSetting::THEME_PRIMARY_LIGHT => '#1d4ed8',
+        SystemSetting::THEME_PRIMARY_DARK => '#93c5fd',
+        SystemSetting::THEME_ACCENT_LIGHT => '#7e22ce',
+        SystemSetting::THEME_ACCENT_DARK => '#d8b4fe',
+    ] as $key => $value) {
+        SystemSetting::query()->create(compact('key', 'value'));
+    }
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('--theme-primary-light: #1d4ed8', false)
+        ->assertSee('--theme-primary-dark: #93c5fd', false)
+        ->assertSee('const defaultTheme = "dark"', false)
+        ->assertSee('theme-hero-bg', false);
 });
 
 it('counts registrations with one aggregate query and excludes draft trainings', function () {
