@@ -15,21 +15,18 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth" style="--theme-primary-light: {{ $frontendTheme['primary_light'] }}; --theme-primary-dark: {{ $frontendTheme['primary_dark'] }}; --theme-accent-light: {{ $frontendTheme['accent_light'] }}; --theme-accent-dark: {{ $frontendTheme['accent_dark'] }}">
 <head>
-    @include('partials.head', ['title' => $title ?? __('National University Teacher Training Department')])
-
     <script>
-        const savedTheme = localStorage.getItem('color-theme');
-        const defaultTheme = @js($frontendTheme['mode']);
-        const useDarkTheme = savedTheme === 'dark'
-            || (!savedTheme && defaultTheme === 'dark')
-            || (!savedTheme && defaultTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-        if (useDarkTheme) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
+        if (! localStorage.getItem('flux.appearance')) {
+            localStorage.setItem(
+                'flux.appearance',
+                localStorage.getItem('color-theme') || @js($frontendTheme['mode']),
+            );
         }
+
+        localStorage.removeItem('color-theme');
     </script>
+
+    @include('partials.head', ['title' => $title ?? __('National University Teacher Training Department')])
 
     <style>
         [x-cloak] { display: none !important; }

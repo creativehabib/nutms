@@ -12,21 +12,18 @@
 <html lang="bn" style="--theme-primary-light: {{ $frontendTheme['primary_light'] }}; --theme-primary-dark: {{ $frontendTheme['primary_dark'] }}; --theme-accent-light: {{ $frontendTheme['accent_light'] }}; --theme-accent-dark: {{ $frontendTheme['accent_dark'] }}">
 
 <head>
-    @include('partials.head', ['title' => $title ?? __('National University Teacher Training Department')])
-
     <script>
-        const savedTheme = localStorage.getItem('color-theme');
-        const defaultTheme = @js($frontendTheme['mode']);
-        const useDarkTheme = savedTheme === 'dark'
-            || (!savedTheme && defaultTheme === 'dark')
-            || (!savedTheme && defaultTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-        if (useDarkTheme) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
+        if (! localStorage.getItem('flux.appearance')) {
+            localStorage.setItem(
+                'flux.appearance',
+                localStorage.getItem('color-theme') || @js($frontendTheme['mode']),
+            );
         }
+
+        localStorage.removeItem('color-theme');
     </script>
+
+    @include('partials.head', ['title' => $title ?? __('National University Teacher Training Department')])
 
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet">

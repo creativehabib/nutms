@@ -56,7 +56,7 @@ it('applies saved frontend theme colors and default mode', function () {
         ->assertOk()
         ->assertSee('--theme-primary-light: #1d4ed8', false)
         ->assertSee('--theme-primary-dark: #93c5fd', false)
-        ->assertSee('const defaultTheme = "dark"', false)
+        ->assertSee("localStorage.getItem('color-theme') || \"dark\"", false)
         ->assertSee('theme-hero-bg', false);
 });
 
@@ -65,7 +65,7 @@ it('renders the frontend layout with fallback theme values', function () {
 
     expect($renderedLayout)
         ->toContain('--theme-primary-light: #047857')
-        ->toContain('const defaultTheme = "system"')
+        ->toContain("localStorage.getItem('color-theme') || \"system\"")
         ->toContain('Public content');
 });
 
@@ -73,7 +73,9 @@ it('shows an accessible light and dark mode toggle on the frontend', function ()
     $this->get(route('home'))
         ->assertOk()
         ->assertSee('data-theme-toggle', false)
-        ->assertSee("localStorage.setItem('color-theme'", false)
+        ->assertSee("this.$flux.appearance = this.$flux.dark ? 'light' : 'dark'", false)
+        ->assertSee("'flux.appearance'", false)
+        ->assertSee("localStorage.removeItem('color-theme')", false)
         ->assertSee('ডার্ক মোড চালু করুন')
         ->assertSee('লাইট মোড চালু করুন');
 });
