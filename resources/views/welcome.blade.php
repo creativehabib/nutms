@@ -1,11 +1,27 @@
+@php
+    $frontendTheme ??= [
+        'mode' => 'system',
+        'primary_light' => '#047857',
+        'primary_dark' => '#34d399',
+        'accent_light' => '#0f766e',
+        'accent_dark' => '#5eead4',
+    ];
+@endphp
+
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="bn" style="--theme-primary-light: {{ $frontendTheme['primary_light'] }}; --theme-primary-dark: {{ $frontendTheme['primary_dark'] }}; --theme-accent-light: {{ $frontendTheme['accent_light'] }}; --theme-accent-dark: {{ $frontendTheme['accent_dark'] }}">
 
 <head>
     @include('partials.head', ['title' => $title ?? __('National University Teacher Training Department')])
 
     <script>
-        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        const savedTheme = localStorage.getItem('color-theme');
+        const defaultTheme = @js($frontendTheme['mode']);
+        const useDarkTheme = savedTheme === 'dark'
+            || (!savedTheme && defaultTheme === 'dark')
+            || (!savedTheme && defaultTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        if (useDarkTheme) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');

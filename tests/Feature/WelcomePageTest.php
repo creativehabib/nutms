@@ -10,6 +10,7 @@ use App\Models\SystemSetting;
 use App\Models\Teacher;
 use App\Models\Training;
 use App\Models\User;
+use Illuminate\Support\Facades\Blade;
 use Livewire\Livewire;
 
 it('renders live platform statistics and the next training', function () {
@@ -57,6 +58,15 @@ it('applies saved frontend theme colors and default mode', function () {
         ->assertSee('--theme-primary-dark: #93c5fd', false)
         ->assertSee('const defaultTheme = "dark"', false)
         ->assertSee('theme-hero-bg', false);
+});
+
+it('renders the frontend layout with fallback theme values', function () {
+    $renderedLayout = Blade::render('<x-layouts::app.welcome><p>Public content</p></x-layouts::app.welcome>');
+
+    expect($renderedLayout)
+        ->toContain('--theme-primary-light: #047857')
+        ->toContain('const defaultTheme = "system"')
+        ->toContain('Public content');
 });
 
 it('counts registrations with one aggregate query and excludes draft trainings', function () {

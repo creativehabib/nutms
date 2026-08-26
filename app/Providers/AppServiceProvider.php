@@ -35,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureFrontendTheme(): void
     {
-        View::composer('layouts.app.welcome', function (IlluminateView $view): void {
+        View::composer(['layouts::app.welcome', 'welcome'], function (IlluminateView $view): void {
             $view->with('frontendTheme', Schema::hasTable('system_settings')
                 ? SystemSetting::theme()
                 : [
