@@ -57,7 +57,7 @@
             <div class="grid gap-5 p-6 md:grid-cols-2">
                 @forelse($college->programs as $program)
                     <div class="rounded-xl border border-slate-200 p-5 dark:border-slate-700">
-                        <h3 class="font-bold text-emerald-700 dark:text-emerald-400">
+                        <h3 class="font-bold theme-primary-text">
                             {{ ['degree' => 'ডিগ্রি', 'honours' => 'অনার্স', 'masters' => 'মাস্টার্স', 'professional' => 'প্রফেশনাল', 'other' => 'অন্যান্য'][$program->level] ?? $program->level }}
                         </h3>
                         <div class="mt-3 flex flex-wrap gap-2">
