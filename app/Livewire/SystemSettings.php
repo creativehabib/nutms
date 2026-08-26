@@ -36,11 +36,22 @@ class SystemSettings extends Component
     public ?string $aiConnectionMessage = null;
     public ?bool $aiConnectionSuccessful = null;
     public string $savedAiProvider = 'openai';
+    public string $themeMode = 'system';
+    public string $themePrimaryLight = '#047857';
+    public string $themePrimaryDark = '#34d399';
+    public string $themeAccentLight = '#0f766e';
+    public string $themeAccentDark = '#5eead4';
 
     public function mount(): void
     {
         abort_unless(auth()->user()->isAdmin(), 403);
         $this->retirementAge = SystemSetting::retirementAge();
+        $theme = SystemSetting::theme();
+        $this->themeMode = $theme['mode'];
+        $this->themePrimaryLight = $theme['primary_light'];
+        $this->themePrimaryDark = $theme['primary_dark'];
+        $this->themeAccentLight = $theme['accent_light'];
+        $this->themeAccentDark = $theme['accent_dark'];
         $emailSetting = EmailSetting::query()->latest('id')->first();
 
         if ($emailSetting !== null) {
@@ -211,6 +222,32 @@ class SystemSettings extends Component
         );
 
         Flux::toast(variant: 'success', text: 'শিক্ষকদের অবসর বয়স সংরক্ষণ করা হয়েছে।');
+    }
+
+    public function saveThemeSettings(): void
+    {
+        abort_unless(auth()->user()->isAdmin(), 403);
+        $validated = $this->validate([
+            'themeMode' => ['required', Rule::in(['system', 'light', 'dark'])],
+            'themePrimaryLight' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'themePrimaryDark' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'themeAccentLight' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'themeAccentDark' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ]);
+
+        $settings = [
+            SystemSetting::THEME_MODE => $validated['themeMode'],
+            SystemSetting::THEME_PRIMARY_LIGHT => strtolower($validated['themePrimaryLight']),
+            SystemSetting::THEME_PRIMARY_DARK => strtolower($validated['themePrimaryDark']),
+            SystemSetting::THEME_ACCENT_LIGHT => strtolower($validated['themeAccentLight']),
+            SystemSetting::THEME_ACCENT_DARK => strtolower($validated['themeAccentDark']),
+        ];
+
+        foreach ($settings as $key => $value) {
+            SystemSetting::query()->updateOrCreate(['key' => $key], ['value' => $value]);
+        }
+
+        Flux::toast(variant: 'success', text: __('Frontend theme settings have been saved.'));
     }
 
     public function render(): View

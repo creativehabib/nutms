@@ -8,6 +8,52 @@
         <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Manage global application configurations and email services.') }}</flux:text>
     </div>
 
+    <form wire:submit="saveThemeSettings">
+        <flux:card class="flex flex-col gap-6 border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <div class="flex flex-col gap-4 border-b border-zinc-100 pb-5 dark:border-zinc-800/80 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-600 dark:border-emerald-500/10 dark:bg-emerald-500/10 dark:text-emerald-400">
+                        <flux:icon.swatch class="size-6" />
+                    </div>
+                    <div>
+                        <flux:heading size="lg">{{ __('Frontend Theme') }}</flux:heading>
+                        <flux:text class="mt-0.5 text-sm">{{ __('Choose balanced brand colors for light and dark mode.') }}</flux:text>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-800">
+                    <span class="size-8 rounded-lg border border-black/10" style="background: {{ $themePrimaryLight }}"></span>
+                    <span class="size-8 rounded-lg border border-white/10" style="background: {{ $themePrimaryDark }}"></span>
+                    <span class="size-8 rounded-lg border border-black/10" style="background: {{ $themeAccentLight }}"></span>
+                    <span class="size-8 rounded-lg border border-white/10" style="background: {{ $themeAccentDark }}"></span>
+                </div>
+            </div>
+
+            <flux:select wire:model="themeMode" :label="__('Default color mode')" :description="__('Visitors can still use their saved browser preference.')">
+                <option value="system">{{ __('Follow device setting') }}</option>
+                <option value="light">{{ __('Light') }}</option>
+                <option value="dark">{{ __('Dark') }}</option>
+            </flux:select>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+                <flux:input wire:model.live="themePrimaryLight" type="color" :label="__('Primary color — light mode')" />
+                <flux:input wire:model.live="themePrimaryDark" type="color" :label="__('Primary color — dark mode')" />
+                <flux:input wire:model.live="themeAccentLight" type="color" :label="__('Accent color — light mode')" />
+                <flux:input wire:model.live="themeAccentDark" type="color" :label="__('Accent color — dark mode')" />
+            </div>
+
+            <flux:callout variant="info" icon="information-circle">
+                {{ __('Primary colors are used for navigation and actions; accent colors highlight important frontend content.') }}
+            </flux:callout>
+
+            <div class="flex justify-end border-t border-zinc-100 pt-5 dark:border-zinc-800">
+                <flux:button type="submit" variant="primary" icon="check" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="saveThemeSettings">{{ __('Save Theme') }}</span>
+                    <span wire:loading wire:target="saveThemeSettings">{{ __('Saving...') }}</span>
+                </flux:button>
+            </div>
+        </flux:card>
+    </form>
+
     <!-- ======================================= -->
     <!-- RETIREMENT SETTINGS CARD                -->
     <!-- ======================================= -->

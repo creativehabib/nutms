@@ -42,7 +42,7 @@
                         @endforelse
                     </div>
                     <a href="{{ $college->publicProfileUrl() }}"
-                       class="mt-6 inline-flex justify-center rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800">
+                       class="mt-6 inline-flex justify-center rounded-xl theme-primary-bg px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800">
                         বিস্তারিত দেখুন
                     </a>
                 </article>
