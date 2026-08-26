@@ -1,4 +1,15 @@
-<header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
+<header
+    x-data="{
+        mobileMenuOpen: false,
+        darkMode: document.documentElement.classList.contains('dark'),
+        toggleColorMode() {
+            this.darkMode = ! this.darkMode;
+            document.documentElement.classList.toggle('dark', this.darkMode);
+            localStorage.setItem('color-theme', this.darkMode ? 'dark' : 'light');
+        },
+    }"
+    class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95"
+>
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <a href="{{ route('home') }}" wire:navigate class="flex min-w-0 items-center gap-3">
             <div class="theme-primary-bg flex size-12 shrink-0 items-center justify-center rounded-xl text-white shadow">
@@ -24,6 +35,22 @@
         </nav>
 
         <div class="flex items-center gap-2">
+            <button
+                type="button"
+                data-theme-toggle
+                @click="toggleColorMode()"
+                class="inline-flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-amber-300 dark:hover:bg-slate-800 dark:hover:text-amber-200"
+                :aria-label="darkMode ? 'লাইট মোড চালু করুন' : 'ডার্ক মোড চালু করুন'"
+                :aria-pressed="darkMode"
+                :title="darkMode ? 'লাইট মোড' : 'ডার্ক মোড'"
+            >
+                <svg x-show="! darkMode" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                </svg>
+                <svg x-show="darkMode" x-cloak class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.36-6.36-1.42 1.42M7.05 16.95l-1.41 1.41m12.72 0-1.42-1.42M7.05 7.05 5.64 5.64M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </button>
             <a href="{{ auth()->check() ? route('dashboard') : route('login') }}"
                class="theme-primary-bg theme-primary-hover hidden items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition sm:inline-flex">
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

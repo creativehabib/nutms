@@ -69,6 +69,15 @@ it('renders the frontend layout with fallback theme values', function () {
         ->toContain('Public content');
 });
 
+it('shows an accessible light and dark mode toggle on the frontend', function () {
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('data-theme-toggle', false)
+        ->assertSee("localStorage.setItem('color-theme'", false)
+        ->assertSee('ডার্ক মোড চালু করুন')
+        ->assertSee('লাইট মোড চালু করুন');
+});
+
 it('counts registrations with one aggregate query and excludes draft trainings', function () {
     $publishedTraining = Training::factory()->create(['status' => 'Upcoming']);
     $draftTraining = Training::factory()->create(['status' => 'Draft']);
