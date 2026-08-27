@@ -77,6 +77,17 @@ it('repairs mixed legacy symbols left in otherwise converted text', function () 
         ->toBe('খ্রি রেজিস্ট্রার বিশ্ববিদ্যালয় শিক্ষক কুমার');
 });
 
+it('uses legacy fola glyphs instead of raw hasants in official documents', function () {
+    $unicode = 'খ্রিঃ রেজিস্ট্রার বিশ্ববিদ্যালয় মাধ্যম অদ্য পূর্বাহ্ণে টেকনিক্যাল';
+    $bijoy = BanglaConverter::unicodeToBijoy($unicode);
+
+    expect($bijoy)->not->toContain('&')
+        ->and($bijoy)->toContain('ª')
+        ->and($bijoy)->toContain('¨')
+        ->and($bijoy)->toContain('ý')
+        ->and(BanglaConverter::bijoyToUnicode($bijoy))->toBe($unicode);
+});
+
 it('keeps empty converter input empty', function () {
     expect(BanglaConverter::unicodeToBijoy(''))->toBe('')
         ->and(BanglaConverter::bijoyToUnicode(''))->toBe('');

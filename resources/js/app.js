@@ -125,6 +125,9 @@ const bijoyToUnicodeCharacters = new Map([...unicodeToBijoyCharacters].map(([uni
 const bijoyToUnicodeAliases = new Map([
     ['‡', 'ে'], ['ª', '্র'], ['¨', '্য'], ['^', '্ব'], ['ÿ', 'ক্ষ'], ['ý', 'হ্ণ'], ['z', 'ু'],
 ]);
+const unicodeToBijoyFallbacks = new Map([
+    ['হ্ণ', 'ý'], ['্র', 'ª'], ['্য', '¨'], ['্ব', '^'],
+]);
 
 const replaceFromMap = (value, replacements) => [...replacements.entries()]
     .sort(([first], [second]) => second.length - first.length)
@@ -147,6 +150,7 @@ const convertUnicodeToBijoy = (value) => {
         .replace(/র্([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/g, '$1©');
 
     converted = replaceFromMap(converted, unicodeToBijoyLigatures);
+    converted = replaceFromMap(converted, unicodeToBijoyFallbacks);
 
     return replaceFromMap(converted, unicodeToBijoyCharacters);
 };

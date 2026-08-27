@@ -31,6 +31,11 @@ final class BanglaConverter
         '‡' => 'ে', 'ª' => '্র', '¨' => '্য', '^' => '্ব', 'ÿ' => 'ক্ষ', 'ý' => 'হ্ণ', 'z' => 'ু',
     ];
 
+    /** @var array<string, string> */
+    private const UNICODE_TO_BIJOY_FALLBACKS = [
+        'হ্ণ' => 'ý', '্র' => 'ª', '্য' => '¨', '্ব' => '^',
+    ];
+
     public static function bijoyToUnicode(string $text): string
     {
         if ($text === '') {
@@ -64,6 +69,7 @@ final class BanglaConverter
         $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)([িেৈ])/u', '$2$1', $text) ?? $text;
         $text = preg_replace('/র্([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/u', '$1©', $text) ?? $text;
         $text = self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_LIGATURES);
+        $text = self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_FALLBACKS);
 
         return self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_CHARACTERS);
     }
