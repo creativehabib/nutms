@@ -75,5 +75,7 @@
                 ></textarea>
             </div>
         </div>
+
+        <livewire:text-converter />
     </section>
 </x-layouts::app.welcome>
