@@ -34,6 +34,7 @@ use App\Models\AdmissionInfo;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', WelcomeController::class)->name('home');
+Route::view('/unicode-to-bijoy-converter', 'unicode-to-bijoy-converter')->name('unicode-to-bijoy-converter');
 Route::get('/affiliated-colleges', AffiliatedCollegeDirectory::class)->name('public.colleges.index');
 Route::get('/affiliated-colleges/{college}/{slug}', AffiliatedCollegeDetails::class)->name('public.colleges.show');
 Route::get('/affiliated-colleges/{college}', fn (\App\Models\College $college) => redirect()->to($college->publicProfileUrl(), 301))
