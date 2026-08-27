@@ -141,6 +141,7 @@ const normalizeUnicodeBangla = (value) => value
     .replace(/য়/g, 'য়')
     .replace(/ো/g, 'ো')
     .replace(/ৌ/g, 'ৌ')
+    .replace(/[\t ]+ঃ(?=\s|$)/g, ' :')
     .replace(/্{2,}/g, '্');
 
 const convertUnicodeToBijoy = (value) => {

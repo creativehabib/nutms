@@ -80,6 +80,7 @@ final class BanglaConverter
     private static function normalizeUnicode(string $text): string
     {
         $text = str_replace(["\u{200B}", "\u{200C}", "\u{200D}", "\u{2060}", "\u{FEFF}"], '', $text);
+        $text = preg_replace('/\h+ঃ(?=\s|$)/u', ' :', $text) ?? $text;
 
         return str_replace(['ো', 'ৌ'], ['ো', 'ৌ'], $text);
     }

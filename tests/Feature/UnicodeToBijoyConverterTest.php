@@ -117,6 +117,13 @@ it('resolves reph before moving pre-kar in মর্জিত', function () {
         ->and(BanglaConverter::bijoyToUnicode('মজি©ত'))->toBe('মর্জিত');
 });
 
+it('normalizes a spaced Bijoy visarga as a punctuation colon', function () {
+    expect(BanglaConverter::bijoyToUnicode("mshyw³ t\nwelq t †hvM`vb"))
+        ->toBe("সংযুক্তি :\nবিষয় : যোগদান")
+        ->and(BanglaConverter::bijoyToUnicode('`ytL'))->toBe('দুঃখ')
+        ->and(BanglaConverter::bijoyToUnicode('wLªt'))->toBe('খ্রিঃ');
+});
+
 it('keeps empty converter input empty', function () {
     expect(BanglaConverter::unicodeToBijoy(''))->toBe('')
         ->and(BanglaConverter::bijoyToUnicode(''))->toBe('');
