@@ -80,7 +80,7 @@ it('shows an accessible light and dark mode toggle on the frontend', function ()
         ->assertSee('লাইট মোড চালু করুন');
 });
 
-it('counts registrations with one aggregate query and excludes draft trainings', function () {
+it('counts registrations with a qualified aggregate query and excludes draft trainings', function () {
     $publishedTraining = Training::factory()->create(['status' => 'Upcoming']);
     $draftTraining = Training::factory()->create(['status' => 'Draft']);
     $publishedTraining->participants()->attach(User::factory()->create());

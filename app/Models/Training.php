@@ -35,7 +35,7 @@ class Training extends Model
     /** @param Builder<Training> $query */
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('status', '!=', 'Draft');
+        return $query->where($query->qualifyColumn('status'), '!=', 'Draft');
     }
 
     /** @return BelongsToMany<User, $this> */
