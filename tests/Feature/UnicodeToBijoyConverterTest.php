@@ -88,6 +88,22 @@ it('uses legacy fola glyphs instead of raw hasants in official documents', funct
         ->and(BanglaConverter::bijoyToUnicode($bijoy))->toBe($unicode);
 });
 
+it('keeps the conjunct and pre-kar intact when converting কেন্দ্র', function () {
+    expect(BanglaConverter::unicodeToBijoy('আঞ্চলিক কেন্দ্র থেকে বদলী'))
+        ->toBe('AvÂwjK †K›`ª †_†K e`jx')
+        ->and(BanglaConverter::bijoyToUnicode('AvÂwjK †K›`ª †_†K e`jx'))
+        ->toBe('আঞ্চলিক কেন্দ্র থেকে বদলী');
+});
+
+it('removes invisible joiners before converting মোতাবেক and পূর্বাহ্নে', function () {
+    $textWithJoiners = "মে\u{200D}াতাবেক পূ\u{200D}\u{200D}র্বাহ্নে";
+    $bijoy = BanglaConverter::unicodeToBijoy($textWithJoiners);
+
+    expect($bijoy)->toBe('†gvZv†eK c~e©v†nè')
+        ->not->toContain("\u{200D}")
+        ->and(BanglaConverter::bijoyToUnicode($bijoy))->toBe('মোতাবেক পূর্বাহ্নে');
+});
+
 it('keeps empty converter input empty', function () {
     expect(BanglaConverter::unicodeToBijoy(''))->toBe('')
         ->and(BanglaConverter::bijoyToUnicode(''))->toBe('');
