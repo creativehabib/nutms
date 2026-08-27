@@ -1,4 +1,4 @@
-<x-layouts.frontend
+<x-layouts::app.welcome
     title="ইউনিকোড টু বিজয় কনভার্টার"
     description="বাংলা ইউনিকোড ও বিজয় কি-বোর্ডের লেখার মধ্যে সহজে রূপান্তর করুন।"
     keywords="Unicode to Bijoy, Bijoy to Unicode, বাংলা কনভার্টার"
@@ -76,4 +76,4 @@
             </div>
         </div>
     </section>
-</x-layouts.frontend>
+</x-layouts::app.welcome>
