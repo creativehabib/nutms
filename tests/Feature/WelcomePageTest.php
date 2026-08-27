@@ -93,6 +93,30 @@ it('counts registrations with one aggregate query and excludes draft trainings',
     expect($response->viewData('statistics')['registrations'])->toBe(1);
 });
 
+it('reuses public visibility and publication query constraints', function () {
+    $approvedCollege = College::query()->create([
+        'name' => 'Visible College',
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    College::query()->create([
+        'name' => 'Inactive College',
+        'is_active' => false,
+        'approval_status' => ApprovalStatus::Approved,
+    ]);
+    College::query()->create([
+        'name' => 'Pending College',
+        'is_active' => true,
+        'approval_status' => ApprovalStatus::Pending,
+    ]);
+    Training::factory()->create(['status' => 'Upcoming']);
+    Training::factory()->create(['status' => 'Draft']);
+
+    expect(College::query()->publiclyVisible()->pluck('id')->all())->toBe([$approvedCollege->id])
+        ->and($approvedCollege->isPubliclyVisible())->toBeTrue()
+        ->and(Training::query()->published()->count())->toBe(1);
+});
+
 it('lets public users browse affiliated colleges and their subjects', function () {
     ProgramLevel::query()->updateOrCreate(
         ['slug' => 'postgraduate'],
