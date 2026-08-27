@@ -42,9 +42,17 @@ it('converts common Bangla text in both directions', function (string $unicode) 
 
 it('places every pre-kar before its Bijoy consonant glyph', function () {
     expect(BanglaConverter::unicodeToBijoy('কি কে কৈ কো কৌ'))
-        ->toBe('wK †K ‰K ‡K ŠK')
+        ->toBe('wK †K ‰K †Kv †KŠ')
         ->and(BanglaConverter::unicodeToBijoy('আমার সোনার বাংলা আমি তোমায় ভালোবাসি!'))
-        ->toBe('Avgvi ‡mbvi evsjv Avwg ‡Zgvq fv‡jevwm!');
+        ->toBe('Avgvi †mvbvi evsjv Avwg †Zvgvq fv†jvevwm!');
+});
+
+it('round trips compound vowels, rephs and common conjuncts without broken glyphs', function () {
+    $unicode = 'সৌন্দর্য যৌথ কৌশল সম্পন্ন প্রজ্ঞা শ্রদ্ধা বন্ধু লক্ষ্মী';
+    $bijoy = BanglaConverter::unicodeToBijoy($unicode);
+
+    expect($bijoy)->not->toContain('&')
+        ->and(BanglaConverter::bijoyToUnicode($bijoy))->toBe($unicode);
 });
 
 it('keeps empty converter input empty', function () {
