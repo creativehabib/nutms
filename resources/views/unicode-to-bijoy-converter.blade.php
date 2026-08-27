@@ -1,3 +1,12 @@
+@push('styles')
+    <link rel="stylesheet" href="https://fonts.maateen.me/sutonny-mj/font.css">
+    <style>
+        .bijoy-text {
+            font-family: 'SutonnyMJ', sans-serif;
+        }
+    </style>
+@endpush
+
 <x-layouts::app.welcome
     title="ইউনিকোড টু বিজয় কনভার্টার"
     description="বাংলা ইউনিকোড ও বিজয় কি-বোর্ডের লেখার মধ্যে সহজে রূপান্তর করুন।"
@@ -71,7 +80,7 @@
                     rows="8"
                     spellcheck="false"
                     placeholder="বিজয় কি-বোর্ডের লেখা এখানে লিখুন অথবা পেস্ট করুন..."
-                    class="min-h-48 w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 p-4 text-lg leading-8 text-slate-900 outline-none placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+                    class="bijoy-text min-h-48 w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xl leading-9 text-slate-900 outline-none placeholder:font-sans placeholder:text-lg placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
                 ></textarea>
             </div>
         </div>

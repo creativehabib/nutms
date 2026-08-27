@@ -13,6 +13,9 @@ it('renders the public unicode to bijoy converter', function () {
         ->assertSee('ইউনিকোডে লেখা এখানে লিখুন অথবা পেস্ট করুন')
         ->assertSee('বিজয় কি-বোর্ডের লেখা এখানে লিখুন অথবা পেস্ট করুন')
         ->assertDontSee('readonly', false)
+        ->assertSee('https://fonts.maateen.me/sutonny-mj/font.css', false)
+        ->assertSee("font-family: 'SutonnyMJ'", false)
+        ->assertSee('class="bijoy-text', false)
         ->assertSee('TXT ফাইল কনভার্টার')
         ->assertSee('data-theme-toggle', false);
 });
