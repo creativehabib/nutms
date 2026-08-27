@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Frontend;
 
-use App\Enums\ApprovalStatus;
 use App\Models\College;
 use App\Models\ProgramLevel;
 use Illuminate\Contracts\View\View;
@@ -17,9 +16,7 @@ class AffiliatedCollegeDetails extends Component
     public function mount(College $college, string $slug): void
     {
         abort_unless(
-            $college->is_active
-                && $college->approval_status === ApprovalStatus::Approved
-                && hash_equals($college->publicProfileSlug(), $slug),
+            $college->isPubliclyVisible() && hash_equals($college->publicProfileSlug(), $slug),
             404,
         );
 
@@ -36,10 +33,9 @@ class AffiliatedCollegeDetails extends Component
         $relatedColleges = $this->college->division_id === null
             ? College::newCollection()
             : College::query()
+                ->publiclyVisible()
                 ->whereKeyNot($this->college->getKey())
                 ->where('division_id', $this->college->division_id)
-                ->where('is_active', true)
-                ->where('approval_status', ApprovalStatus::Approved)
                 ->orderByRaw('CASE WHEN district_id = ? THEN 0 ELSE 1 END', [$this->college->district_id])
                 ->orderBy('name')
                 ->get(['id', 'name', 'college_name_bn', 'college_code', 'logo', 'district_id', 'division_id']);

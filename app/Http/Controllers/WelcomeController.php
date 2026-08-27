@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ApprovalStatus;
 use App\Models\College;
 use App\Models\Teacher;
 use App\Models\Training;
@@ -22,22 +21,21 @@ class WelcomeController extends Controller
         return view('welcome', [
             'statistics' => [
                 'teachers' => Teacher::query()->count(),
-                'trainings' => Training::query()->where('status', '!=', 'Draft')->count(),
+                'trainings' => Training::query()->published()->count(),
                 'colleges' => College::query()->where('is_active', true)->count(),
                 'registrations' => Training::query()
-                    ->where('trainings.status', '!=', 'Draft')
+                    ->published()
                     ->join('training_user', 'trainings.id', '=', 'training_user.training_id')
                     ->count('training_user.id'),
             ],
             'upcomingTraining' => $upcomingTraining,
             'latestTrainings' => Training::query()
-                ->where('status', '!=', 'Draft')
+                ->published()
                 ->latest()
                 ->limit(3)
                 ->get(),
             'affiliatedColleges' => College::query()
-                ->where('is_active', true)
-                ->where('approval_status', ApprovalStatus::Approved)
+                ->publiclyVisible()
                 ->with(['division:id,name,bn_name', 'district:id,name,bn_name', 'programs:id,college_id,level,name,items'])
                 ->orderBy('name')
                 ->limit(6)

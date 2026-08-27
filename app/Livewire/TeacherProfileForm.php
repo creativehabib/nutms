@@ -507,7 +507,7 @@ class TeacherProfileForm extends Component
     public function render(): View
     {
         return view('livewire.teacher-profile-form', [
-            'colleges' => College::query()->where('is_active', true)->where('approval_status', ApprovalStatus::Approved)
+            'colleges' => College::query()->publiclyVisible()
                 ->when(auth()->user()->hasRole('principal'), fn ($query) => $query->whereKey(auth()->user()->college_id))
                 ->when(auth()->user()->hasRole('teacher'), fn ($query) => $query->whereKey(auth()->user()->college_id))
                 ->orderBy('name')->get(['id', 'college_code', 'name']),

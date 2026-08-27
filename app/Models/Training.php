@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\TrainingFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,6 +30,12 @@ class Training extends Model
             'capacity' => 'integer',
             'allows_repeat' => 'boolean',
         ];
+    }
+
+    /** @param Builder<Training> $query */
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where($query->qualifyColumn('status'), '!=', 'Draft');
     }
 
     /** @return BelongsToMany<User, $this> */

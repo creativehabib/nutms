@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ApprovalStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -30,6 +31,19 @@ class College extends Model
             'approval_status' => ApprovalStatus::class,
             'approved_at' => 'datetime',
         ];
+    }
+
+    /** @param Builder<College> $query */
+    public function scopePubliclyVisible(Builder $query): Builder
+    {
+        return $query
+            ->where('is_active', true)
+            ->where('approval_status', ApprovalStatus::Approved);
+    }
+
+    public function isPubliclyVisible(): bool
+    {
+        return $this->is_active && $this->approval_status === ApprovalStatus::Approved;
     }
 
     /** @return array{college: int, slug: string} */

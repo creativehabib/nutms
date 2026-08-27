@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Frontend;
 
-use App\Enums\ApprovalStatus;
 use App\Models\College;
 use App\Models\District;
 use App\Models\Division;
@@ -89,7 +88,7 @@ class AffiliatedCollegeDirectory extends Component
             ->paginate(12);
 
         $divisions = Division::query()
-            ->whereHas('colleges', fn (Builder $query) => $this->applyPublicVisibility($query))
+            ->whereHas('colleges', fn (Builder $query) => $query->publiclyVisible())
             ->orderBy('name')
             ->get(['id', 'name', 'bn_name']);
 
@@ -97,7 +96,7 @@ class AffiliatedCollegeDirectory extends Component
             ? collect()
             : District::query()
                 ->where('division_id', $this->division)
-                ->whereHas('colleges', fn (Builder $query) => $this->applyPublicVisibility($query))
+                ->whereHas('colleges', fn (Builder $query) => $query->publiclyVisible())
                 ->orderBy('name')
                 ->get(['id', 'division_id', 'name', 'bn_name']);
 
@@ -133,17 +132,6 @@ class AffiliatedCollegeDirectory extends Component
     /** @return Builder<College> */
     private function publicColleges(): Builder
     {
-        return $this->applyPublicVisibility(College::query());
-    }
-
-    /**
-     * @param  Builder<College>  $query
-     * @return Builder<College>
-     */
-    private function applyPublicVisibility(Builder $query): Builder
-    {
-        return $query
-            ->where('is_active', true)
-            ->where('approval_status', ApprovalStatus::Approved);
+        return College::query()->publiclyVisible();
     }
 }
