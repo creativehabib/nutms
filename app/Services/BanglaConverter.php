@@ -32,7 +32,7 @@ final class BanglaConverter
 
         $text = self::replaceLongestFirst($text, array_flip(self::UNICODE_TO_BIJOY_LIGATURES));
         $text = self::replaceLongestFirst($text, array_flip(self::UNICODE_TO_BIJOY_CHARACTERS));
-        $text = preg_replace('/([িেৈ])([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/u', '$2$1', $text) ?? $text;
+        $text = preg_replace('/([িেৈোৌ])([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/u', '$2$1', $text) ?? $text;
         $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/u', 'র্$1', $text) ?? $text;
 
         return self::normalizeUnicode($text);
@@ -45,7 +45,7 @@ final class BanglaConverter
         }
 
         $text = self::normalizeUnicode($text);
-        $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)([িেৈ])/u', '$2$1', $text) ?? $text;
+        $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)([িেৈোৌ])/u', '$2$1', $text) ?? $text;
         $text = preg_replace('/র্([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/u', '$1©', $text) ?? $text;
         $text = self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_LIGATURES);
 

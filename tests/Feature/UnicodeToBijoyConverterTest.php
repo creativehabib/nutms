@@ -40,6 +40,13 @@ it('converts common Bangla text in both directions', function (string $unicode) 
     'digits' => '২০২৬।',
 ]);
 
+it('places every pre-kar before its Bijoy consonant glyph', function () {
+    expect(BanglaConverter::unicodeToBijoy('কি কে কৈ কো কৌ'))
+        ->toBe('wK †K ‰K ‡K ŠK')
+        ->and(BanglaConverter::unicodeToBijoy('আমার সোনার বাংলা আমি তোমায় ভালোবাসি!'))
+        ->toBe('Avgvi ‡mbvi evsjv Avwg ‡Zgvq fv‡jevwm!');
+});
+
 it('keeps empty converter input empty', function () {
     expect(BanglaConverter::unicodeToBijoy(''))->toBe('')
         ->and(BanglaConverter::bijoyToUnicode(''))->toBe('');

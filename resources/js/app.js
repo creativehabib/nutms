@@ -136,7 +136,7 @@ const normalizeUnicodeBangla = (value) => value
 
 const convertUnicodeToBijoy = (value) => {
     let converted = normalizeUnicodeBangla(value)
-        .replace(/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)([িেৈ])/g, '$2$1')
+        .replace(/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)([িেৈোৌ])/g, '$2$1')
         .replace(/র্([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/g, '$1©');
 
     converted = replaceFromMap(converted, unicodeToBijoyLigatures);
@@ -147,7 +147,7 @@ const convertUnicodeToBijoy = (value) => {
 const convertBijoyToUnicode = (value) => {
     let converted = replaceFromMap(value, bijoyToUnicodeLigatures);
     converted = replaceFromMap(converted, bijoyToUnicodeCharacters)
-        .replace(/([িেৈ])([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/g, '$2$1')
+        .replace(/([িেৈোৌ])([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/g, '$2$1')
         .replace(/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/g, 'র্$1');
 
     return normalizeUnicodeBangla(converted);
