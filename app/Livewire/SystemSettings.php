@@ -243,9 +243,12 @@ class SystemSettings extends Component
             SystemSetting::THEME_ACCENT_DARK => strtolower($validated['themeAccentDark']),
         ];
 
-        foreach ($settings as $key => $value) {
-            SystemSetting::query()->updateOrCreate(['key' => $key], ['value' => $value]);
-        }
+        SystemSetting::query()->upsert(
+            collect($settings)->map(fn (string $value, string $key): array => compact('key', 'value'))->values()->all(),
+            ['key'],
+            ['value'],
+        );
+        SystemSetting::forgetCachedValues();
 
         Flux::toast(variant: 'success', text: __('Frontend theme settings have been saved.'));
     }

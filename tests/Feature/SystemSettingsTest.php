@@ -6,6 +6,7 @@ use App\Models\EmailSetting;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\EnvironmentFileUpdater;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
@@ -41,6 +42,26 @@ it('allows an admin to configure the frontend light and dark themes', function (
         'accent_light' => '#7e22ce',
         'accent_dark' => '#d8b4fe',
     ]);
+});
+
+it('caches settings and invalidates them after changes', function () {
+    SystemSetting::query()->create([
+        'key' => SystemSetting::RETIREMENT_AGE,
+        'value' => '59',
+    ]);
+
+    $queries = [];
+    DB::listen(function ($query) use (&$queries): void {
+        $queries[] = $query->sql;
+    });
+
+    expect(SystemSetting::retirementAge())->toBe(59)
+        ->and(SystemSetting::retirementAge())->toBe(59)
+        ->and(collect($queries)->filter(fn (string $sql): bool => str_contains($sql, 'system_settings')))->toHaveCount(1);
+
+    SystemSetting::query()->whereKey(SystemSetting::RETIREMENT_AGE)->firstOrFail()->update(['value' => '60']);
+
+    expect(SystemSetting::retirementAge())->toBe(60);
 });
 
 it('validates frontend theme colors before saving them', function () {
