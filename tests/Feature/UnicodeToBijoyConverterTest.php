@@ -55,6 +55,16 @@ it('round trips compound vowels, rephs and common conjuncts without broken glyph
         ->and(BanglaConverter::bijoyToUnicode($bijoy))->toBe($unicode);
 });
 
+it('converts the public page titles without leaving raw hasants', function () {
+    $unicode = "অধিভুক্ত কলেজ ডিরেক্টরি\nইউনিকোড টু বিজয় কনভার্টার";
+    $bijoy = BanglaConverter::unicodeToBijoy($unicode);
+
+    expect($bijoy)->toContain('³')
+        ->toContain('±')
+        ->not->toContain('&')
+        ->and(BanglaConverter::bijoyToUnicode($bijoy))->toBe($unicode);
+});
+
 it('keeps empty converter input empty', function () {
     expect(BanglaConverter::unicodeToBijoy(''))->toBe('')
         ->and(BanglaConverter::bijoyToUnicode(''))->toBe('');
