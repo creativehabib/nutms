@@ -3,9 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class SystemSetting extends Model
 {
+    private const RETIREMENT_AGE_CACHE_KEY = 'system-settings.retirement-age';
+
+    private const THEME_CACHE_KEY = 'system-settings.theme';
+
     public const RETIREMENT_AGE = 'retirement_age';
 
     public const THEME_MODE = 'theme_mode';
@@ -26,9 +31,18 @@ class SystemSetting extends Model
 
     protected $fillable = ['key', 'value'];
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => static::forgetCachedValues());
+        static::deleted(fn () => static::forgetCachedValues());
+    }
+
     public static function retirementAge(): int
     {
-        return (int) static::query()->whereKey(self::RETIREMENT_AGE)->value('value') ?: 59;
+        return Cache::rememberForever(
+            self::RETIREMENT_AGE_CACHE_KEY,
+            fn (): int => (int) static::query()->whereKey(self::RETIREMENT_AGE)->value('value') ?: 59,
+        );
     }
 
     /**
@@ -36,22 +50,30 @@ class SystemSetting extends Model
      */
     public static function theme(): array
     {
-        $settings = static::query()
-            ->whereIn('key', [
-                self::THEME_MODE,
-                self::THEME_PRIMARY_LIGHT,
-                self::THEME_PRIMARY_DARK,
-                self::THEME_ACCENT_LIGHT,
-                self::THEME_ACCENT_DARK,
-            ])
-            ->pluck('value', 'key');
+        return Cache::rememberForever(self::THEME_CACHE_KEY, function (): array {
+            $settings = static::query()
+                ->whereIn('key', [
+                    self::THEME_MODE,
+                    self::THEME_PRIMARY_LIGHT,
+                    self::THEME_PRIMARY_DARK,
+                    self::THEME_ACCENT_LIGHT,
+                    self::THEME_ACCENT_DARK,
+                ])
+                ->pluck('value', 'key');
 
-        return [
-            'mode' => (string) $settings->get(self::THEME_MODE, 'system'),
-            'primary_light' => (string) $settings->get(self::THEME_PRIMARY_LIGHT, '#047857'),
-            'primary_dark' => (string) $settings->get(self::THEME_PRIMARY_DARK, '#34d399'),
-            'accent_light' => (string) $settings->get(self::THEME_ACCENT_LIGHT, '#0f766e'),
-            'accent_dark' => (string) $settings->get(self::THEME_ACCENT_DARK, '#5eead4'),
-        ];
+            return [
+                'mode' => (string) $settings->get(self::THEME_MODE, 'system'),
+                'primary_light' => (string) $settings->get(self::THEME_PRIMARY_LIGHT, '#047857'),
+                'primary_dark' => (string) $settings->get(self::THEME_PRIMARY_DARK, '#34d399'),
+                'accent_light' => (string) $settings->get(self::THEME_ACCENT_LIGHT, '#0f766e'),
+                'accent_dark' => (string) $settings->get(self::THEME_ACCENT_DARK, '#5eead4'),
+            ];
+        });
+    }
+
+    public static function forgetCachedValues(): void
+    {
+        Cache::forget(self::RETIREMENT_AGE_CACHE_KEY);
+        Cache::forget(self::THEME_CACHE_KEY);
     }
 }

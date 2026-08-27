@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ApprovalStatus;
 use App\Models\College;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,7 +35,7 @@ class PublicCollegeController extends Controller
     public function show(College $college): View
     {
         abort_unless(
-            $college->is_active && $college->approval_status === ApprovalStatus::Approved,
+            $college->isPubliclyVisible(),
             404,
         );
 
@@ -49,8 +48,6 @@ class PublicCollegeController extends Controller
     /** @return Builder<College> */
     private function publicColleges(): Builder
     {
-        return College::query()
-            ->where('is_active', true)
-            ->where('approval_status', ApprovalStatus::Approved);
+        return College::query()->publiclyVisible();
     }
 }

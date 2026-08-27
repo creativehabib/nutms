@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\ApprovalStatus;
 use App\Models\College;
 use App\Models\Training;
 use Illuminate\Database\Eloquent\Builder;
@@ -54,7 +53,7 @@ class WebsiteKnowledgeService
             });
 
         $trainings = Training::query()
-            ->where('status', '!=', 'Draft')
+            ->published()
             ->where(function (Builder $query) use ($terms): void {
                 foreach ($terms as $term) {
                     $query->orWhereRaw('LOWER(title) LIKE ?', ["%{$term}%"])
@@ -82,14 +81,13 @@ class WebsiteKnowledgeService
     private function matchingCollegeIds(array $questionTerms): array
     {
         $buildIndex = fn () => College::query()
-            ->where('is_active', true)
-            ->where('approval_status', ApprovalStatus::Approved)
+            ->publiclyVisible()
             ->get(['id', 'name', 'college_code'])
             ->map(fn (College $college): array => [
                 'id' => $college->id,
                 'terms' => $this->searchTerms($college->name.' '.$college->college_code),
             ])->all();
-        $indexVersion = College::query()->where('is_active', true)->where('approval_status', ApprovalStatus::Approved)
+        $indexVersion = College::query()->publiclyVisible()
             ->selectRaw('COUNT(*) as total, MAX(updated_at) as latest_update')
             ->first();
         $cacheVersion = sha1((string) $indexVersion?->total.'|'.(string) $indexVersion?->latest_update);
