@@ -123,7 +123,7 @@ const unicodeToBijoyLigatures = new Map([
 const bijoyToUnicodeLigatures = new Map([...unicodeToBijoyLigatures].map(([unicode, bijoy]) => [bijoy, unicode]));
 const bijoyToUnicodeCharacters = new Map([...unicodeToBijoyCharacters].map(([unicode, bijoy]) => [bijoy, unicode]));
 const bijoyToUnicodeAliases = new Map([
-    ['‡', 'ে'], ['ª', '্র'], ['¨', '্য'], ['^', '্ব'], ['ÿ', 'ক্ষ'], ['ý', 'হ্ণ'], ['z', 'ু'],
+    ['‡', 'ে'], ['ª', '্র'], ['¨', '্য'], ['^', '্ব'], ['ÿ', 'ক্ষ'], ['ý', 'হ্ণ'], ['„', 'ৃ'], ['z', 'ু'],
 ]);
 const unicodeToBijoyFallbacks = new Map([
     ['হ্ণ', 'ý'], ['্র', 'ª'], ['্য', '¨'], ['্ব', '^'],

@@ -124,6 +124,11 @@ it('normalizes a spaced Bijoy visarga as a punctuation colon', function () {
         ->and(BanglaConverter::bijoyToUnicode('wLªt'))->toBe('খ্রিঃ');
 });
 
+it('converts the alternate ri-kar glyph in শৃঙ্খলা', function () {
+    expect(BanglaConverter::bijoyToUnicode('k„•Ljv'))->toBe('শৃঙ্খলা')
+        ->and(BanglaConverter::bijoyToUnicode('শ„ঙ্খলা'))->toBe('শৃঙ্খলা');
+});
+
 it('keeps empty converter input empty', function () {
     expect(BanglaConverter::unicodeToBijoy(''))->toBe('')
         ->and(BanglaConverter::bijoyToUnicode(''))->toBe('');

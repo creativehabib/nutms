@@ -28,7 +28,7 @@ final class BanglaConverter
 
     /** @var array<string, string> */
     private const BIJOY_TO_UNICODE_ALIASES = [
-        '‡' => 'ে', 'ª' => '্র', '¨' => '্য', '^' => '্ব', 'ÿ' => 'ক্ষ', 'ý' => 'হ্ণ', 'z' => 'ু',
+        '‡' => 'ে', 'ª' => '্র', '¨' => '্য', '^' => '্ব', 'ÿ' => 'ক্ষ', 'ý' => 'হ্ণ', '„' => 'ৃ', 'z' => 'ু',
     ];
 
     /** @var array<string, string> */
