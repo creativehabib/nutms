@@ -10,6 +10,9 @@ it('renders the public unicode to bijoy converter', function () {
         ->assertSee('data-voice-typing', false)
         ->assertSee('data-convert="unicode-to-bijoy"', false)
         ->assertSee('data-convert="bijoy-to-unicode"', false)
+        ->assertSee('ইউনিকোডে লেখা এখানে লিখুন অথবা পেস্ট করুন')
+        ->assertSee('বিজয় কি-বোর্ডের লেখা এখানে লিখুন অথবা পেস্ট করুন')
+        ->assertDontSee('readonly', false)
         ->assertSee('TXT ফাইল কনভার্টার')
         ->assertSee('data-theme-toggle', false);
 });

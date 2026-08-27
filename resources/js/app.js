@@ -165,28 +165,42 @@ const initializeUnicodeBijoyConverters = () => {
         const voiceButton = converter.querySelector('[data-voice-typing]');
         const voiceLabel = converter.querySelector('[data-voice-label]');
         const setStatus = (message) => { status.textContent = message; };
-        const showResult = (result, message) => {
-            output.value = result;
+        const showResult = (field, result, message) => {
+            field.value = result;
             setStatus(message);
-            output.focus();
+            field.focus();
         };
 
         converter.querySelectorAll('[data-convert]').forEach((button) => {
             button.addEventListener('click', () => {
-                if (! input.value.trim()) {
-                    setStatus('রূপান্তরের জন্য আগে কিছু লেখা দিন।');
-                    input.focus();
+                const actions = {
+                    'unicode-to-bijoy': {
+                        source: input,
+                        run: () => showResult(output, convertUnicodeToBijoy(input.value), 'ইউনিকোড লেখা বিজয়ে রূপান্তর হয়েছে।'),
+                    },
+                    'bijoy-to-unicode': {
+                        source: output,
+                        run: () => showResult(input, convertBijoyToUnicode(output.value), 'বিজয় লেখা ইউনিকোডে রূপান্তর হয়েছে।'),
+                    },
+                    'fix-unicode': {
+                        source: input,
+                        run: () => showResult(input, normalizeUnicodeBangla(input.value), 'ইউনিকোড লেখার সাধারণ ত্রুটি ঠিক করা হয়েছে।'),
+                    },
+                    'fix-bijoy': {
+                        source: output,
+                        run: () => showResult(output, convertUnicodeToBijoy(convertBijoyToUnicode(output.value)), 'বিজয় লেখার সাধারণ ত্রুটি ঠিক করা হয়েছে।'),
+                    },
+                };
+
+                const action = actions[button.dataset.convert];
+
+                if (! action?.source.value.trim()) {
+                    setStatus('রূপান্তরের জন্য নির্ধারিত ঘরে আগে কিছু লেখা দিন।');
+                    action?.source.focus();
                     return;
                 }
 
-                const actions = {
-                    'unicode-to-bijoy': () => showResult(convertUnicodeToBijoy(input.value), 'ইউনিকোড লেখা বিজয়ে রূপান্তর হয়েছে।'),
-                    'bijoy-to-unicode': () => showResult(convertBijoyToUnicode(input.value), 'বিজয় লেখা ইউনিকোডে রূপান্তর হয়েছে।'),
-                    'fix-unicode': () => showResult(normalizeUnicodeBangla(input.value), 'ইউনিকোড লেখার সাধারণ ত্রুটি ঠিক করা হয়েছে।'),
-                    'fix-bijoy': () => showResult(convertUnicodeToBijoy(convertBijoyToUnicode(input.value)), 'বিজয় লেখার সাধারণ ত্রুটি ঠিক করা হয়েছে।'),
-                };
-
-                actions[button.dataset.convert]?.();
+                action.run();
             });
         });
 
