@@ -26,15 +26,29 @@ final class BanglaConverter
         'ক্র' => 'µ', 'গ্র' => 'MÖ', 'প্র' => 'cÖ', 'ব্র' => 'eª', 'শ্র' => 'kÖ', 'রু' => 'i“', 'রূ' => 'iƒ',
     ];
 
+    /** @var array<string, string> */
+    private const BIJOY_TO_UNICODE_ALIASES = [
+        '‡' => 'ে', 'ª' => '্র', '¨' => '্য', '^' => '্ব', 'ÿ' => 'ক্ষ', 'ý' => 'হ্ণ', 'z' => 'ু',
+    ];
+
     public static function bijoyToUnicode(string $text): string
     {
         if ($text === '') {
             return '';
         }
 
+        if (preg_match('/[\x{0980}-\x{09FF}]/u', $text) === 1) {
+            $text = self::replaceLongestFirst($text, self::BIJOY_TO_UNICODE_ALIASES);
+            $text = preg_replace('/([ক-হড়ঢ়য়ৎ])([িেৈ])((?:্[রযব])+)/u', '$1$3$2', $text) ?? $text;
+
+            return self::normalizeUnicode($text);
+        }
+
         $text = self::replaceLongestFirst($text, array_flip(self::UNICODE_TO_BIJOY_LIGATURES));
+        $text = self::replaceLongestFirst($text, self::BIJOY_TO_UNICODE_ALIASES);
         $text = self::replaceLongestFirst($text, array_flip(self::UNICODE_TO_BIJOY_CHARACTERS));
         $text = preg_replace('/([িেৈোৌ])([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/u', '$2$1', $text) ?? $text;
+        $text = preg_replace('/([ক-হড়ঢ়য়ৎ])([িেৈ])((?:্[রযব])+)/u', '$1$3$2', $text) ?? $text;
         $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/u', 'র্$1', $text) ?? $text;
 
         return self::normalizeUnicode($text);

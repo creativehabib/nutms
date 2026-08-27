@@ -65,6 +65,18 @@ it('converts the public page titles without leaving raw hasants', function () {
         ->and(BanglaConverter::bijoyToUnicode($bijoy))->toBe($unicode);
 });
 
+it('repairs alternate Bijoy glyphs used by legacy documents', function () {
+    $legacyBijoy = '†iwR÷ªvi RvZxq wek^we`¨vjq wkÿK cÖwkÿY Kzgvi c~e©v‡ý';
+
+    expect(BanglaConverter::bijoyToUnicode($legacyBijoy))
+        ->toBe('রেজিস্ট্রার জাতীয় বিশ্ববিদ্যালয় শিক্ষক প্রশিক্ষণ কুমার পূর্বাহ্ণে');
+});
+
+it('repairs mixed legacy symbols left in otherwise converted text', function () {
+    expect(BanglaConverter::bijoyToUnicode('খিª রেজিস্টªার বিশ^বিদ¨ালয় শিÿক কzমার'))
+        ->toBe('খ্রি রেজিস্ট্রার বিশ্ববিদ্যালয় শিক্ষক কুমার');
+});
+
 it('keeps empty converter input empty', function () {
     expect(BanglaConverter::unicodeToBijoy(''))->toBe('')
         ->and(BanglaConverter::bijoyToUnicode(''))->toBe('');

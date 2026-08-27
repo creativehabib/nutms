@@ -122,6 +122,9 @@ const unicodeToBijoyLigatures = new Map([
 
 const bijoyToUnicodeLigatures = new Map([...unicodeToBijoyLigatures].map(([unicode, bijoy]) => [bijoy, unicode]));
 const bijoyToUnicodeCharacters = new Map([...unicodeToBijoyCharacters].map(([unicode, bijoy]) => [bijoy, unicode]));
+const bijoyToUnicodeAliases = new Map([
+    ['‡', 'ে'], ['ª', '্র'], ['¨', '্য'], ['^', '্ব'], ['ÿ', 'ক্ষ'], ['ý', 'হ্ণ'], ['z', 'ু'],
+]);
 
 const replaceFromMap = (value, replacements) => [...replacements.entries()]
     .sort(([first], [second]) => second.length - first.length)
@@ -149,9 +152,16 @@ const convertUnicodeToBijoy = (value) => {
 };
 
 const convertBijoyToUnicode = (value) => {
+    if (/[\u0980-\u09FF]/.test(value)) {
+        return normalizeUnicodeBangla(replaceFromMap(value, bijoyToUnicodeAliases)
+            .replace(/([ক-হড়ঢ়য়ৎ])([িেৈ])((?:্[রযব])+)/g, '$1$3$2'));
+    }
+
     let converted = replaceFromMap(value, bijoyToUnicodeLigatures);
+    converted = replaceFromMap(converted, bijoyToUnicodeAliases);
     converted = replaceFromMap(converted, bijoyToUnicodeCharacters)
         .replace(/([িেৈোৌ])([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/g, '$2$1')
+        .replace(/([ক-হড়ঢ়য়ৎ])([িেৈ])((?:্[রযব])+)/g, '$1$3$2')
         .replace(/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/g, 'র্$1');
 
     return normalizeUnicodeBangla(converted);
