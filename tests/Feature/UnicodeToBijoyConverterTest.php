@@ -44,7 +44,7 @@ it('places every pre-kar before its Bijoy consonant glyph', function () {
     expect(BanglaConverter::unicodeToBijoy('কি কে কৈ কো কৌ'))
         ->toBe('wK †K ‰K †Kv †KŠ')
         ->and(BanglaConverter::unicodeToBijoy('আমার সোনার বাংলা আমি তোমায় ভালোবাসি!'))
-        ->toBe('Avgvi †mvbvi evsjv Avwg †Zvgvq fv†jvevwm!');
+        ->toBe('Avgvi †mvbvi evsjv Avwg †Zvgvq fv‡jvevwm!');
 });
 
 it('round trips compound vowels, rephs and common conjuncts without broken glyphs', function () {
@@ -90,8 +90,8 @@ it('uses legacy fola glyphs instead of raw hasants in official documents', funct
 
 it('keeps the conjunct and pre-kar intact when converting কেন্দ্র', function () {
     expect(BanglaConverter::unicodeToBijoy('আঞ্চলিক কেন্দ্র থেকে বদলী'))
-        ->toBe('AvÂwjK †K›`ª †_†K e`jx')
-        ->and(BanglaConverter::bijoyToUnicode('AvÂwjK †K›`ª †_†K e`jx'))
+        ->toBe('AvÂwjK †K›`ª †_‡K e`jx')
+        ->and(BanglaConverter::bijoyToUnicode('AvÂwjK †K›`ª †_‡K e`jx'))
         ->toBe('আঞ্চলিক কেন্দ্র থেকে বদলী');
 });
 
@@ -99,9 +99,22 @@ it('removes invisible joiners before converting মোতাবেক and পূ
     $textWithJoiners = "মে\u{200D}াতাবেক পূ\u{200D}\u{200D}র্বাহ্নে";
     $bijoy = BanglaConverter::unicodeToBijoy($textWithJoiners);
 
-    expect($bijoy)->toBe('†gvZv†eK c~e©v†nè')
+    expect($bijoy)->toBe('†gvZv‡eK c~e©v‡nè')
         ->not->toContain("\u{200D}")
         ->and(BanglaConverter::bijoyToUnicode($bijoy))->toBe('মোতাবেক পূর্বাহ্নে');
+});
+
+it('uses the medial e-kar glyph without detaching the matra', function () {
+    expect(BanglaConverter::unicodeToBijoy('মোতাবেক দপ্তরে আমাকে লক্ষ্যে'))
+        ->toBe('†gvZv‡eK `ß‡i Avgv‡K j‡¶¨')
+        ->and(BanglaConverter::bijoyToUnicode('†gvZv‡eK `ß‡i Avgv‡K j‡¶¨'))
+        ->toBe('মোতাবেক দপ্তরে আমাকে লক্ষ্যে');
+});
+
+it('resolves reph before moving pre-kar in মর্জিত', function () {
+    expect(BanglaConverter::bijoyToUnicode('Avcbvi gwR©Z Kvgbv KiwQ'))
+        ->toBe('আপনার মর্জিত কামনা করছি')
+        ->and(BanglaConverter::bijoyToUnicode('মজি©ত'))->toBe('মর্জিত');
 });
 
 it('keeps empty converter input empty', function () {

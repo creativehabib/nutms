@@ -152,22 +152,25 @@ const convertUnicodeToBijoy = (value) => {
 
     converted = replaceFromMap(converted, unicodeToBijoyLigatures);
     converted = replaceFromMap(converted, unicodeToBijoyFallbacks);
+    converted = replaceFromMap(converted, unicodeToBijoyCharacters);
 
-    return replaceFromMap(converted, unicodeToBijoyCharacters);
+    return converted.replace(/([A-Za-z0-9_`\u00A1-\uFFFF])†/g, '$1‡');
 };
 
 const convertBijoyToUnicode = (value) => {
     if (/[\u0980-\u09FF]/.test(value)) {
         return normalizeUnicodeBangla(replaceFromMap(value, bijoyToUnicodeAliases)
+            .replace(/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)([িেৈ])©/g, 'র্$1$2')
+            .replace(/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/g, 'র্$1')
             .replace(/([ক-হড়ঢ়য়ৎ])([িেৈ])((?:্[রযব])+)/g, '$1$3$2'));
     }
 
     let converted = replaceFromMap(value, bijoyToUnicodeLigatures);
     converted = replaceFromMap(converted, bijoyToUnicodeAliases);
     converted = replaceFromMap(converted, bijoyToUnicodeCharacters)
+        .replace(/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/g, 'র্$1')
         .replace(/([িেৈোৌ])([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/g, '$2$1')
-        .replace(/([ক-হড়ঢ়য়ৎ])([িেৈ])((?:্[রযব])+)/g, '$1$3$2')
-        .replace(/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/g, 'র্$1');
+        .replace(/([ক-হড়ঢ়য়ৎ])([িেৈ])((?:্[রযব])+)/g, '$1$3$2');
 
     return normalizeUnicodeBangla(converted);
 };

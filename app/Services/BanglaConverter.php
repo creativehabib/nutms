@@ -44,6 +44,8 @@ final class BanglaConverter
 
         if (preg_match('/[\x{0980}-\x{09FF}]/u', $text) === 1) {
             $text = self::replaceLongestFirst($text, self::BIJOY_TO_UNICODE_ALIASES);
+            $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)([িেৈ])©/u', 'র্$1$2', $text) ?? $text;
+            $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/u', 'র্$1', $text) ?? $text;
             $text = preg_replace('/([ক-হড়ঢ়য়ৎ])([িেৈ])((?:্[রযব])+)/u', '$1$3$2', $text) ?? $text;
 
             return self::normalizeUnicode($text);
@@ -52,9 +54,9 @@ final class BanglaConverter
         $text = self::replaceLongestFirst($text, array_flip(self::UNICODE_TO_BIJOY_LIGATURES));
         $text = self::replaceLongestFirst($text, self::BIJOY_TO_UNICODE_ALIASES);
         $text = self::replaceLongestFirst($text, array_flip(self::UNICODE_TO_BIJOY_CHARACTERS));
+        $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/u', 'র্$1', $text) ?? $text;
         $text = preg_replace('/([িেৈোৌ])([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/u', '$2$1', $text) ?? $text;
         $text = preg_replace('/([ক-হড়ঢ়য়ৎ])([িেৈ])((?:্[রযব])+)/u', '$1$3$2', $text) ?? $text;
-        $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/u', 'র্$1', $text) ?? $text;
 
         return self::normalizeUnicode($text);
     }
@@ -70,8 +72,9 @@ final class BanglaConverter
         $text = preg_replace('/র্([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/u', '$1©', $text) ?? $text;
         $text = self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_LIGATURES);
         $text = self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_FALLBACKS);
+        $text = self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_CHARACTERS);
 
-        return self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_CHARACTERS);
+        return self::replaceMedialEKar($text);
     }
 
     private static function normalizeUnicode(string $text): string
@@ -84,6 +87,11 @@ final class BanglaConverter
     private static function decomposeUnicodeKar(string $text): string
     {
         return str_replace(['ো', 'ৌ'], ['ো', 'ৌ'], $text);
+    }
+
+    private static function replaceMedialEKar(string $text): string
+    {
+        return preg_replace('/([A-Za-z0-9_`\x{00A1}-\x{FFFF}])†/u', '$1‡', $text) ?? $text;
     }
 
     /** @param array<string, string> $replacements */
