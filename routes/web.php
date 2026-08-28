@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NationalUniversityNoticeController;
 use App\Http\Controllers\PublicCollegeController;
 use App\Http\Controllers\ReportExportController;
 use App\Http\Controllers\TrainingCertificateController;
@@ -34,6 +35,11 @@ use App\Models\AdmissionInfo;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', WelcomeController::class)->name('home');
+Route::get('/notices', NationalUniversityNoticeController::class)->name('notices.index');
+Route::view('/tools', 'tools.index')->name('tools.index');
+Route::view('/tools/image-signature-compressor', 'tools.image-signature-compressor')->name('tools.image-signature-compressor');
+Route::view('/tools/age-retirement-calculator', 'tools.age-retirement-calculator')->name('tools.age-retirement-calculator');
+Route::view('/tools/cgpa-sgpa-calculator', 'tools.cgpa-sgpa-calculator')->name('tools.cgpa-sgpa-calculator');
 Route::view('/unicode-to-bijoy-converter', 'unicode-to-bijoy-converter')->name('unicode-to-bijoy-converter');
 Route::get('/affiliated-colleges', AffiliatedCollegeDirectory::class)->name('public.colleges.index');
 Route::get('/affiliated-colleges/{college}/{slug}', AffiliatedCollegeDetails::class)->name('public.colleges.show');

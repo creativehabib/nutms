@@ -483,30 +483,30 @@
                 <span class="text-sm font-bold uppercase tracking-wider theme-primary-text">সর্বশেষ আপডেট</span>
                 <h2 class="mt-3 text-3xl font-extrabold text-slate-900 dark:text-white">নোটিশ ও ঘোষণা</h2>
             </div>
-            <a href="{{ $entryRoute }}" class="font-semibold theme-primary-text hover:underline">
+            <a href="{{ route('notices.index') }}" wire:navigate class="font-semibold theme-primary-text hover:underline">
                 সকল নোটিশ →
             </a>
         </div>
 
         <div class="mt-10 divide-y divide-slate-100 dark:divide-slate-700 overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-sm ring-1 ring-slate-100 dark:ring-slate-700">
-            @forelse($latestTrainings as $training)
-                <a href="{{ $entryRoute }}" class="flex flex-col gap-4 p-6 transition hover:bg-slate-50 dark:hover:bg-slate-700/50 sm:flex-row sm:items-center sm:justify-between">
+            @forelse($latestNotices as $notice)
+                <a href="{{ $notice['url'] ?? config('services.national_university_notices.url') }}" target="_blank" rel="noopener noreferrer" class="flex flex-col gap-4 p-6 transition hover:bg-slate-50 dark:hover:bg-slate-700/50 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-start gap-4">
                         <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700">📢</div>
                         <div>
-                            <h3 class="font-bold text-slate-800 dark:text-slate-200">{{ $training->title }}</h3>
-                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                                প্রকাশিত: {{ $toBengaliNumber($training->created_at->format('d-m-Y')) }}
-                            </p>
+                            <h3 class="font-bold text-slate-800 dark:text-slate-200">{{ $notice['title'] }}</h3>
+                            @if($notice['published_at'])
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">প্রকাশিত: {{ $toBengaliNumber($notice['published_at']) }}</p>
+                            @endif
                         </div>
                     </div>
                     <span class="w-fit rounded-full bg-slate-100 dark:bg-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                        {{ $training->status === 'Ongoing' ? 'চলমান প্রশিক্ষণ' : 'প্রশিক্ষণ' }}
+                        {{ $notice['category'] ?: 'জাতীয় বিশ্ববিদ্যালয়' }}
                     </span>
                 </a>
             @empty
                 <div class="p-10 text-center text-slate-500 dark:text-slate-400">
-                    নতুন কোনো নোটিশ প্রকাশিত হয়নি
+                    এই মুহূর্তে জাতীয় বিশ্ববিদ্যালয়ের নোটিশ লোড করা যায়নি
                 </div>
             @endforelse
         </div>

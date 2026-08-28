@@ -26,6 +26,7 @@
             <a href="{{ route('home') }}#about" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-400">আমাদের সম্পর্কে</a>
             <a href="{{ route('home') }}#services" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-400">সেবাসমূহ</a>
             <a href="{{ route('public.colleges.index') }}" wire:navigate class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-400">কলেজসমূহ</a>
+            <a href="{{ route('tools.index') }}" wire:navigate class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-400">টুলস</a>
             <a href="{{ route('unicode-to-bijoy-converter') }}" wire:navigate class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-400">কনভার্টার</a>
             <a href="{{ route('home') }}#training" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-400">প্রশিক্ষণ</a>
             <a href="{{ route('home') }}#notices" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-400">নোটিশ</a>
@@ -74,6 +75,7 @@
                 [route('home').'#about', 'আমাদের সম্পর্কে'],
                 [route('home').'#services', 'সেবাসমূহ'],
                 [route('public.colleges.index'), 'কলেজসমূহ'],
+                [route('tools.index'), 'টুলস'],
                 [route('unicode-to-bijoy-converter'), 'ইউনিকোড টু বিজয় কনভার্টার'],
                 [route('home').'#training', 'প্রশিক্ষণ'],
                 [route('home').'#notices', 'নোটিশ'],
