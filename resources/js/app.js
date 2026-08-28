@@ -194,19 +194,25 @@ const initializeUnicodeBijoyConverters = () => {
         const voiceButton = converter.querySelector('[data-voice-typing]');
         const voiceLabel = converter.querySelector('[data-voice-label]');
         const showFluxToast = (text, variant = 'success') => window.Flux?.toast({ text, variant });
+        const usesMobileBijoyPreview = window.matchMedia('(max-width: 767px)').matches;
         const getBijoyValue = () => output.dataset.bijoyValue || output.value;
-        const showBijoyPreview = (bijoyValue, unicodeValue, message) => {
-            output.dataset.bijoyValue = bijoyValue;
-            output.value = unicodeValue;
-            output.style.fontFamily = 'var(--font-sans)';
-            setStatus(message);
-            output.focus();
+        const showBijoyResult = () => {
+            const convertedValue = convertUnicodeToBijoy(input.value);
+
+            if (usesMobileBijoyPreview) {
+                output.dataset.bijoyValue = convertedValue;
+                output.value = normalizeUnicodeBangla(input.value);
+                output.style.fontFamily = 'var(--font-sans)';
+                setStatus('বিজয় লেখা তৈরি হয়েছে। মোবাইলে বাংলা প্রিভিউ দেখানো হচ্ছে; কপি করলে বিজয় লেখা কপি হবে।');
+                output.focus();
+
+                return;
+            }
+
+            delete output.dataset.bijoyValue;
+            output.style.removeProperty('font-family');
+            showResult(output, convertedValue, 'ইউনিকোড লেখা বিজয়ে রূপান্তর হয়েছে।');
         };
-        const showBijoyResult = () => showBijoyPreview(
-            convertUnicodeToBijoy(input.value),
-            normalizeUnicodeBangla(input.value),
-            'বিজয় লেখা তৈরি হয়েছে। পাঠযোগ্য বাংলা প্রিভিউ দেখানো হচ্ছে; কপি করলে মূল বিজয় লেখা কপি হবে।',
-        );
         const setStatus = (message) => { status.textContent = message; };
         const showResult = (field, result, message) => {
             field.value = result;
@@ -231,15 +237,7 @@ const initializeUnicodeBijoyConverters = () => {
                     },
                     'fix-bijoy': {
                         source: output,
-                        run: () => {
-                            const unicodeValue = convertBijoyToUnicode(getBijoyValue());
-
-                            showBijoyPreview(
-                                convertUnicodeToBijoy(unicodeValue),
-                                unicodeValue,
-                                'বিজয় লেখার সাধারণ ত্রুটি ঠিক করা হয়েছে। পাঠযোগ্য বাংলা প্রিভিউ দেখানো হচ্ছে।',
-                            );
-                        },
+                        run: () => showResult(output, convertUnicodeToBijoy(convertBijoyToUnicode(getBijoyValue())), 'বিজয় লেখার সাধারণ ত্রুটি ঠিক করা হয়েছে।'),
                     },
                 };
 
