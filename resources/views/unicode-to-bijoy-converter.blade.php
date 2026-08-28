@@ -74,6 +74,9 @@
                         কপি করুন
                     </button>
                 </div>
+                <p data-bijoy-mobile-hint class="mb-2 text-xs text-slate-500 dark:text-slate-400 md:hidden">
+                    মোবাইলে পাঠযোগ্য বাংলা প্রিভিউ দেখাবে; “কপি করুন” চাপলে মূল বিজয় লেখা কপি হবে।
+                </p>
                 <textarea
                     id="unicode-bijoy-output"
                     data-converter-output

@@ -16,6 +16,7 @@ it('renders the public unicode to bijoy converter', function () {
         ->assertSee('https://fonts.maateen.me/sutonny-mj/font.css', false)
         ->assertSee("font-family: 'SutonnyMJ'", false)
         ->assertSee('class="bijoy-text', false)
+        ->assertSee('data-bijoy-mobile-hint', false)
         ->assertSee('TXT ফাইল কনভার্টার')
         ->assertSee('data-theme-toggle', false);
 });

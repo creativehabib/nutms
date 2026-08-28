@@ -187,6 +187,25 @@ const initializeUnicodeBijoyConverters = () => {
         const status = converter.querySelector('[data-converter-status]');
         const voiceButton = converter.querySelector('[data-voice-typing]');
         const voiceLabel = converter.querySelector('[data-voice-label]');
+        const usesMobileBijoyPreview = window.matchMedia('(max-width: 767px)').matches;
+        const getBijoyValue = () => output.dataset.bijoyValue || output.value;
+        const showBijoyResult = () => {
+            const convertedValue = convertUnicodeToBijoy(input.value);
+
+            if (usesMobileBijoyPreview) {
+                output.dataset.bijoyValue = convertedValue;
+                output.value = normalizeUnicodeBangla(input.value);
+                output.style.fontFamily = 'var(--font-sans)';
+                setStatus('বিজয় লেখা তৈরি হয়েছে। মোবাইলে বাংলা প্রিভিউ দেখানো হচ্ছে; কপি করলে বিজয় লেখা কপি হবে।');
+                output.focus();
+
+                return;
+            }
+
+            delete output.dataset.bijoyValue;
+            output.style.removeProperty('font-family');
+            showResult(output, convertedValue, 'ইউনিকোড লেখা বিজয়ে রূপান্তর হয়েছে।');
+        };
         const setStatus = (message) => { status.textContent = message; };
         const showResult = (field, result, message) => {
             field.value = result;
@@ -199,11 +218,11 @@ const initializeUnicodeBijoyConverters = () => {
                 const actions = {
                     'unicode-to-bijoy': {
                         source: input,
-                        run: () => showResult(output, convertUnicodeToBijoy(input.value), 'ইউনিকোড লেখা বিজয়ে রূপান্তর হয়েছে।'),
+                        run: showBijoyResult,
                     },
                     'bijoy-to-unicode': {
                         source: output,
-                        run: () => showResult(input, convertBijoyToUnicode(output.value), 'বিজয় লেখা ইউনিকোডে রূপান্তর হয়েছে।'),
+                        run: () => showResult(input, convertBijoyToUnicode(getBijoyValue()), 'বিজয় লেখা ইউনিকোডে রূপান্তর হয়েছে।'),
                     },
                     'fix-unicode': {
                         source: input,
@@ -211,7 +230,7 @@ const initializeUnicodeBijoyConverters = () => {
                     },
                     'fix-bijoy': {
                         source: output,
-                        run: () => showResult(output, convertUnicodeToBijoy(convertBijoyToUnicode(output.value)), 'বিজয় লেখার সাধারণ ত্রুটি ঠিক করা হয়েছে।'),
+                        run: () => showResult(output, convertUnicodeToBijoy(convertBijoyToUnicode(getBijoyValue())), 'বিজয় লেখার সাধারণ ত্রুটি ঠিক করা হয়েছে।'),
                     },
                 };
 
@@ -230,18 +249,25 @@ const initializeUnicodeBijoyConverters = () => {
         converter.querySelector('[data-clear-converter]').addEventListener('click', () => {
             input.value = '';
             output.value = '';
+            delete output.dataset.bijoyValue;
+            output.style.removeProperty('font-family');
             setStatus('লেখা মুছে ফেলা হয়েছে।');
             input.focus();
         });
 
         converter.querySelector('[data-copy-converter]').addEventListener('click', async () => {
-            if (! output.value) {
+            if (! getBijoyValue()) {
                 setStatus('কপি করার মতো কোনো লেখা নেই।');
                 return;
             }
 
-            await navigator.clipboard.writeText(output.value);
+            await navigator.clipboard.writeText(getBijoyValue());
             setStatus('রূপান্তরিত লেখা কপি হয়েছে।');
+        });
+
+        output.addEventListener('input', () => {
+            delete output.dataset.bijoyValue;
+            output.style.removeProperty('font-family');
         });
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
