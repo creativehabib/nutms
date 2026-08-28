@@ -39,4 +39,9 @@ return [
         'media_url' => env('COLLEGE_PORTAL_MEDIA_URL', 'https://collegeportal.nu.ac.bd/uploads'),
     ],
 
+    'national_university_notices' => [
+        'url' => env('NU_NOTICES_API_URL', 'https://nu-scraper.shamolrahaman.workers.dev/'),
+        'base_url' => env('NU_NOTICES_BASE_URL', 'https://www.nu.ac.bd'),
+    ],
+
 ];
