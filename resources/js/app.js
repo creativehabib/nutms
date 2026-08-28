@@ -1,4 +1,4 @@
-import { convertBijoyToUnicode, convertUnicodeToBijoy } from './bangla-converter';
+import { convertBijoyToUnicode, convertUnicodeToBijoy, getBijoyClipboardValue, normalizeUnicodeBangla } from './bangla-converter';
 
 const searchableSelects = new WeakMap();
 const relatedCollegeCarousels = new WeakMap();
@@ -115,24 +115,15 @@ const initializeUnicodeBijoyConverters = () => {
         const voiceButton = converter.querySelector('[data-voice-typing]');
         const voiceLabel = converter.querySelector('[data-voice-label]');
         const showFluxToast = (text, variant = 'success') => window.Flux?.toast({ text, variant });
-        const usesMobileBijoyPreview = window.matchMedia('(max-width: 767px)').matches;
-        const getBijoyValue = () => output.dataset.bijoyValue || output.value;
+        const getBijoyValue = () => getBijoyClipboardValue(output.value, output.dataset.bijoyValue);
         const showBijoyResult = () => {
             const convertedValue = convertUnicodeToBijoy(input.value);
 
-            if (usesMobileBijoyPreview) {
-                output.dataset.bijoyValue = convertedValue;
-                output.value = normalizeUnicodeBangla(input.value);
-                output.style.fontFamily = 'var(--font-sans)';
-                setStatus('বিজয় লেখা তৈরি হয়েছে। মোবাইলে বাংলা প্রিভিউ দেখানো হচ্ছে; কপি করলে বিজয় লেখা কপি হবে।');
-                output.focus();
-
-                return;
-            }
-
-            delete output.dataset.bijoyValue;
-            output.style.removeProperty('font-family');
-            showResult(output, convertedValue, 'ইউনিকোড লেখা বিজয়ে রূপান্তর হয়েছে।');
+            output.dataset.bijoyValue = convertedValue;
+            output.value = normalizeUnicodeBangla(input.value);
+            output.style.fontFamily = 'var(--font-sans)';
+            setStatus('বিজয় লেখা তৈরি হয়েছে। পাঠযোগ্য বাংলা প্রিভিউ দেখানো হচ্ছে; কপি করলে মূল বিজয় লেখা কপি হবে।');
+            output.focus();
         };
         const setStatus = (message) => { status.textContent = message; };
         const showResult = (field, result, message) => {
@@ -205,6 +196,21 @@ const initializeUnicodeBijoyConverters = () => {
             await navigator.clipboard.writeText(input.value);
             setStatus('ইউনিকোড লেখা কপি হয়েছে।');
             showFluxToast('ইউনিকোড লেখা কপি হয়েছে।');
+        });
+
+        output.addEventListener('copy', (event) => {
+            if (! output.dataset.bijoyValue || ! event.clipboardData) {
+                return;
+            }
+
+            const selectedPreview = output.value.slice(output.selectionStart, output.selectionEnd);
+            const clipboardValue = selectedPreview
+                ? convertUnicodeToBijoy(selectedPreview)
+                : output.dataset.bijoyValue;
+
+            event.preventDefault();
+            event.clipboardData.setData('text/plain', clipboardValue);
+            setStatus('মূল বিজয় লেখা কপি হয়েছে।');
         });
 
         output.addEventListener('input', () => {

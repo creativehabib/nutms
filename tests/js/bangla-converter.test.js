@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { convertBijoyToUnicode, convertUnicodeToBijoy } from '../../resources/js/bangla-converter.js';
+import { convertBijoyToUnicode, convertUnicodeToBijoy, getBijoyClipboardValue, normalizeUnicodeBangla } from '../../resources/js/bangla-converter.js';
 
 const conversionCases = [
     ['আন্তর্জাতিক', 'AvšÍR©vwZK'],
@@ -26,4 +26,20 @@ test('converts the reported phrase as a complete value', () => {
 
     assert.equal(convertUnicodeToBijoy(unicode), bijoy);
     assert.equal(convertBijoyToUnicode(bijoy), unicode);
+});
+
+test('provides a normalized readable preview without changing the copied Bijoy value', () => {
+    const unicodeWithJoiners = "ইউনিকোড লেখা বিজয়ে রূপান্তর হ‍য়েছে।";
+
+    assert.equal(normalizeUnicodeBangla(unicodeWithJoiners), 'ইউনিকোড লেখা বিজয়ে রূপান্তর হয়েছে।');
+    assert.equal(convertUnicodeToBijoy(unicodeWithJoiners), 'BDwb‡KvW †jLv weR‡q iƒcvšÍi n‡q‡Q|');
+});
+
+test('copies the stored Bijoy payload instead of the readable preview', () => {
+    assert.equal(
+        getBijoyClipboardValue('ইউনিকোড লেখা', 'BDwb‡KvW †jLv'),
+        'BDwb‡KvW †jLv',
+    );
+    assert.equal(getBijoyClipboardValue('BDwb‡KvW †jLv'), 'BDwb‡KvW †jLv');
+    assert.equal(convertUnicodeToBijoy('ইউনিকোড'), 'BDwb‡KvW');
 });
