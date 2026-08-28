@@ -6,12 +6,23 @@ it('renders the tools directory and links it from public navigation', function (
         ->assertSee('প্রয়োজনীয় অনলাইন টুলস')
         ->assertSee(route('tools.image-signature-compressor'), false)
         ->assertSee(route('tools.age-retirement-calculator'), false)
+        ->assertSee(route('tools.cgpa-sgpa-calculator'), false)
         ->assertSee('ছবি ও স্বাক্ষর রিসাইজার');
 
     $this->get(route('home'))
         ->assertOk()
         ->assertSee(route('tools.index'), false)
         ->assertSee('টুলস');
+});
+
+it('renders the national university cgpa and sgpa calculator', function () {
+    $this->get(route('tools.cgpa-sgpa-calculator'))
+        ->assertOk()
+        ->assertSee('data-cgpa-sgpa-calculator', false)
+        ->assertSee('বর্তমান ফলাফল (SGPA)')
+        ->assertSee('সর্বমোট ফলাফল (CGPA)')
+        ->assertSee('গ্রেডিং স্কেল')
+        ->assertSee('আরেকটি কোর্স যোগ করুন');
 });
 
 it('renders the age and retirement calculator', function () {
