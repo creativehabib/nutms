@@ -19,6 +19,8 @@ it('renders and paginates the national university notice archive', function () {
     $this->get(route('notices.index'))
         ->assertOk()
         ->assertSee('data-notice-search', false)
+        ->assertSee('data-live-search-status', false)
+        ->assertSee('টাইপ করার সঙ্গে সঙ্গে ফলাফল দেখাবে')
         ->assertSee('data-notice-list', false)
         ->assertSee('data-notice-pagination', false)
         ->assertSee('নোটিশ নম্বর 1')
