@@ -1,4 +1,5 @@
 import { convertBijoyToUnicode, convertUnicodeToBijoy } from './bangla-converter';
+import { initializeImageCompressors } from './image-compressor';
 
 const searchableSelects = new WeakMap();
 const relatedCollegeCarousels = new WeakMap();
@@ -93,9 +94,11 @@ const initializeSearchableSelects = async () => {
 
 document.addEventListener('DOMContentLoaded', initializeSearchableSelects);
 document.addEventListener('DOMContentLoaded', initializeRelatedCollegeCarousels);
+document.addEventListener('DOMContentLoaded', initializeImageCompressors);
 document.addEventListener('livewire:navigated', () => {
     initializeSearchableSelects();
     initializeRelatedCollegeCarousels();
+    initializeImageCompressors();
 });
 document.addEventListener('reset-teacher-filters', () => {
     document.querySelectorAll('[data-teacher-filter]').forEach((select) => {
