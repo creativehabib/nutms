@@ -36,6 +36,11 @@ final class BanglaConverter
         'হ্ণ' => 'ý', '্র' => 'ª', '্য' => '¨', '্ব' => '^',
     ];
 
+    /** @var array<string, string> */
+    private const UNICODE_TO_BIJOY_PUNCTUATION = [
+        '“' => 'Ò', '”' => 'Ó', '‘' => 'Ô', '’' => 'Õ',
+    ];
+
     public static function bijoyToUnicode(string $text): string
     {
         if ($text === '') {
@@ -43,6 +48,7 @@ final class BanglaConverter
         }
 
         if (preg_match('/[\x{0980}-\x{09FF}]/u', $text) === 1) {
+            $text = self::replaceLongestFirst($text, array_flip(self::UNICODE_TO_BIJOY_PUNCTUATION));
             $text = self::replaceLongestFirst($text, self::BIJOY_TO_UNICODE_ALIASES);
             $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)([িেৈ])©/u', 'র্$1$2', $text) ?? $text;
             $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/u', 'র্$1', $text) ?? $text;
@@ -52,6 +58,7 @@ final class BanglaConverter
         }
 
         $text = self::replaceLongestFirst($text, array_flip(self::UNICODE_TO_BIJOY_LIGATURES));
+        $text = self::replaceLongestFirst($text, array_flip(self::UNICODE_TO_BIJOY_PUNCTUATION));
         $text = self::replaceLongestFirst($text, self::BIJOY_TO_UNICODE_ALIASES);
         $text = self::replaceLongestFirst($text, array_flip(self::UNICODE_TO_BIJOY_CHARACTERS));
         $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)©/u', 'র্$1', $text) ?? $text;
@@ -70,6 +77,7 @@ final class BanglaConverter
         $text = self::decomposeUnicodeKar(self::normalizeUnicode($text));
         $text = preg_replace('/([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)([িেৈ])/u', '$2$1', $text) ?? $text;
         $text = preg_replace('/র্([ক-হড়ঢ়য়ৎ](?:্[ক-হড়ঢ়য়ৎ])*)/u', '$1©', $text) ?? $text;
+        $text = self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_PUNCTUATION);
         $text = self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_LIGATURES);
         $text = self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_FALLBACKS);
         $text = self::replaceLongestFirst($text, self::UNICODE_TO_BIJOY_CHARACTERS);

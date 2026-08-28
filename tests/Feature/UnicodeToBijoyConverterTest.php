@@ -131,6 +131,16 @@ it('converts the alternate ri-kar glyph in শৃঙ্খলা', function () {
         ->and(BanglaConverter::bijoyToUnicode('শ„ঙ্খলা'))->toBe('শৃঙ্খলা');
 });
 
+it('converts smart quotes and সিদ্ধান্ত without broken legacy glyphs', function () {
+    $unicode = '‘বিদেশি মুদ্রা আয়ের এমন সুযোগের জন্যও ঘুরতে হয়, অপেক্ষা করতে হয়।’ সিদ্ধান্ত নেওয়া হয়েছে।';
+    $bijoy = BanglaConverter::unicodeToBijoy($unicode);
+
+    expect($bijoy)->toStartWith('Ô')
+        ->toContain('Õ')
+        ->toContain('wm×všÍ')
+        ->and(BanglaConverter::bijoyToUnicode($bijoy))->toBe($unicode);
+});
+
 it('keeps empty converter input empty', function () {
     expect(BanglaConverter::unicodeToBijoy(''))->toBe('')
         ->and(BanglaConverter::bijoyToUnicode(''))->toBe('');
