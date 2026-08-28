@@ -43,7 +43,13 @@
 
         <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/20">
             <div class="p-4 sm:p-6">
-                <label for="unicode-bijoy-input" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">ইউনিকোড লেখা</label>
+                <div class="mb-2 flex items-center justify-between gap-4">
+                    <label for="unicode-bijoy-input" class="block text-sm font-bold text-slate-700 dark:text-slate-200">ইউনিকোড লেখা</label>
+                    <button type="button" data-copy-unicode class="theme-primary-text inline-flex items-center gap-1.5 text-sm font-bold hover:underline">
+                        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2M5 8h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z"/></svg>
+                        কপি করুন
+                    </button>
+                </div>
                 <textarea
                     id="unicode-bijoy-input"
                     data-converter-input

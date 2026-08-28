@@ -187,6 +187,7 @@ const initializeUnicodeBijoyConverters = () => {
         const status = converter.querySelector('[data-converter-status]');
         const voiceButton = converter.querySelector('[data-voice-typing]');
         const voiceLabel = converter.querySelector('[data-voice-label]');
+        const showFluxToast = (text, variant = 'success') => window.Flux?.toast({ text, variant });
         const usesMobileBijoyPreview = window.matchMedia('(max-width: 767px)').matches;
         const getBijoyValue = () => output.dataset.bijoyValue || output.value;
         const showBijoyResult = () => {
@@ -263,6 +264,20 @@ const initializeUnicodeBijoyConverters = () => {
 
             await navigator.clipboard.writeText(getBijoyValue());
             setStatus('রূপান্তরিত লেখা কপি হয়েছে।');
+            showFluxToast('বিজয় লেখা কপি হয়েছে।');
+        });
+
+        converter.querySelector('[data-copy-unicode]').addEventListener('click', async () => {
+            if (! input.value) {
+                setStatus('কপি করার মতো কোনো ইউনিকোড লেখা নেই।');
+                showFluxToast('কপি করার মতো কোনো ইউনিকোড লেখা নেই।', 'warning');
+
+                return;
+            }
+
+            await navigator.clipboard.writeText(input.value);
+            setStatus('ইউনিকোড লেখা কপি হয়েছে।');
+            showFluxToast('ইউনিকোড লেখা কপি হয়েছে।');
         });
 
         output.addEventListener('input', () => {
