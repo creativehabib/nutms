@@ -141,6 +141,20 @@ it('converts smart quotes and সিদ্ধান্ত without broken legacy 
         ->and(BanglaConverter::bijoyToUnicode($bijoy))->toBe($unicode);
 });
 
+it('keeps common reph and nasal conjunct words intact in Bijoy', function (string $unicode, string $bijoy) {
+    $converted = BanglaConverter::unicodeToBijoy($unicode);
+
+    expect($converted)->toBe($bijoy)
+        ->not->toContain('&')
+        ->and(BanglaConverter::bijoyToUnicode($converted))->toBe(str_replace("\u{200D}", '', $unicode));
+})->with([
+    'পর্যন্ত with invisible joiners' => ["প\u{200D}\u{200D}র্যন্ত", 'ch©šÍ'],
+    'আন্তর্জাতিক' => ['আন্তর্জাতিক', 'AvšÍR©vwZK'],
+    'সিদ্ধান্ত' => ['সিদ্ধান্ত', 'wm×všÍ'],
+    'অ্যান্ড' => ['অ্যান্ড', 'A¨vÛ'],
+    'সিমেন্ট' => ['সিমেন্ট', 'wm‡g›U'],
+]);
+
 it('keeps empty converter input empty', function () {
     expect(BanglaConverter::unicodeToBijoy(''))->toBe('')
         ->and(BanglaConverter::bijoyToUnicode(''))->toBe('');
