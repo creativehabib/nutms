@@ -41,6 +41,7 @@ return [
 
     'national_university_notices' => [
         'url' => env('NU_NOTICES_API_URL', 'https://nu-scraper.shamolrahaman.workers.dev/'),
+        'base_url' => env('NU_NOTICES_BASE_URL', 'https://www.nu.ac.bd'),
     ],
 
 ];

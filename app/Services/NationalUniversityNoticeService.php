@@ -16,23 +16,38 @@ class NationalUniversityNoticeService
      */
     public function latest(int $limit = 6): array
     {
-        return array_slice(Cache::remember(self::CACHE_KEY, now()->addMinutes(30), function (): array {
-            try {
-                $response = Http::acceptJson()
-                    ->connectTimeout(3)
-                    ->timeout(6)
-                    ->retry(2, 200, throw: false)
-                    ->get((string) config('services.national_university_notices.url'));
+        return array_slice($this->all(), 0, $limit);
+    }
 
-                if (! $response->successful()) {
-                    return [];
-                }
+    /**
+     * @return list<array{title: string, url: string|null, published_at: string|null, category: string|null}>
+     */
+    public function all(): array
+    {
+        $cachedNotices = Cache::get(self::CACHE_KEY);
 
-                return $this->normalize($response->json());
-            } catch (Throwable) {
+        if (is_array($cachedNotices)) {
+            return $cachedNotices;
+        }
+
+        try {
+            $response = Http::acceptJson()
+                ->connectTimeout(3)
+                ->timeout(6)
+                ->retry(2, 200, throw: false)
+                ->get((string) config('services.national_university_notices.url'));
+
+            if (! $response->successful()) {
                 return [];
             }
-        }), 0, $limit);
+
+            $notices = $this->normalize($response->json());
+            Cache::put(self::CACHE_KEY, $notices, now()->addMinutes(30));
+
+            return $notices;
+        } catch (Throwable) {
+            return [];
+        }
     }
 
     /**
@@ -51,19 +66,20 @@ class NationalUniversityNoticeService
                 data_get($payload, 'data.notices'),
                 data_get($payload, 'data.results'),
                 data_get($payload, 'results'),
+                data_get($payload, 'items'),
                 data_get($payload, 'data'),
             ], fn (mixed $value): bool => is_array($value), []);
 
         return collect($items)
             ->filter(fn (mixed $item): bool => is_array($item))
             ->map(function (array $item): array {
-                $title = $this->firstString($item, ['title', 'name', 'notice_title', 'headline']);
-                $url = $this->safeUrl($this->firstString($item, ['url', 'link', 'href', 'pdf', 'file']));
+                $title = $this->firstString($item, ['title', 'name', 'notice_title', 'noticeTitle', 'headline']);
+                $url = $this->safeUrl($this->firstString($item, ['url', 'link', 'noticeLink', 'href', 'pdf', 'pdf_url', 'pdfLink', 'download_url', 'file']));
 
                 return [
                     'title' => $title ?? '',
                     'url' => $url,
-                    'published_at' => $this->firstString($item, ['published_at', 'publishedAt', 'date', 'created_at']),
+                    'published_at' => $this->firstString($item, ['published_at', 'publishedAt', 'date', 'noticeDate', 'created_at']),
                     'category' => $this->firstString($item, ['category', 'type', 'notice_type']),
                 ];
             })
@@ -90,7 +106,15 @@ class NationalUniversityNoticeService
 
     private function safeUrl(?string $url): ?string
     {
-        if ($url === null || filter_var($url, FILTER_VALIDATE_URL) === false) {
+        if ($url === null) {
+            return null;
+        }
+
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
+            $url = rtrim((string) config('services.national_university_notices.base_url'), '/').$url;
+        }
+
+        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
             return null;
         }
 

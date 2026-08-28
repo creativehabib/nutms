@@ -43,3 +43,12 @@ it('rejects unsafe notice links', function () {
 
     expect(app(NationalUniversityNoticeService::class)->latest()[0]['url'])->toBeNull();
 });
+
+it('resolves relative links against the national university website', function () {
+    Http::fake(['notices.example.test/*' => Http::response([
+        ['title' => 'আপেক্ষিক লিংকের নোটিশ', 'link' => '/uploads/notices/example.pdf'],
+    ])]);
+
+    expect(app(NationalUniversityNoticeService::class)->latest()[0]['url'])
+        ->toBe('https://www.nu.ac.bd/uploads/notices/example.pdf');
+});

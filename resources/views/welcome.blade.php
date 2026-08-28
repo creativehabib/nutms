@@ -483,7 +483,7 @@
                 <span class="text-sm font-bold uppercase tracking-wider theme-primary-text">সর্বশেষ আপডেট</span>
                 <h2 class="mt-3 text-3xl font-extrabold text-slate-900 dark:text-white">নোটিশ ও ঘোষণা</h2>
             </div>
-            <a href="{{ config('services.national_university_notices.url') }}" target="_blank" rel="noopener noreferrer" class="font-semibold theme-primary-text hover:underline">
+            <a href="{{ route('notices.index') }}" wire:navigate class="font-semibold theme-primary-text hover:underline">
                 সকল নোটিশ →
             </a>
         </div>

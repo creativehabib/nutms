@@ -419,5 +419,6 @@ it('renders recent national university notices from the configured api', functio
         ->assertOk()
         ->assertSee('জাতীয় বিশ্ববিদ্যালয়ের সাম্প্রতিক পরীক্ষা সংক্রান্ত নোটিশ')
         ->assertSee('28-08-2026')
-        ->assertSee('https://www.nu.ac.bd/recent-notice.pdf', false);
+        ->assertSee('https://www.nu.ac.bd/recent-notice.pdf', false)
+        ->assertSee(route('notices.index'), false);
 });
