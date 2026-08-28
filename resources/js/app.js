@@ -1,4 +1,7 @@
 import { convertBijoyToUnicode, convertUnicodeToBijoy } from './bangla-converter';
+import { initializeImageCompressors } from './image-compressor';
+import { initializeAgeRetirementCalculators } from './age-retirement-calculator';
+import { initializeCgpaSgpaCalculators } from './cgpa-sgpa-calculator';
 
 const searchableSelects = new WeakMap();
 const relatedCollegeCarousels = new WeakMap();
@@ -93,9 +96,15 @@ const initializeSearchableSelects = async () => {
 
 document.addEventListener('DOMContentLoaded', initializeSearchableSelects);
 document.addEventListener('DOMContentLoaded', initializeRelatedCollegeCarousels);
+document.addEventListener('DOMContentLoaded', initializeImageCompressors);
+document.addEventListener('DOMContentLoaded', initializeAgeRetirementCalculators);
+document.addEventListener('DOMContentLoaded', initializeCgpaSgpaCalculators);
 document.addEventListener('livewire:navigated', () => {
     initializeSearchableSelects();
     initializeRelatedCollegeCarousels();
+    initializeImageCompressors();
+    initializeAgeRetirementCalculators();
+    initializeCgpaSgpaCalculators();
 });
 document.addEventListener('reset-teacher-filters', () => {
     document.querySelectorAll('[data-teacher-filter]').forEach((select) => {
