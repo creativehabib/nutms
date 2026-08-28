@@ -19,6 +19,9 @@ it('renders the browser based image and signature compressor', function () {
         ->assertSee('data-image-compressor', false)
         ->assertSee('data-image-input', false)
         ->assertSee('data-image-preview', false)
+        ->assertSee('data-local-only', false)
+        ->assertSee('data-no-upload', false)
+        ->assertSee('লাইভ প্রিভিউ')
         ->assertSee('রিসাইজ ও কম্প্রেস করুন')
-        ->assertSee('ছবি কোনো সার্ভারে আপলোড হবে না');
+        ->assertSee('সার্ভারে সংরক্ষণ হবে না');
 });

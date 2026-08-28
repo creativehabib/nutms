@@ -3,16 +3,20 @@
     description="ছবি ও স্বাক্ষর নির্দিষ্ট পিক্সেল এবং ফাইল সাইজে রিসাইজ ও কম্প্রেস করুন।"
     keywords="image compressor, signature resizer, ছবি রিসাইজ"
 >
-    <section data-image-compressor class="mx-auto max-w-5xl" aria-labelledby="compressor-title">
+    <section data-image-compressor data-local-only class="mx-auto max-w-5xl" aria-labelledby="compressor-title">
         <div class="mb-8 text-center">
             <a href="{{ route('tools.index') }}" wire:navigate class="theme-primary-text inline-flex items-center gap-2 text-sm font-bold hover:underline">← সব টুলস</a>
             <h1 id="compressor-title" class="mt-4 text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-4xl">ছবি ও স্বাক্ষর রিসাইজার</h1>
             <p class="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">ছবি নির্বাচন করে প্রয়োজনীয় পিক্সেল ও সর্বোচ্চ ফাইল সাইজ দিন। পুরো প্রক্রিয়া আপনার ব্রাউজারেই হবে—ছবি কোনো সার্ভারে আপলোড হবে না।</p>
+            <div class="mx-auto mt-4 flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5-3.5V12c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6.5L12 3l8 3.5z"/></svg>
+                ১০০% ব্রাউজারে প্রসেস হবে · সার্ভারে সংরক্ষণ হবে না
+            </div>
         </div>
 
         <div class="grid overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/20 lg:grid-cols-[1.05fr_.95fr]">
             <div class="border-b border-slate-200 p-5 dark:border-slate-800 sm:p-7 lg:border-r lg:border-b-0">
-                <form class="grid gap-5">
+                <form class="grid gap-5" data-no-upload>
                     <div>
                         <label for="image-input" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">ছবি বা স্বাক্ষর নির্বাচন করুন</label>
                         <label for="image-input" class="theme-primary-border flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-slate-50 px-5 py-8 text-center transition hover:bg-emerald-50/50 dark:bg-slate-950 dark:hover:bg-emerald-950/20">
@@ -45,15 +49,18 @@
                     </label>
 
                     <button type="submit" class="theme-primary-bg theme-primary-hover rounded-xl px-5 py-3 font-bold text-white shadow-sm transition disabled:cursor-wait disabled:opacity-60">রিসাইজ ও কম্প্রেস করুন</button>
-                    <p data-status class="min-h-5 text-center text-sm font-medium text-slate-500 dark:text-slate-400" aria-live="polite">ছবি নির্বাচন করলে এখানে তথ্য দেখাবে।</p>
+                    <p data-status class="min-h-5 text-center text-sm font-medium text-slate-500 dark:text-slate-400" aria-live="polite">ছবি নির্বাচন করলে লাইভ প্রিভিউ দেখা যাবে।</p>
                 </form>
             </div>
 
             <div class="flex min-h-96 flex-col bg-slate-50 p-5 dark:bg-slate-950/60 sm:p-7">
-                <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">প্রিভিউ</h2>
+                <div class="flex items-center justify-between gap-3">
+                    <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">লাইভ প্রিভিউ</h2>
+                    <span class="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-bold text-sky-700 dark:bg-sky-950 dark:text-sky-300">মাপ পরিবর্তনে অটো আপডেট</span>
+                </div>
                 <div class="mt-4 flex min-h-64 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(45deg,#f1f5f9_25%,transparent_25%),linear-gradient(-45deg,#f1f5f9_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f1f5f9_75%),linear-gradient(-45deg,transparent_75%,#f1f5f9_75%)] bg-[size:20px_20px] dark:border-slate-700 dark:bg-slate-900">
-                    <div data-empty-state class="px-6 text-center text-sm text-slate-500">নির্বাচিত ছবির প্রিভিউ এখানে দেখা যাবে</div>
-                    <img data-image-preview hidden class="max-h-96 max-w-full object-contain" alt="নির্বাচিত ছবির প্রিভিউ">
+                    <div data-empty-state class="px-6 text-center text-sm text-slate-500">ছবি নির্বাচন করুন—তারপর প্রস্থ বা উচ্চতা পরিবর্তন করলে ফলাফল এখানে সঙ্গে সঙ্গে দেখা যাবে</div>
+                    <img data-image-preview hidden class="max-h-96 max-w-full object-contain shadow-lg" alt="রিসাইজ ও কম্প্রেস করা ছবির লাইভ প্রিভিউ">
                 </div>
 
                 <div data-result hidden class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">

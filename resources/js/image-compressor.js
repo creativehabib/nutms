@@ -71,36 +71,102 @@ export const initializeImageCompressors = () => {
         const status = tool.querySelector('[data-status]');
         const download = tool.querySelector('[data-download]');
         let selectedFile = null;
-        let previewUrl = null;
+        let selectedImage = null;
         let downloadUrl = null;
+        let processingSequence = 0;
+        let processingTimeout = null;
+
+        const processImage = async () => {
+            if (! selectedFile || ! selectedImage || ! form.checkValidity()) {
+                return;
+            }
+
+            const currentSequence = ++processingSequence;
+            const width = Number(form.elements.width.value);
+            const height = Number(form.elements.height.value);
+            const maxKilobytes = Number(form.elements.maxSize.value);
+            const type = form.elements.format.value;
+            const extension = type === 'image/webp' ? 'webp' : 'jpg';
+
+            status.textContent = 'লাইভ প্রিভিউ আপডেট হচ্ছে…';
+
+            try {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = width;
+                canvas.height = height;
+                context.fillStyle = '#ffffff';
+                context.fillRect(0, 0, width, height);
+                drawCoverImage(context, selectedImage, width, height);
+
+                const blob = await compressCanvas(canvas, maxKilobytes * 1024, type);
+
+                if (currentSequence !== processingSequence) {
+                    return;
+                }
+
+                if (downloadUrl) {
+                    URL.revokeObjectURL(downloadUrl);
+                }
+
+                downloadUrl = URL.createObjectURL(blob);
+                preview.src = downloadUrl;
+                preview.hidden = false;
+                emptyState.hidden = true;
+                download.href = downloadUrl;
+                download.download = `resized-${width}x${height}.${extension}`;
+                result.querySelector('[data-result-size]').textContent = `${(blob.size / 1024).toFixed(1)} KB`;
+                result.querySelector('[data-result-dimensions]').textContent = `${width} × ${height} px`;
+                result.hidden = false;
+                status.textContent = blob.size <= maxKilobytes * 1024
+                    ? 'পরিবর্তন অনুযায়ী লাইভ প্রিভিউ প্রস্তুত।'
+                    : 'এই মাত্রায় সর্বোচ্চ কম্প্রেশনের পরও ফাইলটি নির্ধারিত সাইজের চেয়ে বড়।';
+            } catch (error) {
+                status.textContent = error.message;
+            }
+        };
+
+        const scheduleLivePreview = () => {
+            window.clearTimeout(processingTimeout);
+            processingTimeout = window.setTimeout(processImage, 250);
+        };
 
         tool.querySelectorAll('[data-size-preset]').forEach((button) => {
             button.addEventListener('click', () => {
                 form.elements.width.value = button.dataset.width;
                 form.elements.height.value = button.dataset.height;
                 form.elements.maxSize.value = button.dataset.maxSize;
+                scheduleLivePreview();
             });
         });
 
-        input.addEventListener('change', () => {
-            selectedFile = input.files?.[0] ?? null;
+        form.querySelectorAll('input[type="number"], select').forEach((control) => {
+            control.addEventListener('input', scheduleLivePreview);
+            control.addEventListener('change', scheduleLivePreview);
+        });
 
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-            }
+        input.addEventListener('change', async () => {
+            selectedFile = input.files?.[0] ?? null;
+            selectedImage = null;
+            processingSequence += 1;
 
             if (! selectedFile) {
                 preview.hidden = true;
                 emptyState.hidden = false;
+                result.hidden = true;
                 return;
             }
 
-            previewUrl = URL.createObjectURL(selectedFile);
-            preview.src = previewUrl;
-            preview.hidden = false;
-            emptyState.hidden = true;
             result.hidden = true;
-            status.textContent = `${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+            status.textContent = `${selectedFile.name} পড়া হচ্ছে…`;
+
+            try {
+                selectedImage = await loadImage(selectedFile);
+                status.textContent = `${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+                await processImage();
+            } catch (error) {
+                status.textContent = error.message;
+            }
         });
 
         form.addEventListener('submit', async (event) => {
@@ -111,46 +177,11 @@ export const initializeImageCompressors = () => {
                 return;
             }
 
-            const width = Number(form.elements.width.value);
-            const height = Number(form.elements.height.value);
-            const maxKilobytes = Number(form.elements.maxSize.value);
-            const type = form.elements.format.value;
-            const extension = type === 'image/webp' ? 'webp' : 'jpg';
             const submitButton = form.querySelector('[type="submit"]');
 
             submitButton.disabled = true;
-            status.textContent = 'ছবি প্রস্তুত হচ্ছে…';
-
-            try {
-                const image = await loadImage(selectedFile);
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = width;
-                canvas.height = height;
-                context.fillStyle = '#ffffff';
-                context.fillRect(0, 0, width, height);
-                drawCoverImage(context, image, width, height);
-
-                const blob = await compressCanvas(canvas, maxKilobytes * 1024, type);
-
-                if (downloadUrl) {
-                    URL.revokeObjectURL(downloadUrl);
-                }
-
-                downloadUrl = URL.createObjectURL(blob);
-                download.href = downloadUrl;
-                download.download = `resized-${width}x${height}.${extension}`;
-                result.querySelector('[data-result-size]').textContent = `${(blob.size / 1024).toFixed(1)} KB`;
-                result.querySelector('[data-result-dimensions]').textContent = `${width} × ${height} px`;
-                result.hidden = false;
-                status.textContent = blob.size <= maxKilobytes * 1024
-                    ? 'ছবি সফলভাবে প্রস্তুত হয়েছে।'
-                    : 'নির্ধারিত মাত্রায় সর্বোচ্চ কম্প্রেশন করা হয়েছে; জটিল ছবির আকার কিছুটা বেশি হতে পারে।';
-            } catch (error) {
-                status.textContent = error.message;
-            } finally {
-                submitButton.disabled = false;
-            }
+            await processImage();
+            submitButton.disabled = false;
         });
 
         tool.dataset.initialized = 'true';
