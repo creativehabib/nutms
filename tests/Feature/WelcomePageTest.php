@@ -11,7 +11,16 @@ use App\Models\Teacher;
 use App\Models\Training;
 use App\Models\User;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
+
+beforeEach(function () {
+    Cache::forget('national-university.latest-notices');
+    Http::fake([
+        'nu-scraper.shamolrahaman.workers.dev/*' => Http::response([]),
+    ]);
+});
 
 it('renders live platform statistics and the next training', function () {
     College::query()->create([
@@ -395,5 +404,20 @@ it('renders an empty state when no public training is available', function () {
     $this->get(route('home'))
         ->assertOk()
         ->assertSee('এই মুহূর্তে কোনো আসন্ন প্রশিক্ষণ নেই')
-        ->assertSee('নতুন কোনো নোটিশ প্রকাশিত হয়নি');
+        ->assertSee('এই মুহূর্তে জাতীয় বিশ্ববিদ্যালয়ের নোটিশ লোড করা যায়নি');
+});
+
+it('renders recent national university notices from the configured api', function () {
+    Cache::forget('national-university.latest-notices');
+    Http::fake([
+        'nu-scraper.shamolrahaman.workers.dev/*' => Http::response([
+            ['title' => 'জাতীয় বিশ্ববিদ্যালয়ের সাম্প্রতিক পরীক্ষা সংক্রান্ত নোটিশ', 'date' => '28-08-2026', 'url' => 'https://www.nu.ac.bd/recent-notice.pdf'],
+        ]),
+    ]);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('জাতীয় বিশ্ববিদ্যালয়ের সাম্প্রতিক পরীক্ষা সংক্রান্ত নোটিশ')
+        ->assertSee('28-08-2026')
+        ->assertSee('https://www.nu.ac.bd/recent-notice.pdf', false);
 });
