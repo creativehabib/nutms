@@ -17,12 +17,29 @@ const canvasToBlob = (canvas, type, quality) => new Promise((resolve, reject) =>
     canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('ছবিটি তৈরি করা যায়নি।')), type, quality);
 });
 
-const drawCoverImage = (context, image, width, height) => {
-    const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+export const calculateCoverCrop = (imageWidth, imageHeight, width, height, positionX = 0.5, positionY = 0.5, zoom = 1) => {
+    const scale = Math.max(width / imageWidth, height / imageHeight) * zoom;
     const sourceWidth = width / scale;
     const sourceHeight = height / scale;
-    const sourceX = (image.naturalWidth - sourceWidth) / 2;
-    const sourceY = (image.naturalHeight - sourceHeight) / 2;
+
+    return {
+        sourceWidth,
+        sourceHeight,
+        sourceX: (imageWidth - sourceWidth) * positionX,
+        sourceY: (imageHeight - sourceHeight) * positionY,
+    };
+};
+
+const drawCoverImage = (context, image, width, height, positionX, positionY, zoom) => {
+    const { sourceWidth, sourceHeight, sourceX, sourceY } = calculateCoverCrop(
+        image.naturalWidth,
+        image.naturalHeight,
+        width,
+        height,
+        positionX,
+        positionY,
+        zoom,
+    );
 
     context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
 };
@@ -57,17 +74,81 @@ export const hexToRgb = (hexColor) => {
     return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
 };
 
+export const createConnectedBackgroundMask = (pixels, width, height, background, tolerance) => {
+    const connected = new Uint8Array(width * height);
+    const queue = [];
+    let queueIndex = 0;
+    const enqueueIfBackground = (x, y) => {
+        const pixelIndex = (y * width) + x;
+
+        if (connected[pixelIndex]) {
+            return;
+        }
+
+        const offset = pixelIndex * 4;
+        const distance = Math.hypot(
+            pixels[offset] - background[0],
+            pixels[offset + 1] - background[1],
+            pixels[offset + 2] - background[2],
+        );
+
+        if (distance <= tolerance + 25) {
+            connected[pixelIndex] = 1;
+            queue.push([x, y]);
+        }
+    };
+
+    for (let x = 0; x < width; x += 1) {
+        enqueueIfBackground(x, 0);
+        enqueueIfBackground(x, height - 1);
+    }
+    for (let y = 0; y < height; y += 1) {
+        enqueueIfBackground(0, y);
+        enqueueIfBackground(width - 1, y);
+    }
+
+    while (queueIndex < queue.length) {
+        const [x, y] = queue[queueIndex];
+        queueIndex += 1;
+
+        if (x > 0) {
+            enqueueIfBackground(x - 1, y);
+        }
+        if (x < width - 1) {
+            enqueueIfBackground(x + 1, y);
+        }
+        if (y > 0) {
+            enqueueIfBackground(x, y - 1);
+        }
+        if (y < height - 1) {
+            enqueueIfBackground(x, y + 1);
+        }
+    }
+
+    return { connected };
+};
+
 export const removeImageBackground = (imageData, tolerance, solidColor = null) => {
     const pixels = imageData.data;
     const background = estimateBackgroundColor(pixels, imageData.width, imageData.height);
     const replacement = solidColor ? hexToRgb(solidColor) : null;
+    const { connected } = createConnectedBackgroundMask(
+        pixels,
+        imageData.width,
+        imageData.height,
+        background,
+        tolerance,
+    );
 
     for (let offset = 0; offset < pixels.length; offset += 4) {
         const redDifference = pixels[offset] - background[0];
         const greenDifference = pixels[offset + 1] - background[1];
         const blueDifference = pixels[offset + 2] - background[2];
         const distance = Math.sqrt(redDifference ** 2 + greenDifference ** 2 + blueDifference ** 2);
-        const foregroundOpacity = Math.max(0, Math.min(1, (distance - tolerance) / 25));
+        const pixelIndex = offset / 4;
+        const foregroundOpacity = connected[pixelIndex]
+            ? Math.max(0, Math.min(1, (distance - tolerance) / 25))
+            : 1;
         const originalOpacity = pixels[offset + 3] / 255;
         const opacity = foregroundOpacity * originalOpacity;
 
@@ -123,6 +204,12 @@ export const initializeImageCompressors = () => {
         const input = tool.querySelector('[data-image-input]');
         const form = tool.querySelector('form');
         const preview = tool.querySelector('[data-image-preview]');
+        const previewStage = tool.querySelector('[data-preview-stage]');
+        const resetPosition = tool.querySelector('[data-reset-position]');
+        const zoomControl = tool.querySelector('[data-zoom]');
+        const zoomValue = tool.querySelector('[data-zoom-value]');
+        const zoomOutButton = tool.querySelector('[data-zoom-out]');
+        const zoomInButton = tool.querySelector('[data-zoom-in]');
         const emptyState = tool.querySelector('[data-empty-state]');
         const result = tool.querySelector('[data-result]');
         const status = tool.querySelector('[data-status]');
@@ -132,47 +219,70 @@ export const initializeImageCompressors = () => {
         let downloadUrl = null;
         let processingSequence = 0;
         let processingTimeout = null;
+        let previewFrame = null;
+        let positionX = 0.5;
+        let positionY = 0.5;
+        let zoom = 1;
+        let dragStart = null;
 
-        const processImage = async () => {
+        const renderPreview = () => {
             if (! selectedFile || ! selectedImage || ! form.checkValidity()) {
-                return;
+                return null;
             }
 
-            const currentSequence = ++processingSequence;
             const width = Number(form.elements.width.value);
             const height = Number(form.elements.height.value);
-            const maxKilobytes = Number(form.elements.maxSize.value);
             const backgroundMode = form.elements.backgroundMode.value;
             const requestedType = form.elements.format.value;
             const type = backgroundMode === 'transparent' && requestedType === 'image/jpeg'
                 ? 'image/png'
                 : requestedType;
-            const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[type];
+            const context = preview.getContext('2d');
 
-            status.textContent = 'লাইভ প্রিভিউ আপডেট হচ্ছে…';
+            preview.width = width;
+            preview.height = height;
+            context.clearRect(0, 0, width, height);
+            if (backgroundMode === 'keep' && type === 'image/jpeg') {
+                context.fillStyle = '#ffffff';
+                context.fillRect(0, 0, width, height);
+            }
+            drawCoverImage(context, selectedImage, width, height, positionX, positionY, zoom);
+
+            if (backgroundMode !== 'keep') {
+                const imageData = context.getImageData(0, 0, width, height);
+                const solidColor = backgroundMode === 'solid' ? form.elements.backgroundColor.value : null;
+                context.putImageData(removeImageBackground(
+                    imageData,
+                    Number(form.elements.backgroundTolerance.value),
+                    solidColor,
+                ), 0, 0);
+            }
+
+            preview.hidden = false;
+            emptyState.hidden = true;
+
+            return { width, height, type, requestedType };
+        };
+
+        const processImage = async () => {
+            const render = renderPreview();
+
+            if (! render) {
+                return;
+            }
+
+            const currentSequence = ++processingSequence;
+            const maxKilobytes = Number(form.elements.maxSize.value);
+            const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[render.type];
+            const outputCanvas = document.createElement('canvas');
+            outputCanvas.width = preview.width;
+            outputCanvas.height = preview.height;
+            outputCanvas.getContext('2d').drawImage(preview, 0, 0);
+
+            status.textContent = 'ডাউনলোড ফাইল প্রস্তুত হচ্ছে…';
 
             try {
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = width;
-                canvas.height = height;
-                if (backgroundMode === 'keep' && type === 'image/jpeg') {
-                    context.fillStyle = '#ffffff';
-                    context.fillRect(0, 0, width, height);
-                }
-                drawCoverImage(context, selectedImage, width, height);
-
-                if (backgroundMode !== 'keep') {
-                    const imageData = context.getImageData(0, 0, width, height);
-                    const solidColor = backgroundMode === 'solid' ? form.elements.backgroundColor.value : null;
-                    context.putImageData(removeImageBackground(
-                        imageData,
-                        Number(form.elements.backgroundTolerance.value),
-                        solidColor,
-                    ), 0, 0);
-                }
-
-                const blob = await compressCanvas(canvas, maxKilobytes * 1024, type);
+                const blob = await compressCanvas(outputCanvas, maxKilobytes * 1024, render.type);
 
                 if (currentSequence !== processingSequence) {
                     return;
@@ -183,16 +293,13 @@ export const initializeImageCompressors = () => {
                 }
 
                 downloadUrl = URL.createObjectURL(blob);
-                preview.src = downloadUrl;
-                preview.hidden = false;
-                emptyState.hidden = true;
                 download.href = downloadUrl;
-                download.download = `resized-${width}x${height}.${extension}`;
+                download.download = `resized-${render.width}x${render.height}.${extension}`;
                 result.querySelector('[data-result-size]').textContent = `${(blob.size / 1024).toFixed(1)} KB`;
-                result.querySelector('[data-result-dimensions]').textContent = `${width} × ${height} px`;
+                result.querySelector('[data-result-dimensions]').textContent = `${render.width} × ${render.height} px`;
                 result.hidden = false;
                 status.textContent = blob.size <= maxKilobytes * 1024
-                    ? backgroundMode === 'transparent' && requestedType === 'image/jpeg'
+                    ? render.type === 'image/png' && render.requestedType === 'image/jpeg'
                         ? 'স্বচ্ছতা রাখতে আউটপুট স্বয়ংক্রিয়ভাবে PNG করা হয়েছে।'
                         : 'পরিবর্তন অনুযায়ী লাইভ প্রিভিউ প্রস্তুত।'
                     : 'এই মাত্রায় সর্বোচ্চ কম্প্রেশনের পরও ফাইলটি নির্ধারিত সাইজের চেয়ে বড়।';
@@ -202,9 +309,76 @@ export const initializeImageCompressors = () => {
         };
 
         const scheduleLivePreview = () => {
+            processingSequence += 1;
+            window.cancelAnimationFrame(previewFrame);
+            previewFrame = window.requestAnimationFrame(renderPreview);
             window.clearTimeout(processingTimeout);
             processingTimeout = window.setTimeout(processImage, 250);
         };
+
+        const updatePosition = (horizontalChange, verticalChange) => {
+            positionX = Math.max(0, Math.min(1, positionX - horizontalChange));
+            positionY = Math.max(0, Math.min(1, positionY - verticalChange));
+            scheduleLivePreview();
+        };
+
+        previewStage.addEventListener('pointerdown', (event) => {
+            if (! selectedImage) {
+                return;
+            }
+
+            dragStart = { x: event.clientX, y: event.clientY };
+            previewStage.setPointerCapture(event.pointerId);
+        });
+        previewStage.addEventListener('pointermove', (event) => {
+            if (! dragStart) {
+                return;
+            }
+
+            const bounds = previewStage.getBoundingClientRect();
+            updatePosition((event.clientX - dragStart.x) / bounds.width, (event.clientY - dragStart.y) / bounds.height);
+            dragStart = { x: event.clientX, y: event.clientY };
+        });
+        previewStage.addEventListener('pointerup', () => {
+            dragStart = null;
+        });
+        previewStage.addEventListener('pointercancel', () => {
+            dragStart = null;
+        });
+        previewStage.addEventListener('keydown', (event) => {
+            const movements = {
+                ArrowLeft: [-0.025, 0],
+                ArrowRight: [0.025, 0],
+                ArrowUp: [0, -0.025],
+                ArrowDown: [0, 0.025],
+            };
+
+            if (! selectedImage || ! movements[event.key]) {
+                return;
+            }
+
+            event.preventDefault();
+            updatePosition(...movements[event.key]);
+        });
+        resetPosition.addEventListener('click', () => {
+            positionX = 0.5;
+            positionY = 0.5;
+            zoom = 1;
+            zoomControl.value = '1';
+            zoomValue.textContent = '১০০%';
+            scheduleLivePreview();
+        });
+
+        const updateZoom = (nextZoom) => {
+            zoom = Math.max(1, Math.min(3, nextZoom));
+            zoomControl.value = zoom.toFixed(2);
+            zoomValue.textContent = `${Math.round(zoom * 100).toLocaleString('bn-BD')}%`;
+            scheduleLivePreview();
+        };
+
+        zoomControl.addEventListener('input', () => updateZoom(Number(zoomControl.value)));
+        zoomOutButton.addEventListener('click', () => updateZoom(zoom - 0.1));
+        zoomInButton.addEventListener('click', () => updateZoom(zoom + 0.1));
 
         tool.querySelectorAll('[data-size-preset]').forEach((button) => {
             button.addEventListener('click', () => {
@@ -237,12 +411,21 @@ export const initializeImageCompressors = () => {
         input.addEventListener('change', async () => {
             selectedFile = input.files?.[0] ?? null;
             selectedImage = null;
+            positionX = 0.5;
+            positionY = 0.5;
+            zoom = 1;
+            zoomControl.value = '1';
+            zoomValue.textContent = '১০০%';
             processingSequence += 1;
 
             if (! selectedFile) {
                 preview.hidden = true;
                 emptyState.hidden = false;
                 result.hidden = true;
+                resetPosition.hidden = true;
+                zoomControl.disabled = true;
+                zoomOutButton.disabled = true;
+                zoomInButton.disabled = true;
                 return;
             }
 
@@ -251,6 +434,10 @@ export const initializeImageCompressors = () => {
 
             try {
                 selectedImage = await loadImage(selectedFile);
+                resetPosition.hidden = false;
+                zoomControl.disabled = false;
+                zoomOutButton.disabled = false;
+                zoomInButton.disabled = false;
                 status.textContent = `${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
                 await processImage();
             } catch (error) {
