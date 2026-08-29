@@ -10,7 +10,7 @@
             <p class="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">ছবি নির্বাচন করে প্রয়োজনীয় পিক্সেল ও সর্বোচ্চ ফাইল সাইজ দিন। তারপর পেয়ে যাবেন আপনার কাঙ্খিত ছবি বা স্বাক্ষ।</p>
             <div class="mx-auto mt-4 flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5-3.5V12c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6.5L12 3l8 3.5z"/></svg>
-                আপনার কাস্টমাইজকৃত ছবি ও স্বাক্ষর সংরক্ষণ করা হ না
+                আপনার কাস্টমাইজকৃত ছবি ও স্বাক্ষর সংরক্ষণ করা হয় না
             </div>
         </div>
 
