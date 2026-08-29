@@ -44,9 +44,28 @@
                     <label class="text-sm font-bold text-slate-700 dark:text-slate-200">আউটপুট ফরম্যাট
                         <select name="format" class="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-normal outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950">
                             <option value="image/jpeg">JPG — সব জায়গায় গ্রহণযোগ্য</option>
+                            <option value="image/png">PNG — স্বচ্ছ ব্যাকগ্রাউন্ডের জন্য</option>
                             <option value="image/webp">WebP — তুলনামূলক ছোট</option>
                         </select>
                     </label>
+
+                    <fieldset class="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+                        <legend class="px-2 text-sm font-bold text-slate-700 dark:text-slate-200">ব্যাকগ্রাউন্ড</legend>
+                        <div class="grid gap-2 sm:grid-cols-3">
+                            <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700"><input type="radio" name="backgroundMode" value="keep" checked class="accent-emerald-600"> অপরিবর্তিত</label>
+                            <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700"><input type="radio" name="backgroundMode" value="transparent" class="accent-emerald-600"> রিমুভ করুন</label>
+                            <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700"><input type="radio" name="backgroundMode" value="solid" class="accent-emerald-600"> সলিড রঙ</label>
+                        </div>
+                        <div data-background-options hidden class="mt-4 grid gap-4 sm:grid-cols-2">
+                            <label class="text-sm font-bold text-slate-700 dark:text-slate-200">রিমুভের মাত্রা: <span data-tolerance-value>৩০</span>
+                                <input name="backgroundTolerance" type="range" min="5" max="100" value="30" class="mt-2 w-full accent-emerald-600">
+                            </label>
+                            <label data-solid-color hidden class="text-sm font-bold text-slate-700 dark:text-slate-200">নতুন ব্যাকগ্রাউন্ড
+                                <span class="mt-2 flex items-center gap-3"><input name="backgroundColor" type="color" value="#ffffff" class="h-10 w-14 cursor-pointer rounded-lg border border-slate-200 bg-transparent p-1 dark:border-slate-700"><span class="font-normal text-slate-500">পছন্দের রঙ বেছে নিন</span></span>
+                            </label>
+                        </div>
+                        <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">এজ-সুরক্ষিত প্রসেসিং ছবির বাইরের অংশ থেকে ব্যাকগ্রাউন্ড শনাক্ত করে, বিষয়বস্তুর ভেতরের একই রঙ অক্ষত রাখে এবং প্রান্তের রঙের আভা পরিষ্কার করে।</p>
+                    </fieldset>
 
                     <button type="submit" class="theme-primary-bg theme-primary-hover rounded-xl px-5 py-3 font-bold text-white shadow-sm transition disabled:cursor-wait disabled:opacity-60">রিসাইজ ও কম্প্রেস করুন</button>
                     <p data-status class="min-h-5 text-center text-sm font-medium text-slate-500 dark:text-slate-400" aria-live="polite">ছবি নির্বাচন করলে লাইভ প্রিভিউ দেখা যাবে।</p>

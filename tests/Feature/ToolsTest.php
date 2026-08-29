@@ -44,6 +44,10 @@ it('renders the browser based image and signature compressor', function () {
         ->assertSee('data-local-only', false)
         ->assertSee('data-no-upload', false)
         ->assertSee('লাইভ প্রিভিউ')
+        ->assertSee('ব্যাকগ্রাউন্ড')
+        ->assertSee('রিমুভ করুন')
+        ->assertSee('সলিড রঙ')
+        ->assertSee('value="image/png"', false)
         ->assertSee('রিসাইজ ও কম্প্রেস করুন')
         ->assertSee('সার্ভারে সংরক্ষণ হবে না');
 });
