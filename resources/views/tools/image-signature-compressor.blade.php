@@ -64,7 +64,7 @@
                                 <span class="mt-2 flex items-center gap-3"><input name="backgroundColor" type="color" value="#ffffff" class="h-10 w-14 cursor-pointer rounded-lg border border-slate-200 bg-transparent p-1 dark:border-slate-700"><span class="font-normal text-slate-500">পছন্দের রঙ বেছে নিন</span></span>
                             </label>
                         </div>
-                        <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">এজ-সুরক্ষিত প্রসেসিং ছবির বাইরের অংশ থেকে ব্যাকগ্রাউন্ড শনাক্ত করে, বিষয়বস্তুর ভেতরের একই রঙ অক্ষত রাখে এবং প্রান্তের রঙের আভা পরিষ্কার করে।</p>
+                        <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">ছবির চার কোণের রঙ শনাক্ত করে ব্যাকগ্রাউন্ড সরানো হবে। সমান রঙের ব্যাকগ্রাউন্ডে সবচেয়ে ভালো ফল পাওয়া যায়।</p>
                     </fieldset>
 
                     <button type="submit" class="theme-primary-bg theme-primary-hover rounded-xl px-5 py-3 font-bold text-white shadow-sm transition disabled:cursor-wait disabled:opacity-60">রিসাইজ ও কম্প্রেস করুন</button>
