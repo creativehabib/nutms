@@ -57,19 +57,92 @@ export const hexToRgb = (hexColor) => {
     return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
 };
 
+export const createConnectedBackgroundMask = (pixels, width, height, background, tolerance) => {
+    const pixelCount = width * height;
+    const feather = 30;
+    const maximumDistance = tolerance + feather;
+    const distances = new Float32Array(pixelCount);
+    const connected = new Uint8Array(pixelCount);
+    const queue = new Int32Array(pixelCount);
+    let queueStart = 0;
+    let queueEnd = 0;
+
+    for (let index = 0; index < pixelCount; index += 1) {
+        const offset = index * 4;
+        const redDifference = pixels[offset] - background[0];
+        const greenDifference = pixels[offset + 1] - background[1];
+        const blueDifference = pixels[offset + 2] - background[2];
+        distances[index] = Math.sqrt(redDifference ** 2 + greenDifference ** 2 + blueDifference ** 2);
+    }
+
+    const enqueue = (index) => {
+        if (connected[index] || distances[index] > maximumDistance) {
+            return;
+        }
+
+        connected[index] = 1;
+        queue[queueEnd] = index;
+        queueEnd += 1;
+    };
+
+    for (let x = 0; x < width; x += 1) {
+        enqueue(x);
+        enqueue(((height - 1) * width) + x);
+    }
+    for (let y = 1; y < height - 1; y += 1) {
+        enqueue(y * width);
+        enqueue((y * width) + width - 1);
+    }
+
+    while (queueStart < queueEnd) {
+        const index = queue[queueStart];
+        const x = index % width;
+        queueStart += 1;
+
+        if (x > 0) {
+            enqueue(index - 1);
+        }
+        if (x < width - 1) {
+            enqueue(index + 1);
+        }
+        if (index >= width) {
+            enqueue(index - width);
+        }
+        if (index < pixelCount - width) {
+            enqueue(index + width);
+        }
+    }
+
+    return { connected, distances, feather };
+};
+
 export const removeImageBackground = (imageData, tolerance, solidColor = null) => {
     const pixels = imageData.data;
     const background = estimateBackgroundColor(pixels, imageData.width, imageData.height);
     const replacement = solidColor ? hexToRgb(solidColor) : null;
+    const { connected, distances, feather } = createConnectedBackgroundMask(
+        pixels,
+        imageData.width,
+        imageData.height,
+        background,
+        tolerance,
+    );
 
     for (let offset = 0; offset < pixels.length; offset += 4) {
-        const redDifference = pixels[offset] - background[0];
-        const greenDifference = pixels[offset + 1] - background[1];
-        const blueDifference = pixels[offset + 2] - background[2];
-        const distance = Math.sqrt(redDifference ** 2 + greenDifference ** 2 + blueDifference ** 2);
-        const foregroundOpacity = Math.max(0, Math.min(1, (distance - tolerance) / 25));
+        const index = offset / 4;
+        const transition = Math.max(0, Math.min(1, (distances[index] - tolerance) / feather));
+        const foregroundOpacity = connected[index]
+            ? transition * transition * (3 - (2 * transition))
+            : 1;
         const originalOpacity = pixels[offset + 3] / 255;
         const opacity = foregroundOpacity * originalOpacity;
+
+        if (foregroundOpacity > 0.05 && foregroundOpacity < 0.98) {
+            for (let channel = 0; channel < 3; channel += 1) {
+                const recoveredColor = (pixels[offset + channel] - (background[channel] * (1 - foregroundOpacity))) / foregroundOpacity;
+                pixels[offset + channel] = Math.max(0, Math.min(255, Math.round(recoveredColor)));
+            }
+        }
 
         if (replacement) {
             pixels[offset] = Math.round((pixels[offset] * opacity) + (replacement[0] * (1 - opacity)));
