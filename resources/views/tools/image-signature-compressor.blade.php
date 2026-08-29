@@ -64,7 +64,20 @@
                                 <span class="mt-2 flex items-center gap-3"><input name="backgroundColor" type="color" value="#ffffff" class="h-10 w-14 cursor-pointer rounded-lg border border-slate-200 bg-transparent p-1 dark:border-slate-700"><span class="font-normal text-slate-500">পছন্দের রঙ বেছে নিন</span></span>
                             </label>
                         </div>
-                        <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">ছবির চার কোণের রঙ শনাক্ত করে ব্যাকগ্রাউন্ড সরানো হবে। সমান রঙের ব্যাকগ্রাউন্ডে সবচেয়ে ভালো ফল পাওয়া যায়।</p>
+                        <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100" role="note" aria-label="ব্যাকগ্রাউন্ড রিমুভের নির্দেশনা">
+                            <div class="flex items-start gap-3">
+                                <svg class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.3 3.7 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"/></svg>
+                                <div>
+                                    <p class="text-sm font-extrabold">এক রঙের ব্যাকগ্রাউন্ডে ব্যবহার করুন</p>
+                                    <p class="mt-1 text-xs leading-5 text-amber-800 dark:text-amber-200">এই টুল ছবির চার কোণের রঙ শনাক্ত করে। তাই সাদা বা অন্য কোনো সমান, এক রঙের ব্যাকগ্রাউন্ডই সঠিকভাবে রিমুভ হবে। ভালো ফলের জন্য ছবির চার কোণ পরিষ্কার রাখুন এবং প্রয়োজন অনুযায়ী রিমুভের মাত্রা সামঞ্জস্য করুন।</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                            একাধিক রঙ বা জটিল ব্যাকগ্রাউন্ডের ছবি হলে
+                            <a href="https://www.remove.bg/" target="_blank" rel="noopener noreferrer" class="font-bold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">remove.bg ব্যবহার করুন<span class="sr-only"> (নতুন ট্যাবে খুলবে)</span></a>।
+                            সেখানে ব্যাকগ্রাউন্ড রিমুভ করার পর PNG ফাইলটি এখানে এনে প্রয়োজনীয় মাপ ও সাইজে কম্প্রেস করতে পারবেন।
+                        </p>
                     </fieldset>
 
                     <button type="submit" class="theme-primary-bg theme-primary-hover rounded-xl px-5 py-3 font-bold text-white shadow-sm transition disabled:cursor-wait disabled:opacity-60">রিসাইজ ও কম্প্রেস করুন</button>
