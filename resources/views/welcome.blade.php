@@ -478,35 +478,87 @@
 ========================== --}}
 <section id="notices" class="py-20 lg:py-28 dark:bg-slate-900 transition-colors duration-200">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-                <span class="text-sm font-bold uppercase tracking-wider theme-primary-text">সর্বশেষ আপডেট</span>
-                <h2 class="mt-3 text-3xl font-extrabold text-slate-900 dark:text-white">নোটিশ ও ঘোষণা</h2>
+
+        <!-- Section Header -->
+        <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+            <div class="max-w-2xl">
+                <span class="text-sm font-bold uppercase tracking-wider theme-primary-text flex items-center gap-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full theme-primary-bg opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 theme-primary-bg left-[1px] top-[1px]"></span>
+                    </span>
+                    সর্বশেষ আপডেট
+                </span>
+                <h2 class="mt-3 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
+                    নোটিশ ও ঘোষণা
+                </h2>
             </div>
-            <a href="{{ route('notices.index') }}" wire:navigate class="font-semibold theme-primary-text hover:underline">
-                সকল নোটিশ →
+            <a href="{{ route('notices.index') }}" wire:navigate class="group inline-flex items-center gap-2 font-bold theme-primary-text transition hover:text-emerald-800 dark:hover:text-emerald-300">
+                সকল নোটিশ দেখুন
+                <svg class="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
             </a>
         </div>
 
-        <div class="mt-10 divide-y divide-slate-100 dark:divide-slate-700 overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-sm ring-1 ring-slate-100 dark:ring-slate-700">
+        <!-- Notice List -->
+        <div class="mt-12 grid gap-4">
             @forelse($latestNotices as $notice)
-                <a href="{{ $notice['url'] ?? config('services.national_university_notices.url') }}" target="_blank" rel="noopener noreferrer" class="flex flex-col gap-4 p-6 transition hover:bg-slate-50 dark:hover:bg-slate-700/50 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="flex items-start gap-4">
-                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700">📢</div>
-                        <div>
-                            <h3 class="font-bold text-slate-800 dark:text-slate-200">{{ $notice['title'] }}</h3>
-                            @if($notice['published_at'])
-                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">প্রকাশিত: {{ $toBengaliNumber($notice['published_at']) }}</p>
-                            @endif
+                <a href="{{ $notice['url'] ?? config('services.national_university_notices.url') }}" target="_blank" rel="noopener noreferrer" class="group relative flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 pr-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-900/5 dark:border-slate-800 dark:bg-slate-800 dark:hover:border-emerald-700 sm:flex-row sm:items-center sm:justify-between overflow-hidden">
+
+                    <!-- Left Accent Line on Hover -->
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 theme-primary-bg opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+
+                    <div class="flex flex-1 items-start gap-5 pl-2 sm:pl-0">
+
+                        <!-- Premium SVG Icon -->
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 theme-primary-text transition-colors duration-300 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/40 border border-emerald-100/50 dark:border-emerald-800/50">
+                            <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 008.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 010 3.46" />
+                            </svg>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold leading-snug text-slate-800 transition-colors group-hover:text-emerald-700 dark:text-slate-200 dark:group-hover:text-emerald-400">
+                                {{ $notice['title'] }}
+                            </h3>
+
+                            <div class="mt-3 flex flex-wrap items-center gap-3 sm:gap-4">
+                                <!-- Date -->
+                                @if($notice['published_at'])
+                                    <div class="flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
+                                        <svg class="size-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 2v3m8-3v3M3.5 9h17M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                                        </svg>
+                                        {{ $toBengaliNumber($notice['published_at']) }}
+                                    </div>
+                                @endif
+
+                                <!-- Category Badge -->
+                                <span class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600 transition-colors duration-300 group-hover:bg-emerald-50 group-hover:text-emerald-700 dark:bg-slate-700 dark:text-slate-300 dark:group-hover:bg-emerald-900/30 dark:group-hover:text-emerald-400">
+                                    {{ $notice['category'] ?: 'জাতীয় বিশ্ববিদ্যালয়' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    <span class="w-fit rounded-full bg-slate-100 dark:bg-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                        {{ $notice['category'] ?: 'জাতীয় বিশ্ববিদ্যালয়' }}
-                    </span>
+
+                    <!-- Go to Notice Button/Icon -->
+                    <div class="hidden sm:flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-all duration-300 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-emerald-600/30 dark:bg-slate-900 dark:text-slate-500 dark:group-hover:bg-emerald-500">
+                        <svg class="size-5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </div>
                 </a>
             @empty
-                <div class="p-10 text-center text-slate-500 dark:text-slate-400">
-                    এই মুহূর্তে জাতীয় বিশ্ববিদ্যালয়ের নোটিশ লোড করা যায়নি
+                <div class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-slate-50/50 px-6 py-16 text-center dark:border-slate-700 dark:bg-slate-800/50">
+                    <div class="flex size-16 items-center justify-center rounded-full bg-white shadow-sm dark:bg-slate-900 mb-4">
+                        <svg class="size-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-white">কোনো নোটিশ পাওয়া যায়নি</h3>
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400 max-w-sm">
+                        এই মুহূর্তে জাতীয় বিশ্ববিদ্যালয়ের কোনো সাম্প্রতিক নোটিশ লোড করা যায়নি। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।
+                    </p>
                 </div>
             @endforelse
         </div>

@@ -1,12 +1,12 @@
 <x-layouts::app.welcome
-    title="জাতীয় বিশ্ববিদ্যালয়ের সকল নোটিশ"
-    description="জাতীয় বিশ্ববিদ্যালয়ের সাম্প্রতিক নোটিশ খুঁজুন এবং দেখুন।"
-    keywords="জাতীয় বিশ্ববিদ্যালয় নোটিশ, NU notice, examination notice"
+    title="জাতীয় বিশ্ববিদ্যালয়ের সকল নোটিশ"
+    description="জাতীয় বিশ্ববিদ্যালয়ের সাম্প্রতিক নোটিশ খুঁজুন এবং দেখুন।"
+    keywords="জাতীয় বিশ্ববিদ্যালয় নোটিশ, NU notice, examination notice"
 >
     @php
         $toBengaliNumber = fn (string|int $value): string => strtr((string) $value, [
-            '0' => '০', '1' => '১', '2' => '২', '3' => '৩', '4' => '৪',
-            '5' => '৫', '6' => '৬', '7' => '৭', '8' => '৮', '9' => '৯',
+        '0' => '০', '1' => '১', '2' => '২', '3' => '৩', '4' => '৪',
+        '5' => '৫', '6' => '৬', '7' => '৭', '8' => '৮', '9' => '৯',
         ]);
     @endphp
 
@@ -22,7 +22,7 @@
                                 </div>
                                 <div>
                                     <h1 id="notice-archive-title" class="text-2xl font-extrabold">সাম্প্রতিক সংবাদ ও নোটিশ</h1>
-                                    <p class="mt-1 text-sm text-emerald-100">জাতীয় বিশ্ববিদ্যালয়ের নোটিশ ও সংবাদ আর্কাইভ</p>
+                                    <p class="mt-1 text-sm text-emerald-100">জাতীয় বিশ্ববিদ্যালয়ের নোটিশ ও সংবাদ আর্কাইভ</p>
                                 </div>
                             </div>
                         </div>
@@ -64,12 +64,21 @@
 
                 <div data-notice-list class="mt-5 grid gap-3 transition duration-200 group-data-[loading=true]/archive:pointer-events-none group-data-[loading=true]/archive:opacity-50">
                     @forelse($notices as $notice)
-                        <article class="overflow-hidden rounded-2xl border border-slate-200 border-l-4 border-l-emerald-600 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:border-l-emerald-500 dark:bg-slate-900">
+                        <article class="relative group/card overflow-hidden rounded-2xl border border-slate-200 border-l-4 border-l-emerald-600 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:border-l-emerald-500 dark:bg-slate-900">
                             <div class="grid sm:grid-cols-[1fr_180px_70px] sm:items-stretch">
                                 <div class="p-5">
-                                    <h2 class="font-bold leading-7 text-slate-800 dark:text-slate-100">{{ $notice['title'] }}</h2>
+                                    <!-- <a> ট্যাগটি সরাসরি টাইটেলের উপর যুক্ত করা হয়েছে -->
+                                    <h2 class="font-bold leading-7 text-slate-800 transition group-hover/card:text-emerald-700 dark:text-slate-100 dark:group-hover/card:text-emerald-400">
+                                        @if($notice['url'])
+                                            <a href="{{ $notice['url'] }}" target="_blank" rel="noopener noreferrer" class="before:absolute before:inset-0 outline-none">
+                                                {{ $notice['title'] }}
+                                            </a>
+                                        @else
+                                            {{ $notice['title'] }}
+                                        @endif
+                                    </h2>
                                     @if($notice['category'])
-                                        <span class="mt-3 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">{{ $notice['category'] }}</span>
+                                        <span class="relative z-10 mt-3 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">{{ $notice['category'] }}</span>
                                     @endif
                                 </div>
                                 <div class="flex items-center gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3 text-sm font-bold text-emerald-700 dark:border-slate-800 dark:bg-slate-950/50 dark:text-emerald-300 sm:border-t-0 sm:border-l">
@@ -78,9 +87,10 @@
                                 </div>
                                 <div class="flex items-center justify-center border-t border-slate-100 p-3 dark:border-slate-800 sm:border-t-0 sm:border-l">
                                     @if($notice['url'])
-                                        <a href="{{ $notice['url'] }}" target="_blank" rel="noopener noreferrer" class="flex size-11 items-center justify-center rounded-full bg-violet-700 text-white shadow-lg shadow-violet-700/20 transition hover:scale-105" aria-label="নোটিশটি খুলুন">
-                                            <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 3h7v7m0-7L10 14M5 7v12h12v-5"/></svg>
-                                        </a>
+                                        <!-- আইকনটির <a> ট্যাগ সরিয়ে <div> করা হয়েছে, কারণ মূল লিংক টাইটেলে দেওয়া হয়েছে -->
+                                        <div class="flex size-11 items-center justify-center rounded-full bg-violet-700 text-white shadow-lg shadow-violet-700/20 transition group-hover/card:scale-110 group-hover/card:bg-violet-800" aria-hidden="true">
+                                            <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 3h7v7m0-7L10 14M5 7v12h12v-5"/></svg>
+                                        </div>
                                     @else
                                         <span class="text-xs text-slate-400">লিংক নেই</span>
                                     @endif
@@ -90,8 +100,8 @@
                     @empty
                         <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900">
                             <div class="text-4xl">🔍</div>
-                            <h2 class="mt-4 font-extrabold text-slate-800 dark:text-white">কোনো নোটিশ পাওয়া যায়নি</h2>
-                            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">অন্য শব্দ দিয়ে খুঁজুন অথবা অনুসন্ধান মুছে আবার চেষ্টা করুন।</p>
+                            <h2 class="mt-4 font-extrabold text-slate-800 dark:text-white">কোনো নোটিশ পাওয়া যায়নি</h2>
+                            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">অন্য শব্দ দিয়ে খুঁজুন অথবা অনুসন্ধান মুছে আবার চেষ্টা করুন।</p>
                         </div>
                     @endforelse
                 </div>
@@ -102,6 +112,7 @@
             </div>
 
             <aside class="grid content-start gap-5">
+                <!-- নোটিশ বিভাগ ও প্রয়োজনীয় লিংকের অংশ অপরিবর্তিত আছে -->
                 <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
                     <h2 class="bg-emerald-700 px-5 py-3 text-lg font-extrabold text-white">নোটিশ বিভাগ</h2>
                     <nav class="divide-y divide-slate-100 dark:divide-slate-800" aria-label="নোটিশ বিভাগ">
@@ -117,9 +128,9 @@
                 </div>
 
                 <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <h2 class="bg-emerald-700 px-5 py-3 text-lg font-extrabold text-white">প্রয়োজনীয় লিংক</h2>
+                    <h2 class="bg-emerald-700 px-5 py-3 text-lg font-extrabold text-white">প্রয়োজনীয় লিংক</h2>
                     <div class="grid divide-y divide-slate-100 text-sm dark:divide-slate-800">
-                        <a href="https://www.nu.ac.bd/" target="_blank" rel="noopener noreferrer" class="px-5 py-3 font-semibold hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30">জাতীয় বিশ্ববিদ্যালয়ের ওয়েবসাইট ↗</a>
+                        <a href="https://www.nu.ac.bd/" target="_blank" rel="noopener noreferrer" class="px-5 py-3 font-semibold hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30">জাতীয় বিশ্ববিদ্যালয়ের ওয়েবসাইট ↗</a>
                         <a href="https://results.nu.ac.bd/" target="_blank" rel="noopener noreferrer" class="px-5 py-3 font-semibold hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30">পরীক্ষার ফলাফল ↗</a>
                         <a href="{{ route('tools.index') }}" wire:navigate class="px-5 py-3 font-semibold hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30">অনলাইন টুলস</a>
                         <a href="{{ route('public.colleges.index') }}" wire:navigate class="px-5 py-3 font-semibold hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30">অধিভুক্ত কলেজসমূহ</a>
@@ -127,7 +138,7 @@
                 </div>
 
                 <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-xs leading-6 text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-                    নোটিশের তথ্য বাহ্যিক উৎস থেকে স্বয়ংক্রিয়ভাবে সংগ্রহ করা হয়। চূড়ান্ত তথ্যের জন্য সংযুক্ত মূল নোটিশটি যাচাই করুন।
+                    নোটিশের তথ্য বাহ্যিক উৎস থেকে স্বয়ংক্রিয়ভাবে সংগ্রহ করা হয়। চূড়ান্ত তথ্যের জন্য সংযুক্ত মূল নোটিশটি যাচাই করুন।
                 </div>
             </aside>
         </div>
