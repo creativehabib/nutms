@@ -47,6 +47,10 @@ it('renders the browser based image and signature compressor', function () {
         ->assertSee('ব্যাকগ্রাউন্ড')
         ->assertSee('রিমুভ করুন')
         ->assertSee('সলিড রঙ')
+        ->assertSee('এক রঙের ব্যাকগ্রাউন্ডে ব্যবহার করুন')
+        ->assertSee('একাধিক রঙ বা জটিল ব্যাকগ্রাউন্ড')
+        ->assertSee('https://www.remove.bg/', false)
+        ->assertSee('rel="noopener noreferrer"', false)
         ->assertSee('value="image/png"', false)
         ->assertSee('রিসাইজ ও কম্প্রেস করুন')
         ->assertSee('সার্ভারে সংরক্ষণ হবে না');
