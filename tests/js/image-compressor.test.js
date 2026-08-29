@@ -1,7 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createConnectedBackgroundMask, estimateBackgroundColor, hexToRgb, removeImageBackground } from '../../resources/js/image-compressor.js';
+import { calculateCoverCrop, createConnectedBackgroundMask, estimateBackgroundColor, hexToRgb, removeImageBackground } from '../../resources/js/image-compressor.js';
+
+test('positions a cover crop using the selected focal point', () => {
+    assert.deepEqual(calculateCoverCrop(800, 400, 300, 300, 0, 0.5), {
+        sourceWidth: 400,
+        sourceHeight: 400,
+        sourceX: 0,
+        sourceY: 0,
+    });
+    assert.deepEqual(calculateCoverCrop(800, 400, 300, 300, 1, 0.5), {
+        sourceWidth: 400,
+        sourceHeight: 400,
+        sourceX: 400,
+        sourceY: 0,
+    });
+});
 
 test('estimates the background from the image corners', () => {
     const pixels = new Uint8ClampedArray([

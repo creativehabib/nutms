@@ -64,7 +64,20 @@
                                 <span class="mt-2 flex items-center gap-3"><input name="backgroundColor" type="color" value="#ffffff" class="h-10 w-14 cursor-pointer rounded-lg border border-slate-200 bg-transparent p-1 dark:border-slate-700"><span class="font-normal text-slate-500">পছন্দের রঙ বেছে নিন</span></span>
                             </label>
                         </div>
-                        <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">ছবির চার কোণের রঙ শনাক্ত করে ব্যাকগ্রাউন্ড সরানো হবে। সমান রঙের ব্যাকগ্রাউন্ডে সবচেয়ে ভালো ফল পাওয়া যায়।</p>
+                        <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100" role="note" aria-label="ব্যাকগ্রাউন্ড রিমুভের নির্দেশনা">
+                            <div class="flex items-start gap-3">
+                                <svg class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.3 3.7 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"/></svg>
+                                <div>
+                                    <p class="text-sm font-extrabold">এক রঙের ব্যাকগ্রাউন্ডে ব্যবহার করুন</p>
+                                    <p class="mt-1 text-xs leading-5 text-amber-800 dark:text-amber-200">এই টুল ছবির চার কোণের রঙ শনাক্ত করে। তাই সাদা বা অন্য কোনো সমান, এক রঙের ব্যাকগ্রাউন্ডই সঠিকভাবে রিমুভ হবে। ভালো ফলের জন্য ছবির চার কোণ পরিষ্কার রাখুন এবং প্রয়োজন অনুযায়ী রিমুভের মাত্রা সামঞ্জস্য করুন।</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                            একাধিক রঙ বা জটিল ব্যাকগ্রাউন্ডের ছবি হলে
+                            <a href="https://www.remove.bg/" target="_blank" rel="noopener noreferrer" class="font-bold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">remove.bg ব্যবহার করুন<span class="sr-only"> (নতুন ট্যাবে খুলবে)</span></a>।
+                            সেখানে ব্যাকগ্রাউন্ড রিমুভ করার পর PNG ফাইলটি এখানে এনে প্রয়োজনীয় মাপ ও সাইজে কম্প্রেস করতে পারবেন।
+                        </p>
                     </fieldset>
 
                     <button type="submit" class="theme-primary-bg theme-primary-hover rounded-xl px-5 py-3 font-bold text-white shadow-sm transition disabled:cursor-wait disabled:opacity-60">রিসাইজ ও কম্প্রেস করুন</button>
@@ -73,13 +86,16 @@
             </div>
 
             <div class="flex min-h-96 flex-col bg-slate-50 p-5 dark:bg-slate-950/60 sm:p-7">
-                <div class="flex items-center justify-between gap-3">
-                    <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">লাইভ প্রিভিউ</h2>
-                    <span class="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-bold text-sky-700 dark:bg-sky-950 dark:text-sky-300">মাপ পরিবর্তনে অটো আপডেট</span>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">লাইভ প্রিভিউ</h2>
+                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">ছবিটি ড্রাগ করে অবস্থান ঠিক করুন</p>
+                    </div>
+                    <button type="button" data-reset-position hidden class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">অবস্থান রিসেট</button>
                 </div>
-                <div class="mt-4 flex min-h-64 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(45deg,#f1f5f9_25%,transparent_25%),linear-gradient(-45deg,#f1f5f9_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f1f5f9_75%),linear-gradient(-45deg,transparent_75%,#f1f5f9_75%)] bg-[size:20px_20px] dark:border-slate-700 dark:bg-slate-900">
+                <div data-preview-stage tabindex="0" role="application" aria-label="ছবির অবস্থান পরিবর্তনের জায়গা" class="mt-4 flex min-h-64 flex-1 touch-none select-none items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(45deg,#f1f5f9_25%,transparent_25%),linear-gradient(-45deg,#f1f5f9_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f1f5f9_75%),linear-gradient(-45deg,transparent_75%,#f1f5f9_75%)] bg-[size:20px_20px] outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900">
                     <div data-empty-state class="px-6 text-center text-sm text-slate-500">ছবি নির্বাচন করুন—তারপর প্রস্থ বা উচ্চতা পরিবর্তন করলে ফলাফল এখানে সঙ্গে সঙ্গে দেখা যাবে</div>
-                    <img data-image-preview hidden class="max-h-96 max-w-full object-contain shadow-lg" alt="রিসাইজ ও কম্প্রেস করা ছবির লাইভ প্রিভিউ">
+                    <img data-image-preview hidden draggable="false" class="max-h-96 max-w-full cursor-grab touch-none object-contain shadow-lg active:cursor-grabbing" alt="রিসাইজ ও কম্প্রেস করা ছবির লাইভ প্রিভিউ">
                 </div>
 
                 <div data-result hidden class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
