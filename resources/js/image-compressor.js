@@ -17,8 +17,8 @@ const canvasToBlob = (canvas, type, quality) => new Promise((resolve, reject) =>
     canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('ছবিটি তৈরি করা যায়নি।')), type, quality);
 });
 
-export const calculateCoverCrop = (imageWidth, imageHeight, width, height, positionX = 0.5, positionY = 0.5) => {
-    const scale = Math.max(width / imageWidth, height / imageHeight);
+export const calculateCoverCrop = (imageWidth, imageHeight, width, height, positionX = 0.5, positionY = 0.5, zoom = 1) => {
+    const scale = Math.max(width / imageWidth, height / imageHeight) * zoom;
     const sourceWidth = width / scale;
     const sourceHeight = height / scale;
 
@@ -30,7 +30,7 @@ export const calculateCoverCrop = (imageWidth, imageHeight, width, height, posit
     };
 };
 
-const drawCoverImage = (context, image, width, height, positionX, positionY) => {
+const drawCoverImage = (context, image, width, height, positionX, positionY, zoom) => {
     const { sourceWidth, sourceHeight, sourceX, sourceY } = calculateCoverCrop(
         image.naturalWidth,
         image.naturalHeight,
@@ -38,6 +38,7 @@ const drawCoverImage = (context, image, width, height, positionX, positionY) => 
         height,
         positionX,
         positionY,
+        zoom,
     );
 
     context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
@@ -205,6 +206,10 @@ export const initializeImageCompressors = () => {
         const preview = tool.querySelector('[data-image-preview]');
         const previewStage = tool.querySelector('[data-preview-stage]');
         const resetPosition = tool.querySelector('[data-reset-position]');
+        const zoomControl = tool.querySelector('[data-zoom]');
+        const zoomValue = tool.querySelector('[data-zoom-value]');
+        const zoomOutButton = tool.querySelector('[data-zoom-out]');
+        const zoomInButton = tool.querySelector('[data-zoom-in]');
         const emptyState = tool.querySelector('[data-empty-state]');
         const result = tool.querySelector('[data-result]');
         const status = tool.querySelector('[data-status]');
@@ -214,50 +219,70 @@ export const initializeImageCompressors = () => {
         let downloadUrl = null;
         let processingSequence = 0;
         let processingTimeout = null;
+        let previewFrame = null;
         let positionX = 0.5;
         let positionY = 0.5;
+        let zoom = 1;
         let dragStart = null;
 
-        const processImage = async () => {
+        const renderPreview = () => {
             if (! selectedFile || ! selectedImage || ! form.checkValidity()) {
-                return;
+                return null;
             }
 
-            const currentSequence = ++processingSequence;
             const width = Number(form.elements.width.value);
             const height = Number(form.elements.height.value);
-            const maxKilobytes = Number(form.elements.maxSize.value);
             const backgroundMode = form.elements.backgroundMode.value;
             const requestedType = form.elements.format.value;
             const type = backgroundMode === 'transparent' && requestedType === 'image/jpeg'
                 ? 'image/png'
                 : requestedType;
-            const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[type];
+            const context = preview.getContext('2d');
 
-            status.textContent = 'লাইভ প্রিভিউ আপডেট হচ্ছে…';
+            preview.width = width;
+            preview.height = height;
+            context.clearRect(0, 0, width, height);
+            if (backgroundMode === 'keep' && type === 'image/jpeg') {
+                context.fillStyle = '#ffffff';
+                context.fillRect(0, 0, width, height);
+            }
+            drawCoverImage(context, selectedImage, width, height, positionX, positionY, zoom);
+
+            if (backgroundMode !== 'keep') {
+                const imageData = context.getImageData(0, 0, width, height);
+                const solidColor = backgroundMode === 'solid' ? form.elements.backgroundColor.value : null;
+                context.putImageData(removeImageBackground(
+                    imageData,
+                    Number(form.elements.backgroundTolerance.value),
+                    solidColor,
+                ), 0, 0);
+            }
+
+            preview.hidden = false;
+            emptyState.hidden = true;
+
+            return { width, height, type, requestedType };
+        };
+
+        const processImage = async () => {
+            const render = renderPreview();
+
+            if (! render) {
+                return;
+            }
+
+            const currentSequence = ++processingSequence;
+            const maxKilobytes = Number(form.elements.maxSize.value);
+            const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[render.type];
+            const outputCanvas = document.createElement('canvas');
+            outputCanvas.width = preview.width;
+            outputCanvas.height = preview.height;
+            outputCanvas.getContext('2d').drawImage(preview, 0, 0);
+
+            status.textContent = 'ডাউনলোড ফাইল প্রস্তুত হচ্ছে…';
 
             try {
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = width;
-                canvas.height = height;
-                if (backgroundMode === 'keep' && type === 'image/jpeg') {
-                    context.fillStyle = '#ffffff';
-                    context.fillRect(0, 0, width, height);
-                }
-                drawCoverImage(context, selectedImage, width, height, positionX, positionY);
-
-                if (backgroundMode !== 'keep') {
-                    const imageData = context.getImageData(0, 0, width, height);
-                    const solidColor = backgroundMode === 'solid' ? form.elements.backgroundColor.value : null;
-                    context.putImageData(removeImageBackground(
-                        imageData,
-                        Number(form.elements.backgroundTolerance.value),
-                        solidColor,
-                    ), 0, 0);
-                }
-
-                const blob = await compressCanvas(canvas, maxKilobytes * 1024, type);
+                const blob = await compressCanvas(outputCanvas, maxKilobytes * 1024, render.type);
 
                 if (currentSequence !== processingSequence) {
                     return;
@@ -268,16 +293,13 @@ export const initializeImageCompressors = () => {
                 }
 
                 downloadUrl = URL.createObjectURL(blob);
-                preview.src = downloadUrl;
-                preview.hidden = false;
-                emptyState.hidden = true;
                 download.href = downloadUrl;
-                download.download = `resized-${width}x${height}.${extension}`;
+                download.download = `resized-${render.width}x${render.height}.${extension}`;
                 result.querySelector('[data-result-size]').textContent = `${(blob.size / 1024).toFixed(1)} KB`;
-                result.querySelector('[data-result-dimensions]').textContent = `${width} × ${height} px`;
+                result.querySelector('[data-result-dimensions]').textContent = `${render.width} × ${render.height} px`;
                 result.hidden = false;
                 status.textContent = blob.size <= maxKilobytes * 1024
-                    ? backgroundMode === 'transparent' && requestedType === 'image/jpeg'
+                    ? render.type === 'image/png' && render.requestedType === 'image/jpeg'
                         ? 'স্বচ্ছতা রাখতে আউটপুট স্বয়ংক্রিয়ভাবে PNG করা হয়েছে।'
                         : 'পরিবর্তন অনুযায়ী লাইভ প্রিভিউ প্রস্তুত।'
                     : 'এই মাত্রায় সর্বোচ্চ কম্প্রেশনের পরও ফাইলটি নির্ধারিত সাইজের চেয়ে বড়।';
@@ -287,6 +309,9 @@ export const initializeImageCompressors = () => {
         };
 
         const scheduleLivePreview = () => {
+            processingSequence += 1;
+            window.cancelAnimationFrame(previewFrame);
+            previewFrame = window.requestAnimationFrame(renderPreview);
             window.clearTimeout(processingTimeout);
             processingTimeout = window.setTimeout(processImage, 250);
         };
@@ -338,8 +363,22 @@ export const initializeImageCompressors = () => {
         resetPosition.addEventListener('click', () => {
             positionX = 0.5;
             positionY = 0.5;
+            zoom = 1;
+            zoomControl.value = '1';
+            zoomValue.textContent = '১০০%';
             scheduleLivePreview();
         });
+
+        const updateZoom = (nextZoom) => {
+            zoom = Math.max(1, Math.min(3, nextZoom));
+            zoomControl.value = zoom.toFixed(2);
+            zoomValue.textContent = `${Math.round(zoom * 100).toLocaleString('bn-BD')}%`;
+            scheduleLivePreview();
+        };
+
+        zoomControl.addEventListener('input', () => updateZoom(Number(zoomControl.value)));
+        zoomOutButton.addEventListener('click', () => updateZoom(zoom - 0.1));
+        zoomInButton.addEventListener('click', () => updateZoom(zoom + 0.1));
 
         tool.querySelectorAll('[data-size-preset]').forEach((button) => {
             button.addEventListener('click', () => {
@@ -374,6 +413,9 @@ export const initializeImageCompressors = () => {
             selectedImage = null;
             positionX = 0.5;
             positionY = 0.5;
+            zoom = 1;
+            zoomControl.value = '1';
+            zoomValue.textContent = '১০০%';
             processingSequence += 1;
 
             if (! selectedFile) {
@@ -381,6 +423,9 @@ export const initializeImageCompressors = () => {
                 emptyState.hidden = false;
                 result.hidden = true;
                 resetPosition.hidden = true;
+                zoomControl.disabled = true;
+                zoomOutButton.disabled = true;
+                zoomInButton.disabled = true;
                 return;
             }
 
@@ -390,6 +435,9 @@ export const initializeImageCompressors = () => {
             try {
                 selectedImage = await loadImage(selectedFile);
                 resetPosition.hidden = false;
+                zoomControl.disabled = false;
+                zoomOutButton.disabled = false;
+                zoomInButton.disabled = false;
                 status.textContent = `${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
                 await processImage();
             } catch (error) {

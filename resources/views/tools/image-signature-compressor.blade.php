@@ -91,11 +91,21 @@
                         <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">লাইভ প্রিভিউ</h2>
                         <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">ছবিটি ড্রাগ করে অবস্থান ঠিক করুন</p>
                     </div>
-                    <button type="button" data-reset-position hidden class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">অবস্থান রিসেট</button>
+                    <button type="button" data-reset-position hidden class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">জুম ও অবস্থান রিসেট</button>
                 </div>
                 <div data-preview-stage tabindex="0" role="application" aria-label="ছবির অবস্থান পরিবর্তনের জায়গা" class="mt-4 flex min-h-64 flex-1 touch-none select-none items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(45deg,#f1f5f9_25%,transparent_25%),linear-gradient(-45deg,#f1f5f9_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f1f5f9_75%),linear-gradient(-45deg,transparent_75%,#f1f5f9_75%)] bg-[size:20px_20px] outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900">
                     <div data-empty-state class="px-6 text-center text-sm text-slate-500">ছবি নির্বাচন করুন—তারপর প্রস্থ বা উচ্চতা পরিবর্তন করলে ফলাফল এখানে সঙ্গে সঙ্গে দেখা যাবে</div>
-                    <img data-image-preview hidden draggable="false" class="max-h-96 max-w-full cursor-grab touch-none object-contain shadow-lg active:cursor-grabbing" alt="রিসাইজ ও কম্প্রেস করা ছবির লাইভ প্রিভিউ">
+                    <canvas data-image-preview hidden class="max-h-96 max-w-full cursor-grab touch-none object-contain shadow-lg active:cursor-grabbing" aria-label="রিসাইজ ও কম্প্রেস করা ছবির লাইভ প্রিভিউ"></canvas>
+                </div>
+
+                <div class="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+                    <button type="button" data-zoom-out disabled class="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-700 transition hover:bg-emerald-100 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-slate-800 dark:text-slate-200" aria-label="জুম আউট">−</button>
+                    <label class="flex min-w-0 flex-1 items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
+                        <span>জুম</span>
+                        <input data-zoom disabled type="range" min="1" max="3" step="0.01" value="1" class="min-w-0 flex-1 accent-emerald-600 disabled:cursor-not-allowed disabled:opacity-40" aria-label="ছবির জুম">
+                        <span data-zoom-value class="w-12 text-right tabular-nums">১০০%</span>
+                    </label>
+                    <button type="button" data-zoom-in disabled class="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-700 transition hover:bg-emerald-100 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-slate-800 dark:text-slate-200" aria-label="জুম ইন">+</button>
                 </div>
 
                 <div data-result hidden class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">

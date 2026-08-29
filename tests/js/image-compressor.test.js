@@ -16,6 +16,12 @@ test('positions a cover crop using the selected focal point', () => {
         sourceX: 400,
         sourceY: 0,
     });
+    assert.deepEqual(calculateCoverCrop(800, 400, 300, 300, 0.5, 0.5, 2), {
+        sourceWidth: 200,
+        sourceHeight: 200,
+        sourceX: 300,
+        sourceY: 100,
+    });
 });
 
 test('estimates the background from the image corners', () => {
