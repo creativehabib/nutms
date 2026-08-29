@@ -27,6 +27,63 @@ const drawCoverImage = (context, image, width, height) => {
     context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
 };
 
+export const estimateBackgroundColor = (pixels, width, height) => {
+    const sampleSize = Math.max(1, Math.min(8, Math.floor(Math.min(width, height) * 0.03)));
+    const corners = [
+        [0, 0],
+        [width - sampleSize, 0],
+        [0, height - sampleSize],
+        [width - sampleSize, height - sampleSize],
+    ];
+    const channels = [[], [], []];
+
+    corners.forEach(([startX, startY]) => {
+        for (let y = startY; y < startY + sampleSize; y += 1) {
+            for (let x = startX; x < startX + sampleSize; x += 1) {
+                const offset = (y * width + x) * 4;
+                channels[0].push(pixels[offset]);
+                channels[1].push(pixels[offset + 1]);
+                channels[2].push(pixels[offset + 2]);
+            }
+        }
+    });
+
+    return channels.map((values) => values.sort((first, second) => first - second)[Math.floor(values.length / 2)]);
+};
+
+export const hexToRgb = (hexColor) => {
+    const value = Number.parseInt(hexColor.replace('#', ''), 16);
+
+    return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+};
+
+export const removeImageBackground = (imageData, tolerance, solidColor = null) => {
+    const pixels = imageData.data;
+    const background = estimateBackgroundColor(pixels, imageData.width, imageData.height);
+    const replacement = solidColor ? hexToRgb(solidColor) : null;
+
+    for (let offset = 0; offset < pixels.length; offset += 4) {
+        const redDifference = pixels[offset] - background[0];
+        const greenDifference = pixels[offset + 1] - background[1];
+        const blueDifference = pixels[offset + 2] - background[2];
+        const distance = Math.sqrt(redDifference ** 2 + greenDifference ** 2 + blueDifference ** 2);
+        const foregroundOpacity = Math.max(0, Math.min(1, (distance - tolerance) / 25));
+        const originalOpacity = pixels[offset + 3] / 255;
+        const opacity = foregroundOpacity * originalOpacity;
+
+        if (replacement) {
+            pixels[offset] = Math.round((pixels[offset] * opacity) + (replacement[0] * (1 - opacity)));
+            pixels[offset + 1] = Math.round((pixels[offset + 1] * opacity) + (replacement[1] * (1 - opacity)));
+            pixels[offset + 2] = Math.round((pixels[offset + 2] * opacity) + (replacement[2] * (1 - opacity)));
+            pixels[offset + 3] = 255;
+        } else {
+            pixels[offset + 3] = Math.round(opacity * 255);
+        }
+    }
+
+    return imageData;
+};
+
 const compressCanvas = async (canvas, maxBytes, type) => {
     let lowestQualityBlob = null;
     let bestMatchingBlob = null;
@@ -85,8 +142,12 @@ export const initializeImageCompressors = () => {
             const width = Number(form.elements.width.value);
             const height = Number(form.elements.height.value);
             const maxKilobytes = Number(form.elements.maxSize.value);
-            const type = form.elements.format.value;
-            const extension = type === 'image/webp' ? 'webp' : 'jpg';
+            const backgroundMode = form.elements.backgroundMode.value;
+            const requestedType = form.elements.format.value;
+            const type = backgroundMode === 'transparent' && requestedType === 'image/jpeg'
+                ? 'image/png'
+                : requestedType;
+            const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[type];
 
             status.textContent = 'লাইভ প্রিভিউ আপডেট হচ্ছে…';
 
@@ -95,9 +156,21 @@ export const initializeImageCompressors = () => {
                 const context = canvas.getContext('2d');
                 canvas.width = width;
                 canvas.height = height;
-                context.fillStyle = '#ffffff';
-                context.fillRect(0, 0, width, height);
+                if (backgroundMode === 'keep' && type === 'image/jpeg') {
+                    context.fillStyle = '#ffffff';
+                    context.fillRect(0, 0, width, height);
+                }
                 drawCoverImage(context, selectedImage, width, height);
+
+                if (backgroundMode !== 'keep') {
+                    const imageData = context.getImageData(0, 0, width, height);
+                    const solidColor = backgroundMode === 'solid' ? form.elements.backgroundColor.value : null;
+                    context.putImageData(removeImageBackground(
+                        imageData,
+                        Number(form.elements.backgroundTolerance.value),
+                        solidColor,
+                    ), 0, 0);
+                }
 
                 const blob = await compressCanvas(canvas, maxKilobytes * 1024, type);
 
@@ -119,7 +192,9 @@ export const initializeImageCompressors = () => {
                 result.querySelector('[data-result-dimensions]').textContent = `${width} × ${height} px`;
                 result.hidden = false;
                 status.textContent = blob.size <= maxKilobytes * 1024
-                    ? 'পরিবর্তন অনুযায়ী লাইভ প্রিভিউ প্রস্তুত।'
+                    ? backgroundMode === 'transparent' && requestedType === 'image/jpeg'
+                        ? 'স্বচ্ছতা রাখতে আউটপুট স্বয়ংক্রিয়ভাবে PNG করা হয়েছে।'
+                        : 'পরিবর্তন অনুযায়ী লাইভ প্রিভিউ প্রস্তুত।'
                     : 'এই মাত্রায় সর্বোচ্চ কম্প্রেশনের পরও ফাইলটি নির্ধারিত সাইজের চেয়ে বড়।';
             } catch (error) {
                 status.textContent = error.message;
@@ -140,9 +215,23 @@ export const initializeImageCompressors = () => {
             });
         });
 
-        form.querySelectorAll('input[type="number"], select').forEach((control) => {
+        form.querySelectorAll('input, select').forEach((control) => {
             control.addEventListener('input', scheduleLivePreview);
             control.addEventListener('change', scheduleLivePreview);
+        });
+
+        const backgroundOptions = form.querySelector('[data-background-options]');
+        const solidColorControl = form.querySelector('[data-solid-color]');
+        const toleranceValue = form.querySelector('[data-tolerance-value]');
+
+        form.elements.backgroundMode.forEach((control) => {
+            control.addEventListener('change', () => {
+                backgroundOptions.hidden = control.value === 'keep';
+                solidColorControl.hidden = control.value !== 'solid';
+            });
+        });
+        form.elements.backgroundTolerance.addEventListener('input', () => {
+            toleranceValue.textContent = form.elements.backgroundTolerance.value;
         });
 
         input.addEventListener('change', async () => {
