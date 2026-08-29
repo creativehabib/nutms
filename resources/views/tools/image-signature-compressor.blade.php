@@ -86,13 +86,16 @@
             </div>
 
             <div class="flex min-h-96 flex-col bg-slate-50 p-5 dark:bg-slate-950/60 sm:p-7">
-                <div class="flex items-center justify-between gap-3">
-                    <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">লাইভ প্রিভিউ</h2>
-                    <span class="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-bold text-sky-700 dark:bg-sky-950 dark:text-sky-300">মাপ পরিবর্তনে অটো আপডেট</span>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">লাইভ প্রিভিউ</h2>
+                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">ছবিটি ড্রাগ করে অবস্থান ঠিক করুন</p>
+                    </div>
+                    <button type="button" data-reset-position hidden class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">অবস্থান রিসেট</button>
                 </div>
-                <div class="mt-4 flex min-h-64 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(45deg,#f1f5f9_25%,transparent_25%),linear-gradient(-45deg,#f1f5f9_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f1f5f9_75%),linear-gradient(-45deg,transparent_75%,#f1f5f9_75%)] bg-[size:20px_20px] dark:border-slate-700 dark:bg-slate-900">
+                <div data-preview-stage tabindex="0" role="application" aria-label="ছবির অবস্থান পরিবর্তনের জায়গা" class="mt-4 flex min-h-64 flex-1 touch-none select-none items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(45deg,#f1f5f9_25%,transparent_25%),linear-gradient(-45deg,#f1f5f9_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f1f5f9_75%),linear-gradient(-45deg,transparent_75%,#f1f5f9_75%)] bg-[size:20px_20px] outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900">
                     <div data-empty-state class="px-6 text-center text-sm text-slate-500">ছবি নির্বাচন করুন—তারপর প্রস্থ বা উচ্চতা পরিবর্তন করলে ফলাফল এখানে সঙ্গে সঙ্গে দেখা যাবে</div>
-                    <img data-image-preview hidden class="max-h-96 max-w-full object-contain shadow-lg" alt="রিসাইজ ও কম্প্রেস করা ছবির লাইভ প্রিভিউ">
+                    <img data-image-preview hidden draggable="false" class="max-h-96 max-w-full cursor-grab touch-none object-contain shadow-lg active:cursor-grabbing" alt="রিসাইজ ও কম্প্রেস করা ছবির লাইভ প্রিভিউ">
                 </div>
 
                 <div data-result hidden class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
