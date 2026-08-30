@@ -41,9 +41,9 @@
                 <div class="theme-primary-soft theme-primary-text flex size-14 items-center justify-center rounded-2xl">
                     <svg class="size-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm4 3h8M8 12h2m2 0h4m-8 4h2m2 0h4"/></svg>
                 </div>
-                <h2 class="mt-6 text-xl font-extrabold text-slate-900 dark:text-white">CGPA ও SGPA ক্যালকুলেটর</h2>
-                <p class="mt-3 flex-1 text-sm leading-7 text-slate-600 dark:text-slate-400">জাতীয় বিশ্ববিদ্যালয়ের গ্রেডিং স্কেল অনুযায়ী কোর্সের নম্বর বা গ্রেড দিয়ে রিয়েল-টাইম ফলাফল হিসাব করুন।</p>
-                <span class="theme-primary-text mt-6 inline-flex items-center gap-2 text-sm font-bold">ফলাফল হিসাব করুন <span class="transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
+                <h2 class="mt-6 text-xl font-extrabold text-slate-900 dark:text-white">অনলাইন ডকুমেন্ট এডিটর</h2>
+                <p class="mt-3 flex-1 text-sm leading-7 text-slate-600 dark:text-slate-400">মাইক্সোসফট ওয়া‍র্ড এর কাজ করুণ এখন অনলাইনে ফি ত।</p>
+                <span class="theme-primary-text mt-6 inline-flex items-center gap-2 text-sm font-bold">টুসলস ব্যবহার করু <span class="transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
             </a>
 
             <div class="flex min-h-72 flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white/50 p-6 text-center dark:border-slate-700 dark:bg-slate-900/40 sm:col-span-2 lg:col-span-3">
