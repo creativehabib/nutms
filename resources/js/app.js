@@ -3,6 +3,7 @@ import { initializeImageCompressors } from './image-compressor';
 import { initializeAgeRetirementCalculators } from './age-retirement-calculator';
 import { initializeCgpaSgpaCalculators } from './cgpa-sgpa-calculator';
 import { initializeNoticeArchives } from './notice-archive';
+import { initializeDocumentEditors } from './document-editor';
 
 const searchableSelects = new WeakMap();
 const relatedCollegeCarousels = new WeakMap();
@@ -101,6 +102,7 @@ document.addEventListener('DOMContentLoaded', initializeImageCompressors);
 document.addEventListener('DOMContentLoaded', initializeAgeRetirementCalculators);
 document.addEventListener('DOMContentLoaded', initializeCgpaSgpaCalculators);
 document.addEventListener('DOMContentLoaded', initializeNoticeArchives);
+document.addEventListener('DOMContentLoaded', initializeDocumentEditors);
 document.addEventListener('livewire:navigated', () => {
     initializeSearchableSelects();
     initializeRelatedCollegeCarousels();
@@ -108,6 +110,7 @@ document.addEventListener('livewire:navigated', () => {
     initializeAgeRetirementCalculators();
     initializeCgpaSgpaCalculators();
     initializeNoticeArchives();
+    initializeDocumentEditors();
 });
 document.addEventListener('reset-teacher-filters', () => {
     document.querySelectorAll('[data-teacher-filter]').forEach((select) => {

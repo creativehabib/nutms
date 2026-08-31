@@ -34,7 +34,7 @@ const replaceFromMap = (value, replacements) => [...replacements.entries()]
     .sort(([first], [second]) => second.length - first.length)
     .reduce((result, [search, replacement]) => result.split(search).join(replacement), value);
 
-const normalizeUnicodeBangla = (value) => value
+export const normalizeUnicodeBangla = (value) => value
     .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
     .normalize('NFC')
     .replace(/ড়/g, 'ড়')
@@ -78,3 +78,5 @@ export const convertBijoyToUnicode = (value) => {
 
     return normalizeUnicodeBangla(converted);
 };
+
+export const getBijoyClipboardValue = (visibleValue, storedBijoyValue = '') => storedBijoyValue || visibleValue;
