@@ -22,6 +22,12 @@ export const documentStatistics = (content = '') => {
 
 export const documentPrintStyles = (width, height) => `@media print { @page { size: ${width}mm ${height}mm; margin: 0; } }`;
 
+export const documentTableMarkup = (rows = 3, columns = 3) => {
+    const cells = () => Array.from({ length: columns }, () => '<td><br></td>').join('');
+
+    return `<table><tbody>${Array.from({ length: rows }, () => `<tr>${cells()}</tr>`).join('')}</tbody></table><p><br></p>`;
+};
+
 const editorInstances = new WeakSet();
 
 export const initializeDocumentEditors = () => {
@@ -203,6 +209,20 @@ export const initializeDocumentEditors = () => {
         workspace.querySelector('[data-text-color]').addEventListener('input', (event) => {
             activeEditor?.focus();
             document.execCommand('foreColor', false, event.target.value);
+            scheduleSave();
+        });
+        workspace.querySelector('[data-insert-table]').addEventListener('click', () => {
+            activeEditor?.focus();
+            document.execCommand('insertHTML', false, documentTableMarkup());
+            updateStatistics();
+            scheduleSave();
+        });
+        workspace.querySelector('[data-insert-link]').addEventListener('click', () => {
+            const url = window.prompt('লিংকের ঠিকানা লিখুন (যেমন: https://example.com)');
+            if (! url) return;
+            const normalizedUrl = /^(https?:|mailto:|\/)/i.test(url) ? url : `https://${url}`;
+            activeEditor?.focus();
+            document.execCommand('createLink', false, normalizedUrl);
             scheduleSave();
         });
         workspace.querySelector('[data-add-page]').addEventListener('click', () => { addPage(); scheduleSave(); });

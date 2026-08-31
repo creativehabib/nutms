@@ -36,16 +36,25 @@
             <button type="button" data-command="bold" class="editor-tool font-black" title="বোল্ড">B</button>
             <button type="button" data-command="italic" class="editor-tool font-serif italic" title="ইটালিক">I</button>
             <button type="button" data-command="underline" class="editor-tool underline" title="আন্ডারলাইন">U</button>
+            <button type="button" data-command="strikeThrough" class="editor-tool line-through" title="স্ট্রাইকথ্রু">S</button>
+            <button type="button" data-command="superscript" class="editor-tool text-xs" title="সুপারস্ক্রিপ্ট">x²</button>
+            <button type="button" data-command="subscript" class="editor-tool text-xs" title="সাবস্ক্রিপ্ট">x₂</button>
             <label class="editor-tool relative cursor-pointer" title="লেখার রঙ"><span class="font-bold">A</span><span class="absolute inset-x-2 bottom-1 h-0.5 bg-emerald-500"></span><input data-text-color type="color" value="#111827" class="absolute inset-0 opacity-0"></label>
+            <button type="button" data-command="hiliteColor" data-value="#fef08a" class="editor-tool" title="হাইলাইট"><span class="rounded bg-yellow-200 px-1 font-bold text-slate-900">A</span></button>
             <span class="mx-1 h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></span>
-            <button type="button" data-command="justifyLeft" class="editor-tool" title="বামে">☰</button>
-            <button type="button" data-command="justifyCenter" class="editor-tool text-center" title="মাঝে">≡</button>
-            <button type="button" data-command="justifyRight" class="editor-tool text-right" title="ডানে">☷</button>
-            <button type="button" data-command="insertUnorderedList" class="editor-tool" title="বুলেট তালিকা">•≡</button>
-            <button type="button" data-command="insertOrderedList" class="editor-tool" title="নম্বর তালিকা">1.</button>
+            <button type="button" data-command="justifyLeft" class="editor-tool" title="বামে অ্যালাইন">≡←</button>
+            <button type="button" data-command="justifyCenter" class="editor-tool" title="মাঝে অ্যালাইন">≡</button>
+            <button type="button" data-command="justifyRight" class="editor-tool" title="ডানে অ্যালাইন">→≡</button>
+            <button type="button" data-command="justifyFull" class="editor-tool" title="জাস্টিফাই">☰</button>
+            <button type="button" data-command="insertUnorderedList" class="editor-tool" title="বুলেট তালিকা">• তালিকা</button>
+            <button type="button" data-command="insertOrderedList" class="editor-tool" title="নম্বর তালিকা">1. তালিকা</button>
             <button type="button" data-command="outdent" class="editor-tool" title="ইনডেন্ট কমান">⇤</button>
             <button type="button" data-command="indent" class="editor-tool" title="ইনডেন্ট বাড়ান">⇥</button>
             <span class="mx-1 h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></span>
+            <button type="button" data-insert-link class="editor-tool" title="লিংক যোগ করুন">🔗</button>
+            <button type="button" data-insert-table class="editor-tool" title="৩ × ৩ টেবিল যোগ করুন">▦ টেবিল</button>
+            <button type="button" data-command="formatBlock" data-value="blockquote" class="editor-tool" title="উদ্ধৃতি">❝</button>
+            <button type="button" data-command="insertHorizontalRule" class="editor-tool" title="অনুভূমিক রেখা">―</button>
             <button type="button" data-command="removeFormat" class="editor-tool text-xs" title="ফরম্যাট মুছুন">Tx</button>
         </div>
     </header>
@@ -165,8 +174,19 @@
         .editor-canvas h3 { margin:.75rem 0 .5rem; font-size:15pt; font-weight:700; }
         .editor-canvas p { margin:.45rem 0; }
         .editor-canvas ul { list-style:disc; padding-left:1.5rem; } .editor-canvas ol { list-style:decimal; padding-left:1.5rem; }
+        .editor-canvas blockquote { margin:1rem 0; border-left:4px solid #10b981; background:#f0fdf4; padding:.75rem 1rem; color:#475569; }
+        .editor-canvas table { width:100%; margin:1rem 0; border-collapse:collapse; table-layout:fixed; }
+        .editor-canvas td, .editor-canvas th { min-width:2rem; border:1px solid #64748b; padding:.4rem .55rem; vertical-align:top; }
+        .editor-canvas hr { margin:1rem 0; border:0; border-top:1px solid #94a3b8; }
+        .editor-canvas a { color:#047857; text-decoration:underline; }
         .editor-canvas:empty::before { content:attr(data-placeholder); color:#94a3b8; pointer-events:none; }
-        @media (prefers-color-scheme: dark) { .editor-tool { color:#cbd5e1; } .editor-tool:hover { background:#334155; color:#fff; } .editor-select,.setup-input,.converter-field { background:#0f172a; border-color:#334155; color:#e2e8f0; } .orientation-option,.margin-field,.typing-option { border-color:#334155; } .margin-field input { color:#e2e8f0; } }
+        .dark .editor-tool { color:#cbd5e1; }
+        .dark .editor-tool:hover { background:#334155; color:#fff; }
+        .dark .editor-select, .dark .setup-input, .dark .converter-field { border-color:#334155; background:#0f172a; color:#e2e8f0; }
+        .dark .editor-label { color:#94a3b8; }
+        .dark .orientation-option, .dark .margin-field, .dark .typing-option { border-color:#334155; background:#0f172a; color:#cbd5e1; }
+        .dark .margin-field input { color:#e2e8f0; }
+        .dark .peer:checked + .orientation-option, .dark .peer:checked + .typing-option { border-color:#34d399; background:#064e3b; color:#d1fae5; box-shadow:0 0 0 1px #34d399; }
         @media print {
             html, body { margin:0 !important; padding:0 !important; background:white !important; }
             body * { visibility:hidden !important; }
