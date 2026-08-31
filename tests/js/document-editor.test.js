@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
+import { changeDocumentTable, documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
 
 test('documentPageGeometry returns portrait and landscape measurements', () => {
     assert.deepEqual(documentPageGeometry('A4', 'portrait'), { width: 210, height: 297 });
@@ -19,6 +19,34 @@ test('documentTableMarkup creates an editable table of the requested size', () =
     assert.equal((markup.match(/<tr>/g) ?? []).length, 2);
     assert.equal((markup.match(/<td>/g) ?? []).length, 8);
     assert.match(markup, /<p><br><\/p>$/);
+});
+
+test('changeDocumentTable supports every table toolbar action', () => {
+    const calls = [];
+    const table = {
+        rows: [{
+            cells: [{}, {}],
+            deleteCell: (index) => calls.push(['delete-cell', index]),
+            insertCell: () => ({ set innerHTML(value) { calls.push(['add-cell', value]); } }),
+        }],
+        insertRow: (index) => ({ insertCell: () => ({ set innerHTML(value) { calls.push(['add-cell', value]); } }) }),
+        remove: () => calls.push(['remove-table']),
+    };
+    const row = { rowIndex: 0, cells: [{}, {}], closest: () => table, remove: () => calls.push(['remove-row']) };
+    const cell = { cellIndex: 0, closest: (selector) => selector === 'tr' ? row : null };
+
+    assert.equal(changeDocumentTable(cell, 'add-row'), true);
+    assert.equal(changeDocumentTable(cell, 'add-column'), true);
+    assert.equal(changeDocumentTable(cell, 'delete-row'), true);
+    assert.equal(changeDocumentTable(cell, 'delete-column'), true);
+    assert.equal(changeDocumentTable(cell, 'delete-table'), true);
+    assert.deepEqual(calls, [
+        ['add-cell', '<br>'], ['add-cell', '<br>'],
+        ['add-cell', '<br>'],
+        ['remove-table'],
+        ['delete-cell', 0],
+        ['remove-table'],
+    ]);
 });
 
 test('built-in phonetic input creates Unicode Bangla without desktop software', () => {

@@ -28,6 +28,44 @@ export const documentTableMarkup = (rows = 3, columns = 3) => {
     return `<table><tbody>${Array.from({ length: rows }, () => `<tr>${cells()}</tr>`).join('')}</tbody></table><p><br></p>`;
 };
 
+export const changeDocumentTable = (cell, action) => {
+    const row = cell?.closest?.('tr');
+    const table = row?.closest?.('table');
+
+    if (! cell || ! row || ! table) {
+        return false;
+    }
+
+    if (action === 'add-row') {
+        const newRow = table.insertRow(row.rowIndex + 1);
+        Array.from({ length: row.cells.length }, () => {
+            newRow.insertCell().innerHTML = '<br>';
+        });
+    } else if (action === 'add-column') {
+        [...table.rows].forEach((tableRow) => {
+            tableRow.insertCell(Math.min(cell.cellIndex + 1, tableRow.cells.length)).innerHTML = '<br>';
+        });
+    } else if (action === 'delete-row') {
+        if (table.rows.length === 1) {
+            table.remove();
+        } else {
+            row.remove();
+        }
+    } else if (action === 'delete-column') {
+        if (row.cells.length === 1) {
+            table.remove();
+        } else {
+            [...table.rows].forEach((tableRow) => tableRow.deleteCell(cell.cellIndex));
+        }
+    } else if (action === 'delete-table') {
+        table.remove();
+    } else {
+        return false;
+    }
+
+    return true;
+};
+
 const phoneticConsonants = Object.freeze({
     ng: 'ং', kh: 'খ', gh: 'ঘ', ch: 'চ', chh: 'ছ', jh: 'ঝ', th: 'থ', dh: 'ধ', ph: 'ফ', bh: 'ভ', sh: 'শ', ss: 'ষ', rr: 'ড়',
     k: 'ক', g: 'গ', c: 'চ', j: 'জ', t: 'ত', d: 'দ', n: 'ন', p: 'প', f: 'ফ', b: 'ব', v: 'ভ', m: 'ম', z: 'য', r: 'র', l: 'ল', s: 'স', h: 'হ', y: 'য়', q: 'ক', x: 'ক্স', w: 'ও',
@@ -91,6 +129,7 @@ export const initializeDocumentEditors = () => {
         const builtInKeyboard = workspace.querySelector('[data-built-in-keyboard]');
         const storageKey = 'nutms-document-editor-v3';
         let activeEditor;
+        let activeTableCell;
         let savedRange;
         let saveTimer;
 
@@ -105,6 +144,13 @@ export const initializeDocumentEditors = () => {
         const rememberSelection = () => {
             const selection = window.getSelection();
             if (selection?.rangeCount && activeEditor?.contains(selection.anchorNode)) savedRange = selection.getRangeAt(0).cloneRange();
+        };
+        const rememberTableCell = (target) => {
+            const cell = target.nodeType === Node.ELEMENT_NODE ? target.closest('td, th') : target.parentElement?.closest('td, th');
+
+            if (cell && activeEditor?.contains(cell)) {
+                activeTableCell = cell;
+            }
         };
         const restoreSelection = () => {
             activeEditor?.focus();
@@ -181,7 +227,11 @@ export const initializeDocumentEditors = () => {
             const editor = sheet.querySelector('[data-editor-canvas]');
             editor.addEventListener('focus', () => setActiveEditor(editor));
             editor.addEventListener('keyup', rememberSelection);
-            editor.addEventListener('mouseup', rememberSelection);
+            editor.addEventListener('keyup', (event) => rememberTableCell(event.target));
+            editor.addEventListener('mouseup', (event) => {
+                rememberSelection();
+                rememberTableCell(event.target);
+            });
             editor.addEventListener('input', () => {
                 const isOverflowing = editor.scrollHeight > editor.clientHeight + 2;
                 sheet.classList.toggle('has-overflow', isOverflowing);
@@ -294,44 +344,50 @@ export const initializeDocumentEditors = () => {
             });
             scheduleSave();
         });
-        workspace.querySelector('[data-open-table]').addEventListener('mousedown', rememberSelection);
+        workspace.querySelector('[data-open-table]').addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            rememberSelection();
+        });
         workspace.querySelector('[data-open-table]').addEventListener('click', () => tableDialog.showModal());
         workspace.querySelector('[data-close-table]').addEventListener('click', () => tableDialog.close());
         workspace.querySelector('[data-insert-table]').addEventListener('click', () => {
             const rows = Math.min(30, Math.max(1, Number(workspace.querySelector('[data-table-rows]').value) || 3));
             const columns = Math.min(12, Math.max(1, Number(workspace.querySelector('[data-table-columns]').value) || 3));
             restoreSelection();
-            document.execCommand('insertHTML', false, documentTableMarkup(rows, columns));
+            const selection = window.getSelection();
+            const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+            const fragment = range?.createContextualFragment(documentTableMarkup(rows, columns));
+
+            if (range && fragment && activeEditor?.contains(range.commonAncestorContainer)) {
+                const lastNode = fragment.lastChild;
+                range.deleteContents();
+                range.insertNode(fragment);
+                range.setStartAfter(lastNode);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } else {
+                activeEditor?.insertAdjacentHTML('beforeend', documentTableMarkup(rows, columns));
+            }
             tableDialog.close();
             updateStatistics();
             scheduleSave();
         });
-        workspace.querySelectorAll('[data-table-action]').forEach((button) => button.addEventListener('click', () => {
-            const selectionNode = window.getSelection()?.anchorNode;
-            const element = selectionNode?.nodeType === Node.ELEMENT_NODE ? selectionNode : selectionNode?.parentElement;
-            const cell = element?.closest('td, th');
-            const row = cell?.closest('tr');
-            const table = row?.closest('table');
-            if (! table || ! activeEditor?.contains(table)) {
-                status.textContent = 'আগে টেবিলের একটি ঘরে কার্সর রাখুন';
-                return;
-            }
-            const action = button.dataset.tableAction;
-            if (action === 'add-row') {
-                const newRow = table.insertRow(row.rowIndex + 1);
-                Array.from({ length: row.cells.length }, () => newRow.insertCell().innerHTML = '<br>');
-            } else if (action === 'add-column') {
-                [...table.rows].forEach((tableRow) => tableRow.insertCell(cell.cellIndex + 1).innerHTML = '<br>');
-            } else if (action === 'delete-row' && table.rows.length > 1) {
-                row.remove();
-            } else if (action === 'delete-column' && row.cells.length > 1) {
-                [...table.rows].forEach((tableRow) => tableRow.deleteCell(cell.cellIndex));
-            } else if (action === 'delete-table') {
-                table.remove();
-            }
-            updateStatistics();
-            scheduleSave();
-        }));
+        workspace.querySelectorAll('[data-table-action]').forEach((button) => {
+            button.addEventListener('mousedown', (event) => event.preventDefault());
+            button.addEventListener('click', () => {
+                if (! activeTableCell?.isConnected || ! activeEditor?.contains(activeTableCell)) {
+                    status.textContent = 'আগে টেবিলের একটি ঘরে কার্সর রাখুন';
+                    return;
+                }
+
+                changeDocumentTable(activeTableCell, button.dataset.tableAction);
+                activeTableCell = activeTableCell.isConnected ? activeTableCell : null;
+                status.textContent = 'টেবিল আপডেট হয়েছে';
+                updateStatistics();
+                scheduleSave();
+            });
+        });
         workspace.querySelector('[data-insert-link]').addEventListener('click', () => {
             rememberSelection();
             const url = window.prompt('লিংকের ঠিকানা লিখুন (যেমন: https://example.com)');
