@@ -99,6 +99,35 @@ export const mergeDocumentTableCells = (cells) => {
     return true;
 };
 
+export const splitDocumentTableCell = (cell) => {
+    const row = cell?.parentElement;
+    const table = row?.closest?.('table');
+    const rowSpan = Number(cell?.rowSpan) || 1;
+    const columnSpan = Number(cell?.colSpan) || 1;
+
+    if (! table || (rowSpan === 1 && columnSpan === 1)) {
+        return false;
+    }
+
+    const rowIndex = row.rowIndex;
+    const columnIndex = cell.cellIndex;
+    cell.rowSpan = 1;
+    cell.colSpan = 1;
+
+    for (let columnOffset = 1; columnOffset < columnSpan; columnOffset++) {
+        table.rows[rowIndex].insertCell(columnIndex + columnOffset).innerHTML = '<br>';
+    }
+
+    for (let rowOffset = 1; rowOffset < rowSpan; rowOffset++) {
+        const targetRow = table.rows[rowIndex + rowOffset];
+        for (let columnOffset = 0; columnOffset < columnSpan; columnOffset++) {
+            targetRow.insertCell(Math.min(columnIndex + columnOffset, targetRow.cells.length)).innerHTML = '<br>';
+        }
+    }
+
+    return true;
+};
+
 export const deleteDocumentTableCells = (cells) => {
     const selectedCells = [...new Set(cells)].filter((cell) => cell?.isConnected !== false);
     const table = selectedCells[0]?.closest?.('table');
@@ -188,6 +217,8 @@ export const initializeDocumentEditors = () => {
         let activeTableCell;
         const selectedTableCells = new Set();
         let tableContextHideTimer;
+        let dragStartCell;
+        let isDraggingTableCells = false;
         let savedRange;
         let saveTimer;
         let pendingFontSize = 12;
@@ -236,6 +267,25 @@ export const initializeDocumentEditors = () => {
                 selectedTableCells.add(cell);
                 cell.classList.add('is-selected');
             });
+        };
+        const selectTableRectangle = (firstCell, lastCell) => {
+            const table = firstCell?.closest('table');
+
+            if (! table || lastCell?.closest('table') !== table) return;
+
+            const firstRow = firstCell.parentElement.rowIndex;
+            const lastRow = lastCell.parentElement.rowIndex;
+            const firstColumn = firstCell.cellIndex;
+            const lastColumn = lastCell.cellIndex;
+            const rowStart = Math.min(firstRow, lastRow);
+            const rowEnd = Math.max(firstRow, lastRow);
+            const columnStart = Math.min(firstColumn, lastColumn);
+            const columnEnd = Math.max(firstColumn, lastColumn);
+            const cells = [...table.rows]
+                .slice(rowStart, rowEnd + 1)
+                .flatMap((row) => [...row.cells].slice(columnStart, columnEnd + 1));
+
+            selectTableCells(cells);
         };
         const restoreSelection = () => {
             activeEditor?.focus();
@@ -330,6 +380,32 @@ export const initializeDocumentEditors = () => {
                     selectedTableCells.add(cell);
                     cell.classList.add('is-selected');
                 }
+            });
+            editor.addEventListener('mousedown', (event) => {
+                const cell = event.target.closest?.('td, th');
+                if (! cell || event.button !== 0) return;
+
+                dragStartCell = cell;
+                isDraggingTableCells = false;
+            });
+            editor.addEventListener('mouseover', (event) => {
+                const cell = event.target.closest?.('td, th');
+                if (! dragStartCell || ! cell || ! (event.buttons & 1) || cell === dragStartCell) return;
+
+                isDraggingTableCells = true;
+                selectTableRectangle(dragStartCell, cell);
+            });
+            editor.addEventListener('mouseup', (event) => {
+                if (! dragStartCell) return;
+
+                if (isDraggingTableCells) {
+                    event.preventDefault();
+                    window.getSelection()?.removeAllRanges();
+                    activeTableCell = event.target.closest?.('td, th') ?? dragStartCell;
+                    status.textContent = `${selectedTableCells.size} cells selected`;
+                }
+                dragStartCell = null;
+                isDraggingTableCells = false;
             });
             editor.addEventListener('input', () => {
                 normalizeCustomFontSize(editor);
@@ -565,10 +641,16 @@ export const initializeDocumentEditors = () => {
                     selectTableCells([...table.rows].map((row) => row.cells[activeTableCell.cellIndex]).filter(Boolean));
                 } else if (action === 'merge') {
                     if (! mergeDocumentTableCells(selectedTableCells)) {
-                        status.textContent = 'মার্জ করতে পাশাপাশি থাকা সম্পূর্ণ সেলগুলো Ctrl + Click দিয়ে নির্বাচন করুন';
+                        status.textContent = 'Drag অথবা Ctrl + Click দিয়ে পাশাপাশি থাকা সেল নির্বাচন করুন';
                         return;
                     }
+                    activeTableCell = [...selectedTableCells].find((cell) => cell.isConnected) ?? activeTableCell;
                     clearTableSelection();
+                } else if (action === 'split') {
+                    if (! splitDocumentTableCell(activeTableCell)) {
+                        status.textContent = 'Select a merged cell to split';
+                        return;
+                    }
                 } else if (action === 'delete-selected') {
                     deleteDocumentTableCells(selectedTableCells.size ? selectedTableCells : [activeTableCell]);
                     clearTableSelection();

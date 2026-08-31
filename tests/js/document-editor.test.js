@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { changeDocumentTable, deleteDocumentTableCells, documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, mergeDocumentTableCells, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
+import { changeDocumentTable, deleteDocumentTableCells, documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, mergeDocumentTableCells, splitDocumentTableCell, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
 
 test('documentPageGeometry returns portrait and landscape measurements', () => {
     assert.deepEqual(documentPageGeometry('A4', 'portrait'), { width: 210, height: 297 });
@@ -90,6 +90,31 @@ test('mergeDocumentTableCells merges a rectangular selection', () => {
     assert.equal(cells.filter((cell) => cell.removed).length, 3);
 });
 
+test('splitDocumentTableCell restores cells from row and column spans', () => {
+    const insertedCells = [];
+    const table = { rows: [] };
+    table.rows = [0, 1].map((rowIndex) => ({
+        rowIndex,
+        cells: [],
+        closest: () => table,
+        insertCell(index) {
+            const newCell = { index, innerHTML: '' };
+            insertedCells.push([rowIndex, index, newCell]);
+            this.cells.splice(index, 0, newCell);
+            return newCell;
+        },
+    }));
+    const mergedCell = { cellIndex: 0, rowSpan: 2, colSpan: 2, parentElement: table.rows[0] };
+    table.rows[0].cells = [mergedCell];
+    table.rows[1].cells = [];
+
+    assert.equal(splitDocumentTableCell(mergedCell), true);
+    assert.equal(mergedCell.rowSpan, 1);
+    assert.equal(mergedCell.colSpan, 1);
+    assert.equal(insertedCells.length, 3);
+    assert.deepEqual(table.rows.map((row) => row.cells.length), [2, 2]);
+});
+
 test('built-in phonetic input creates Unicode Bangla without desktop software', () => {
     assert.equal(transliteratePhoneticWord('ami'), 'আমি');
     assert.equal(transliteratePhoneticWord('bangladesh'), 'বাংলাদেশ');
@@ -108,6 +133,7 @@ test('print stylesheet keeps the document page and its contents visible', () => 
     assert.match(view, /data-table-action="delete-table"/);
     assert.match(view, /data-table-context-action="merge"/);
     assert.match(view, /data-table-context-action="select-column"/);
+    assert.match(view, /data-table-context-action="split"/);
     assert.match(view, /data-custom-font-size/);
     assert.match(view, /data-clear-format/);
     assert.match(view, />＋ Row</);
@@ -117,6 +143,7 @@ test('print stylesheet keeps the document page and its contents visible', () => 
     assert.match(editorScript, /execCommand\('styleWithCSS', false, false\);[\s\S]*execCommand\('fontSize', false, '7'\);/);
     assert.match(editorScript, /editor\.addEventListener\('input',[\s\S]*normalizeCustomFontSize\(editor\);/);
     assert.match(editorScript, /if \(! activeTableCell\) \{[\s\S]*tableContext\.hidden = true;/);
+    assert.match(editorScript, /selectTableRectangle\(dragStartCell, cell\);/);
 });
 
 test('documentStatistics counts visible words and characters', () => {
