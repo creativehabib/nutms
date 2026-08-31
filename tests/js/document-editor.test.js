@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { changeDocumentTable, documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
+import { changeDocumentTable, deleteDocumentTableCells, documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, mergeDocumentTableCells, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
 
 test('documentPageGeometry returns portrait and landscape measurements', () => {
     assert.deepEqual(documentPageGeometry('A4', 'portrait'), { width: 210, height: 297 });
@@ -49,6 +49,47 @@ test('changeDocumentTable supports every table toolbar action', () => {
     ]);
 });
 
+test('deleteDocumentTableCells clears every selected cell', () => {
+    const cells = [{ innerHTML: 'এক' }, { innerHTML: 'দুই' }];
+
+    assert.equal(deleteDocumentTableCells(cells), true);
+    assert.deepEqual(cells.map((cell) => cell.innerHTML), ['<br>', '<br>']);
+});
+
+test('deleteDocumentTableCells removes a fully selected column', () => {
+    const deletedColumns = [];
+    const table = { rows: [] };
+    const cells = [0, 1].map(() => ({ cellIndex: 1, closest: () => table }));
+    table.rows = cells.map((cell) => ({ cells: [{}, cell], deleteCell: (index) => deletedColumns.push(index) }));
+
+    assert.equal(deleteDocumentTableCells(cells), true);
+    assert.deepEqual(deletedColumns, [1, 1]);
+});
+
+test('mergeDocumentTableCells merges a rectangular selection', () => {
+    const table = { rows: [] };
+    table.rows = [0, 1].map((rowIndex) => {
+        const row = { rowIndex, cells: [] };
+        row.cells = [0, 1].map((cellIndex) => ({
+            cellIndex,
+            colSpan: 1,
+            rowSpan: 1,
+            innerHTML: `${rowIndex}-${cellIndex}`,
+            parentElement: row,
+            closest: () => table,
+            remove() { this.removed = true; },
+        }));
+        return row;
+    });
+
+    const cells = table.rows.flatMap((row) => row.cells);
+    assert.equal(mergeDocumentTableCells(cells), true);
+    assert.equal(cells[0].rowSpan, 2);
+    assert.equal(cells[0].colSpan, 2);
+    assert.equal(cells[0].innerHTML, '0-0<br>0-1<br>1-0<br>1-1');
+    assert.equal(cells.filter((cell) => cell.removed).length, 3);
+});
+
 test('built-in phonetic input creates Unicode Bangla without desktop software', () => {
     assert.equal(transliteratePhoneticWord('ami'), 'আমি');
     assert.equal(transliteratePhoneticWord('bangladesh'), 'বাংলাদেশ');
@@ -64,6 +105,8 @@ test('print stylesheet keeps the document page and its contents visible', () => 
     assert.match(view, /data-command="justifyFull"/);
     assert.match(view, /data-insert-table/);
     assert.match(view, /data-table-action="delete-table"/);
+    assert.match(view, /data-table-context-action="merge"/);
+    assert.match(view, /data-table-context-action="select-column"/);
     assert.match(view, /data-custom-font-size/);
 });
 

@@ -125,6 +125,15 @@
         </aside>
     </main>
 
+    <div data-table-context hidden class="document-chrome fixed z-50 w-36 rounded-xl border border-emerald-200 bg-white p-1.5 text-xs font-bold text-slate-700 shadow-xl dark:border-emerald-800 dark:bg-slate-900 dark:text-slate-200" role="toolbar" aria-label="টেবিল সেল টুলস">
+        <button type="button" data-table-context-action="add-row" class="table-context-tool text-emerald-700 dark:text-emerald-300">＋ নিচে রো</button>
+        <button type="button" data-table-context-action="add-column" class="table-context-tool text-emerald-700 dark:text-emerald-300">＋ পাশে কলাম</button>
+        <button type="button" data-table-context-action="select-cell" class="table-context-tool">সেল নির্বাচন</button>
+        <button type="button" data-table-context-action="select-column" class="table-context-tool">কলাম নির্বাচন</button>
+        <button type="button" data-table-context-action="merge" class="table-context-tool">সেল মার্জ</button>
+        <button type="button" data-table-context-action="delete-selected" class="table-context-tool text-red-600 dark:text-red-400">নির্বাচিত সেল মুছুন</button>
+    </div>
+
     <dialog data-document-converter class="m-auto w-[min(92vw,760px)] rounded-3xl border-0 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
         <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <div><h2 class="text-lg font-extrabold">বিজয় ⇄ ইউনিকোড কনভার্টার</h2><p class="text-xs text-slate-500">লেখা রূপান্তর করে সরাসরি ডকুমেন্টে যোগ করুন</p></div>
@@ -196,6 +205,10 @@
         .editor-canvas blockquote { margin:1rem 0; border-left:4px solid #10b981; background:#f0fdf4; padding:.75rem 1rem; color:#475569; }
         .editor-canvas table { width:100%; margin:1rem 0; border-collapse:collapse; table-layout:fixed; }
         .editor-canvas td, .editor-canvas th { min-width:2rem; border:1px solid #64748b; padding:.4rem .55rem; vertical-align:top; }
+        .editor-canvas td:hover, .editor-canvas th:hover { outline:2px solid #10b981; outline-offset:-2px; }
+        .editor-canvas td.is-selected, .editor-canvas th.is-selected { background:#d1fae5; box-shadow:inset 0 0 0 2px #059669; }
+        .table-context-tool { display:block; width:100%; border-radius:.5rem; padding:.45rem .55rem; text-align:left; }
+        .table-context-tool:hover { background:#ecfdf5; }
         .editor-canvas hr { margin:1rem 0; border:0; border-top:1px solid #94a3b8; }
         .editor-canvas a { color:#047857; text-decoration:underline; }
         .editor-canvas:empty::before { content:attr(data-placeholder); color:#94a3b8; pointer-events:none; }
@@ -207,6 +220,8 @@
         .dark .orientation-option, .dark .margin-field, .dark .typing-option { border-color:#334155; background:#0f172a; color:#cbd5e1; }
         .dark .margin-field input { color:#e2e8f0; }
         .dark .peer:checked + .orientation-option, .dark .peer:checked + .typing-option { border-color:#34d399; background:#064e3b; color:#d1fae5; box-shadow:0 0 0 1px #34d399; }
+        .dark .editor-canvas td.is-selected, .dark .editor-canvas th.is-selected { background:#064e3b; box-shadow:inset 0 0 0 2px #34d399; }
+        .dark .table-context-tool:hover { background:#1e293b; }
         @media print {
             html, body { margin:0 !important; padding:0 !important; background:white !important; }
             body * { visibility:hidden !important; }

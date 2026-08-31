@@ -66,6 +66,62 @@ export const changeDocumentTable = (cell, action) => {
     return true;
 };
 
+export const mergeDocumentTableCells = (cells) => {
+    const selectedCells = [...new Set(cells)].filter((cell) => cell?.isConnected !== false);
+    const table = selectedCells[0]?.closest?.('table');
+
+    if (! table || selectedCells.length < 2 || selectedCells.some((cell) => cell.closest('table') !== table)) {
+        return false;
+    }
+
+    const positions = selectedCells.map((cell) => ({ cell, row: cell.parentElement.rowIndex, column: cell.cellIndex }));
+    const firstRow = Math.min(...positions.map(({ row }) => row));
+    const lastRow = Math.max(...positions.map(({ row }) => row));
+    const firstColumn = Math.min(...positions.map(({ column }) => column));
+    const lastColumn = Math.max(...positions.map(({ column }) => column));
+    const expectedCellCount = (lastRow - firstRow + 1) * (lastColumn - firstColumn + 1);
+
+    if (expectedCellCount !== selectedCells.length || positions.some(({ cell }) => cell.rowSpan > 1 || cell.colSpan > 1)) {
+        return false;
+    }
+
+    const firstCell = table.rows[firstRow].cells[firstColumn];
+    const contents = positions
+        .sort((first, second) => first.row - second.row || first.column - second.column)
+        .map(({ cell }) => cell.innerHTML)
+        .filter((content) => content && content !== '<br>');
+
+    firstCell.innerHTML = contents.join('<br>') || '<br>';
+    firstCell.rowSpan = lastRow - firstRow + 1;
+    firstCell.colSpan = lastColumn - firstColumn + 1;
+    positions.filter(({ cell }) => cell !== firstCell).forEach(({ cell }) => cell.remove());
+
+    return true;
+};
+
+export const deleteDocumentTableCells = (cells) => {
+    const selectedCells = [...new Set(cells)].filter((cell) => cell?.isConnected !== false);
+    const table = selectedCells[0]?.closest?.('table');
+    const selectedColumn = selectedCells[0]?.cellIndex;
+    const isCompleteColumn = table
+        && selectedCells.length === table.rows.length
+        && selectedCells.every((cell) => cell.closest('table') === table && cell.cellIndex === selectedColumn);
+
+    if (isCompleteColumn) {
+        if (table.rows[0].cells.length === 1) {
+            table.remove();
+        } else {
+            [...table.rows].forEach((row) => row.deleteCell(selectedColumn));
+        }
+
+        return true;
+    }
+
+    selectedCells.forEach((cell) => { cell.innerHTML = '<br>'; });
+
+    return selectedCells.length > 0;
+};
+
 const phoneticConsonants = Object.freeze({
     ng: 'ং', kh: 'খ', gh: 'ঘ', ch: 'চ', chh: 'ছ', jh: 'ঝ', th: 'থ', dh: 'ধ', ph: 'ফ', bh: 'ভ', sh: 'শ', ss: 'ষ', rr: 'ড়',
     k: 'ক', g: 'গ', c: 'চ', j: 'জ', t: 'ত', d: 'দ', n: 'ন', p: 'প', f: 'ফ', b: 'ব', v: 'ভ', m: 'ম', z: 'য', r: 'র', l: 'ল', s: 'স', h: 'হ', y: 'য়', q: 'ক', x: 'ক্স', w: 'ও',
@@ -130,6 +186,7 @@ export const initializeDocumentEditors = () => {
         const storageKey = 'nutms-document-editor-v3';
         let activeEditor;
         let activeTableCell;
+        const selectedTableCells = new Set();
         let savedRange;
         let saveTimer;
 
@@ -151,6 +208,17 @@ export const initializeDocumentEditors = () => {
             if (cell && activeEditor?.contains(cell)) {
                 activeTableCell = cell;
             }
+        };
+        const clearTableSelection = () => {
+            selectedTableCells.forEach((cell) => cell.classList.remove('is-selected'));
+            selectedTableCells.clear();
+        };
+        const selectTableCells = (cells) => {
+            clearTableSelection();
+            cells.forEach((cell) => {
+                selectedTableCells.add(cell);
+                cell.classList.add('is-selected');
+            });
         };
         const restoreSelection = () => {
             activeEditor?.focus();
@@ -231,6 +299,20 @@ export const initializeDocumentEditors = () => {
             editor.addEventListener('mouseup', (event) => {
                 rememberSelection();
                 rememberTableCell(event.target);
+            });
+            editor.addEventListener('click', (event) => {
+                const cell = event.target.closest?.('td, th');
+
+                if (! cell || ! (event.ctrlKey || event.metaKey)) return;
+
+                event.preventDefault();
+                if (selectedTableCells.has(cell)) {
+                    selectedTableCells.delete(cell);
+                    cell.classList.remove('is-selected');
+                } else {
+                    selectedTableCells.add(cell);
+                    cell.classList.add('is-selected');
+                }
             });
             editor.addEventListener('input', () => {
                 const isOverflowing = editor.scrollHeight > editor.clientHeight + 2;
@@ -383,6 +465,46 @@ export const initializeDocumentEditors = () => {
 
                 changeDocumentTable(activeTableCell, button.dataset.tableAction);
                 activeTableCell = activeTableCell.isConnected ? activeTableCell : null;
+                status.textContent = 'টেবিল আপডেট হয়েছে';
+                updateStatistics();
+                scheduleSave();
+            });
+        });
+        const tableContext = workspace.querySelector('[data-table-context]');
+        const showTableContext = (cell) => {
+            activeTableCell = cell;
+            const bounds = cell.getBoundingClientRect();
+            tableContext.hidden = false;
+            tableContext.style.left = `${Math.min(window.innerWidth - tableContext.offsetWidth - 8, bounds.right + 6)}px`;
+            tableContext.style.top = `${Math.max(8, bounds.top)}px`;
+        };
+        pages.addEventListener('mouseover', (event) => {
+            const cell = event.target.closest?.('td, th');
+            if (cell) showTableContext(cell);
+        });
+        workspace.querySelectorAll('[data-table-context-action]').forEach((button) => {
+            button.addEventListener('mousedown', (event) => event.preventDefault());
+            button.addEventListener('click', () => {
+                if (! activeTableCell?.isConnected) return;
+
+                const action = button.dataset.tableContextAction;
+                const table = activeTableCell.closest('table');
+                if (action === 'add-row' || action === 'add-column') {
+                    changeDocumentTable(activeTableCell, action);
+                } else if (action === 'select-cell') {
+                    selectTableCells([activeTableCell]);
+                } else if (action === 'select-column') {
+                    selectTableCells([...table.rows].map((row) => row.cells[activeTableCell.cellIndex]).filter(Boolean));
+                } else if (action === 'merge') {
+                    if (! mergeDocumentTableCells(selectedTableCells)) {
+                        status.textContent = 'মার্জ করতে পাশাপাশি থাকা সম্পূর্ণ সেলগুলো Ctrl + Click দিয়ে নির্বাচন করুন';
+                        return;
+                    }
+                    clearTableSelection();
+                } else if (action === 'delete-selected') {
+                    deleteDocumentTableCells(selectedTableCells.size ? selectedTableCells : [activeTableCell]);
+                    clearTableSelection();
+                }
                 status.textContent = 'টেবিল আপডেট হয়েছে';
                 updateStatistics();
                 scheduleSave();
