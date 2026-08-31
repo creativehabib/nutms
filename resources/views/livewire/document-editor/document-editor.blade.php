@@ -57,16 +57,11 @@
                 <span class="hidden sm:inline">Ctrl + S দিয়ে যেকোনো সময় সংরক্ষণ করুন</span>
             </div>
             <div class="page-stage min-h-[70vh] overflow-auto p-5 sm:p-10">
-                <div class="page-scaler mx-auto origin-top">
-                    <article class="document-page relative mx-auto flex flex-col bg-white text-slate-900 shadow-[0_8px_35px_rgba(15,23,42,.16)]">
-                        <header data-page-header class="page-header absolute left-[var(--margin-left)] right-[var(--margin-right)] top-5 border-b border-slate-200 pb-2 text-center text-[10pt] text-slate-500"></header>
-                        <div data-editor-canvas contenteditable="true" role="textbox" aria-multiline="true" spellcheck="true" class="editor-canvas min-h-0 flex-1 outline-none" data-placeholder="এখানে লেখা শুরু করুন…"><h1>আপনার ডকুমেন্টের শিরোনাম</h1><p>এই প্রিমিয়াম ডকুমেন্ট এডিটরে লেখা শুরু করুন। উপরের টুলবার থেকে ফন্ট, সাইজ, রঙ, অ্যালাইনমেন্ট ও তালিকা সাজাতে পারবেন।</p><p><br></p></div>
-                        <footer data-page-footer class="page-footer absolute bottom-4 left-[var(--margin-left)] right-[var(--margin-right)] flex items-center justify-between border-t border-slate-200 pt-2 text-[9pt] text-slate-400"><span data-footer-copy></span><span>পৃষ্ঠা ১</span></footer>
-                    </article>
-                </div>
+                <div data-document-pages class="document-pages flex flex-col items-center gap-8"></div>
+                <button type="button" data-add-page class="document-chrome mx-auto mt-8 flex items-center gap-2 rounded-xl border border-dashed border-emerald-400 bg-white px-5 py-3 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:bg-slate-900 dark:text-emerald-300">＋ নতুন পৃষ্ঠা যোগ করুন</button>
             </div>
             <footer class="document-chrome flex flex-wrap items-center justify-between gap-3 border-t border-slate-300/70 bg-white px-4 py-2 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-                <div class="flex items-center gap-4"><span>পৃষ্ঠা ১ / ১</span><span><strong data-word-count class="text-slate-700 dark:text-slate-200">০</strong> শব্দ</span><span><strong data-character-count class="text-slate-700 dark:text-slate-200">০</strong> অক্ষর</span></div>
+                <div class="flex items-center gap-4"><span data-page-count>১ পৃষ্ঠা</span><span><strong data-word-count class="text-slate-700 dark:text-slate-200">০</strong> শব্দ</span><span><strong data-character-count class="text-slate-700 dark:text-slate-200">০</strong> অক্ষর</span></div>
                 <div class="flex items-center gap-2"><span class="hidden sm:inline">জুম</span><input data-zoom type="range" min="60" max="120" value="100" class="h-1.5 w-24 accent-emerald-600"><span data-zoom-label class="w-9 font-semibold">100%</span></div>
             </footer>
         </section>
@@ -93,11 +88,23 @@
             </section>
 
             <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <h2 class="mb-4 font-bold">হেডার ও ফুটার</h2>
-                <div class="space-y-3"><label class="block"><span class="editor-label">হেডারের লেখা</span><input data-header-text class="setup-input" placeholder="যেমন: গোপনীয় প্রতিবেদন"></label><label class="block"><span class="editor-label">ফুটারের লেখা</span><input data-footer-text class="setup-input" placeholder="যেমন: জাতীয় বিশ্ববিদ্যালয়"></label></div>
+                <h2 class="mb-4 font-bold">হেডার সেটিং</h2>
+                <div class="space-y-3">
+                    <label class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-sm font-bold dark:bg-slate-950"><span>হেডার দেখাবেন?</span><input data-header-enabled type="checkbox" checked class="size-4 accent-emerald-600"></label>
+                    <label class="block"><span class="editor-label">হেডারের লেখা</span><input data-header-text class="setup-input" placeholder="যেমন: গোপনীয় প্রতিবেদন"></label>
+                </div>
+            </section>
+
+            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <h2 class="mb-4 font-bold">ফুটার সেটিং</h2>
+                <div class="space-y-3">
+                    <label class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-sm font-bold dark:bg-slate-950"><span>ফুটার ও পৃষ্ঠা নম্বর দেখাবেন?</span><input data-footer-enabled type="checkbox" checked class="size-4 accent-emerald-600"></label>
+                    <label class="block"><span class="editor-label">ফুটারের লেখা</span><input data-footer-text class="setup-input" placeholder="যেমন: জাতীয় বিশ্ববিদ্যালয়"></label>
+                </div>
             </section>
 
             <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs leading-5 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"><strong class="mb-1 block">নিখুঁত প্রিন্টের জন্য</strong>প্রিন্ট ডায়ালগে “Margins: None” এবং “Scale: 100%” রাখুন। ব্রাউজারের Headers and footers বন্ধ করুন।</div>
+            <div class="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-xs leading-5 text-sky-900 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-200"><strong class="mb-1 block">একাধিক পৃষ্ঠা</strong>“নতুন পৃষ্ঠা যোগ করুন” চাপুন অথবা লেখার সময় <kbd>Ctrl + Enter</kbd> দিন। পৃষ্ঠা পূর্ণ হলে লাল সংকেত দেখাবে।</div>
             <button type="button" data-clear-document class="rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:bg-slate-900 dark:hover:bg-red-950/30">ডকুমেন্ট পরিষ্কার করুন</button>
         </aside>
     </main>
@@ -118,6 +125,20 @@
         </div>
     </dialog>
 
+    <template data-page-template>
+        <div data-page-sheet class="page-scaler relative origin-top">
+            <div class="document-chrome absolute -top-6 left-0 right-0 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                <span data-page-label>পৃষ্ঠা</span>
+                <button type="button" data-delete-page class="text-red-500 disabled:cursor-not-allowed disabled:opacity-30">পৃষ্ঠা মুছুন</button>
+            </div>
+            <article class="document-page relative flex flex-col bg-white text-slate-900 shadow-[0_8px_35px_rgba(15,23,42,.16)]">
+                <header data-page-header class="page-header absolute left-[var(--margin-left)] right-[var(--margin-right)] top-5 border-b border-slate-200 pb-2 text-center text-[10pt] text-slate-500"><span data-header-copy></span></header>
+                <div data-editor-canvas contenteditable="true" role="textbox" aria-multiline="true" spellcheck="true" class="editor-canvas min-h-0 flex-1 outline-none" data-placeholder="এখানে লেখা শুরু করুন…"></div>
+                <footer data-page-footer class="page-footer absolute bottom-4 left-[var(--margin-left)] right-[var(--margin-right)] flex items-center justify-between border-t border-slate-200 pt-2 text-[9pt] text-slate-400"><span data-footer-copy></span><span data-page-number></span></footer>
+            </article>
+        </div>
+    </template>
+
     <style>
         .editor-tool { display:flex; height:2rem; min-width:2rem; flex-shrink:0; align-items:center; justify-content:center; border-radius:.5rem; padding:0 .45rem; color:#475569; transition:.15s; }
         .editor-tool:hover { background:#e2e8f0; color:#0f172a; }
@@ -136,7 +157,9 @@
         .converter-field:focus { border-color:#10b981; box-shadow:0 0 0 3px rgb(16 185 129 / .12); }
         .page-scaler { width:calc(var(--page-width) * var(--editor-scale)); height:calc(var(--page-height) * var(--editor-scale)); }
         .document-page { width:var(--page-width); height:var(--page-height); transform:scale(var(--editor-scale)); transform-origin:top left; }
-        .editor-canvas { padding:var(--margin-top) var(--margin-right) var(--margin-bottom) var(--margin-left); overflow:hidden; font-family:'Noto Sans Bengali', sans-serif; font-size:12pt; line-height:1.6; }
+        .page-scaler.is-active .document-page { outline:2px solid #10b981; outline-offset:3px; }
+        .page-scaler.has-overflow .document-page { outline-color:#ef4444; }
+        .editor-canvas { padding:var(--margin-top) var(--margin-right) var(--margin-bottom) var(--margin-left); overflow:hidden; font-family:var(--editor-font, 'Noto Sans Bengali', sans-serif); font-size:12pt; line-height:1.6; }
         .editor-canvas h1 { margin:0 0 1rem; font-size:24pt; font-weight:800; line-height:1.2; }
         .editor-canvas h2 { margin:1rem 0 .75rem; font-size:19pt; font-weight:750; line-height:1.25; }
         .editor-canvas h3 { margin:.75rem 0 .5rem; font-size:15pt; font-weight:700; }
@@ -147,8 +170,13 @@
         @media print {
             html, body { margin:0 !important; padding:0 !important; background:white !important; }
             body * { visibility:hidden !important; }
-            body .document-page, body .document-page * { visibility:visible !important; }
-            .document-page { position:fixed !important; inset:0 auto auto 0 !important; width:var(--page-width) !important; height:var(--page-height) !important; margin:0 !important; transform:none !important; box-shadow:none !important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+            body .document-pages, body .document-pages *, body .document-page, body .document-page * { visibility:visible !important; }
+            .document-studio { position:absolute !important; inset:0 !important; min-height:0 !important; }
+            .document-studio > main, .document-studio > main > section, .page-stage, .document-pages { display:block !important; width:auto !important; max-width:none !important; min-height:0 !important; margin:0 !important; padding:0 !important; border:0 !important; overflow:visible !important; background:white !important; }
+            .document-studio > main > aside, .document-chrome { display:none !important; }
+            .page-scaler { width:var(--page-width) !important; height:var(--page-height) !important; margin:0 !important; break-after:page; page-break-after:always; }
+            .page-scaler:last-child { break-after:auto; page-break-after:auto; }
+            .document-page { width:var(--page-width) !important; height:var(--page-height) !important; margin:0 !important; transform:none !important; outline:0 !important; box-shadow:none !important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
             .editor-canvas { overflow:visible !important; }
         }
     </style>

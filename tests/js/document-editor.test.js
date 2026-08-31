@@ -16,8 +16,10 @@ test('documentPrintStyles creates a zero-margin page matching the preview', () =
 test('print stylesheet keeps the document page and its contents visible', () => {
     const view = readFileSync('resources/views/livewire/document-editor/document-editor.blade.php', 'utf8');
 
-    assert.match(view, /body \.document-page, body \.document-page \* \{ visibility:visible !important; \}/);
+    assert.match(view, /body \.document-pages, body \.document-pages \*, body \.document-page, body \.document-page \* \{ visibility:visible !important; \}/);
     assert.doesNotMatch(view, /body > \*:not\(\.document-studio\)/);
+    assert.doesNotMatch(view, /\.document-page \{ position:fixed/);
+    assert.match(view, /page-break-after:always/);
 });
 
 test('documentStatistics counts visible words and characters', () => {
