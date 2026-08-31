@@ -28,6 +28,44 @@ export const documentTableMarkup = (rows = 3, columns = 3) => {
     return `<table><tbody>${Array.from({ length: rows }, () => `<tr>${cells()}</tr>`).join('')}</tbody></table><p><br></p>`;
 };
 
+const phoneticConsonants = Object.freeze({
+    ng: 'ং', kh: 'খ', gh: 'ঘ', ch: 'চ', chh: 'ছ', jh: 'ঝ', th: 'থ', dh: 'ধ', ph: 'ফ', bh: 'ভ', sh: 'শ', ss: 'ষ', rr: 'ড়',
+    k: 'ক', g: 'গ', c: 'চ', j: 'জ', t: 'ত', d: 'দ', n: 'ন', p: 'প', f: 'ফ', b: 'ব', v: 'ভ', m: 'ম', z: 'য', r: 'র', l: 'ল', s: 'স', h: 'হ', y: 'য়', q: 'ক', x: 'ক্স', w: 'ও',
+});
+const phoneticVowels = Object.freeze({
+    ou: ['ঔ', 'ৌ'], oi: ['ঐ', 'ৈ'], aa: ['আ', 'া'], ee: ['ঈ', 'ী'], oo: ['ঊ', 'ূ'],
+    a: ['আ', 'া'], i: ['ই', 'ি'], u: ['উ', 'ু'], e: ['এ', 'ে'], o: ['ও', 'ো'],
+});
+
+export const transliteratePhoneticWord = (word) => {
+    const input = word.toLowerCase();
+    const tokens = [...new Set([...Object.keys(phoneticConsonants), ...Object.keys(phoneticVowels)])]
+        .sort((first, second) => second.length - first.length);
+    let result = '';
+    let index = 0;
+    let followsConsonant = false;
+
+    while (index < input.length) {
+        const token = tokens.find((candidate) => input.startsWith(candidate, index));
+        if (! token) {
+            result += input[index];
+            followsConsonant = false;
+            index++;
+            continue;
+        }
+        if (phoneticVowels[token]) {
+            result += phoneticVowels[token][followsConsonant ? 1 : 0];
+            followsConsonant = false;
+        } else {
+            result += phoneticConsonants[token];
+            followsConsonant = true;
+        }
+        index += token.length;
+    }
+
+    return result;
+};
+
 const editorInstances = new WeakSet();
 
 export const initializeDocumentEditors = () => {
@@ -49,8 +87,11 @@ export const initializeDocumentEditors = () => {
         const zoom = workspace.querySelector('[data-zoom]');
         const status = workspace.querySelector('[data-save-status]');
         const converter = workspace.querySelector('[data-document-converter]');
+        const tableDialog = workspace.querySelector('[data-table-dialog]');
+        const builtInKeyboard = workspace.querySelector('[data-built-in-keyboard]');
         const storageKey = 'nutms-document-editor-v3';
         let activeEditor;
+        let savedRange;
         let saveTimer;
 
         const editors = () => [...pages.querySelectorAll('[data-editor-canvas]')];
@@ -60,6 +101,17 @@ export const initializeDocumentEditors = () => {
         const setActiveEditor = (editor) => {
             activeEditor = editor;
             editors().forEach((item) => item.closest('[data-page-sheet]').classList.toggle('is-active', item === editor));
+        };
+        const rememberSelection = () => {
+            const selection = window.getSelection();
+            if (selection?.rangeCount && activeEditor?.contains(selection.anchorNode)) savedRange = selection.getRangeAt(0).cloneRange();
+        };
+        const restoreSelection = () => {
+            activeEditor?.focus();
+            if (! savedRange) return;
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedRange);
         };
         const updatePageNumbers = () => {
             const total = editors().length;
@@ -113,6 +165,7 @@ export const initializeDocumentEditors = () => {
             header: headerInput.value,
             footer: footerInput.value,
             typingMode: selectedTypingMode(),
+            builtInKeyboard: builtInKeyboard.checked,
             updatedAt: new Date().toISOString(),
         });
         const save = () => {
@@ -127,10 +180,28 @@ export const initializeDocumentEditors = () => {
         const bindPage = (sheet) => {
             const editor = sheet.querySelector('[data-editor-canvas]');
             editor.addEventListener('focus', () => setActiveEditor(editor));
+            editor.addEventListener('keyup', rememberSelection);
+            editor.addEventListener('mouseup', rememberSelection);
             editor.addEventListener('input', () => {
                 const isOverflowing = editor.scrollHeight > editor.clientHeight + 2;
                 sheet.classList.toggle('has-overflow', isOverflowing);
                 if (isOverflowing) status.textContent = 'পৃষ্ঠা পূর্ণ—নতুন পৃষ্ঠা যোগ করুন';
+                updateStatistics();
+                scheduleSave();
+            });
+            editor.addEventListener('input', (event) => {
+                if (! builtInKeyboard.checked || selectedTypingMode() !== 'unicode' || event.inputType !== 'insertText' || event.data !== ' ') return;
+                const selection = window.getSelection();
+                const node = selection?.anchorNode;
+                if (! node || node.nodeType !== Node.TEXT_NODE) return;
+                const caret = selection.anchorOffset;
+                const beforeCaret = node.textContent.slice(0, caret);
+                const match = beforeCaret.match(/([A-Za-z]+)\s$/);
+                if (! match) return;
+                const start = caret - match[0].length;
+                node.textContent = `${node.textContent.slice(0, start)}${transliteratePhoneticWord(match[1])} ${node.textContent.slice(caret)}`;
+                const nextCaret = start + transliteratePhoneticWord(match[1]).length + 1;
+                selection.setPosition(node, nextCaret);
                 updateStatistics();
                 scheduleSave();
             });
@@ -181,6 +252,7 @@ export const initializeDocumentEditors = () => {
                 headerInput.value = saved.header || '';
                 footerInput.value = saved.footer || '';
                 typingModeInputs.forEach((input) => { input.checked = input.value === (saved.typingMode || 'unicode'); });
+                builtInKeyboard.checked = saved.builtInKeyboard ?? true;
             }
             (savedPages?.length ? savedPages : ['<h1>আপনার ডকুমেন্টের শিরোনাম</h1><p>এখানে লেখা শুরু করুন। নতুন পৃষ্ঠা যোগ করতে “পৃষ্ঠা যোগ করুন” বাটনে ক্লিক করুন।</p>'])
                 .forEach((content) => addPage(content, false));
@@ -211,17 +283,61 @@ export const initializeDocumentEditors = () => {
             document.execCommand('foreColor', false, event.target.value);
             scheduleSave();
         });
-        workspace.querySelector('[data-insert-table]').addEventListener('click', () => {
+        workspace.querySelector('[data-custom-font-size]').addEventListener('change', (event) => {
+            const fontSize = Math.min(96, Math.max(8, Number(event.target.value) || 12));
+            event.target.value = fontSize;
             activeEditor?.focus();
-            document.execCommand('insertHTML', false, documentTableMarkup());
+            document.execCommand('fontSize', false, '7');
+            activeEditor?.querySelectorAll('font[size="7"]').forEach((font) => {
+                font.removeAttribute('size');
+                font.style.fontSize = `${fontSize}pt`;
+            });
+            scheduleSave();
+        });
+        workspace.querySelector('[data-open-table]').addEventListener('mousedown', rememberSelection);
+        workspace.querySelector('[data-open-table]').addEventListener('click', () => tableDialog.showModal());
+        workspace.querySelector('[data-close-table]').addEventListener('click', () => tableDialog.close());
+        workspace.querySelector('[data-insert-table]').addEventListener('click', () => {
+            const rows = Math.min(30, Math.max(1, Number(workspace.querySelector('[data-table-rows]').value) || 3));
+            const columns = Math.min(12, Math.max(1, Number(workspace.querySelector('[data-table-columns]').value) || 3));
+            restoreSelection();
+            document.execCommand('insertHTML', false, documentTableMarkup(rows, columns));
+            tableDialog.close();
             updateStatistics();
             scheduleSave();
         });
+        workspace.querySelectorAll('[data-table-action]').forEach((button) => button.addEventListener('click', () => {
+            const selectionNode = window.getSelection()?.anchorNode;
+            const element = selectionNode?.nodeType === Node.ELEMENT_NODE ? selectionNode : selectionNode?.parentElement;
+            const cell = element?.closest('td, th');
+            const row = cell?.closest('tr');
+            const table = row?.closest('table');
+            if (! table || ! activeEditor?.contains(table)) {
+                status.textContent = 'আগে টেবিলের একটি ঘরে কার্সর রাখুন';
+                return;
+            }
+            const action = button.dataset.tableAction;
+            if (action === 'add-row') {
+                const newRow = table.insertRow(row.rowIndex + 1);
+                Array.from({ length: row.cells.length }, () => newRow.insertCell().innerHTML = '<br>');
+            } else if (action === 'add-column') {
+                [...table.rows].forEach((tableRow) => tableRow.insertCell(cell.cellIndex + 1).innerHTML = '<br>');
+            } else if (action === 'delete-row' && table.rows.length > 1) {
+                row.remove();
+            } else if (action === 'delete-column' && row.cells.length > 1) {
+                [...table.rows].forEach((tableRow) => tableRow.deleteCell(cell.cellIndex));
+            } else if (action === 'delete-table') {
+                table.remove();
+            }
+            updateStatistics();
+            scheduleSave();
+        }));
         workspace.querySelector('[data-insert-link]').addEventListener('click', () => {
+            rememberSelection();
             const url = window.prompt('লিংকের ঠিকানা লিখুন (যেমন: https://example.com)');
             if (! url) return;
             const normalizedUrl = /^(https?:|mailto:|\/)/i.test(url) ? url : `https://${url}`;
-            activeEditor?.focus();
+            restoreSelection();
             document.execCommand('createLink', false, normalizedUrl);
             scheduleSave();
         });
@@ -229,6 +345,7 @@ export const initializeDocumentEditors = () => {
         [paper, zoom, ...orientationInputs, ...marginInputs].forEach((input) => input.addEventListener('input', () => { applyPageSetup(); scheduleSave(); }));
         [headerInput, footerInput, headerEnabled, footerEnabled].forEach((input) => input.addEventListener('input', () => { syncPageDecorations(); scheduleSave(); }));
         typingModeInputs.forEach((input) => input.addEventListener('change', () => { syncTypingMode(); scheduleSave(); }));
+        builtInKeyboard.addEventListener('change', scheduleSave);
         title.addEventListener('input', scheduleSave);
         workspace.querySelector('[data-print-document]').addEventListener('click', () => { save(); window.print(); });
         workspace.querySelector('[data-clear-document]').addEventListener('click', () => {

@@ -25,13 +25,13 @@
             </button>
         </div>
 
-        <div class="mx-auto flex max-w-[1600px] items-center gap-1 overflow-x-auto border-t border-slate-100 px-4 py-2 dark:border-slate-800" role="toolbar" aria-label="লেখা ফরম্যাটিং টুলবার">
+        <div class="mx-auto flex max-w-[1600px] flex-wrap items-center gap-1 border-t border-slate-100 px-4 py-2 dark:border-slate-800" role="toolbar" aria-label="লেখা ফরম্যাটিং টুলবার">
             <button type="button" data-command="undo" class="editor-tool" title="পূর্বাবস্থায় ফিরুন">↶</button>
             <button type="button" data-command="redo" class="editor-tool" title="পুনরায় করুন">↷</button>
             <span class="mx-1 h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></span>
             <select data-format-select="formatBlock" aria-label="লেখার ধরন" class="editor-select w-28"><option value="p">সাধারণ লেখা</option><option value="h1">শিরোনাম ১</option><option value="h2">শিরোনাম ২</option><option value="h3">শিরোনাম ৩</option></select>
             <select data-format-select="fontName" aria-label="ফন্ট" class="editor-select w-36"><option value="Noto Sans Bengali">Noto Sans Bengali</option><option value="SolaimanLipi">SolaimanLipi</option><option value="Arial">Arial</option><option value="Georgia">Georgia</option></select>
-            <select data-format-select="fontSize" aria-label="ফন্ট সাইজ" class="editor-select w-20"><option value="2">10</option><option value="3" selected>12</option><option value="4">14</option><option value="5">18</option><option value="6">24</option><option value="7">36</option></select>
+            <label class="editor-size-control" title="কাস্টম ফন্ট সাইজ"><input data-custom-font-size type="number" min="8" max="96" value="12" aria-label="ফন্ট সাইজ"><span>pt</span></label>
             <span class="mx-1 h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></span>
             <button type="button" data-command="bold" class="editor-tool font-black" title="বোল্ড">B</button>
             <button type="button" data-command="italic" class="editor-tool font-serif italic" title="ইটালিক">I</button>
@@ -52,7 +52,12 @@
             <button type="button" data-command="indent" class="editor-tool" title="ইনডেন্ট বাড়ান">⇥</button>
             <span class="mx-1 h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></span>
             <button type="button" data-insert-link class="editor-tool" title="লিংক যোগ করুন">🔗</button>
-            <button type="button" data-insert-table class="editor-tool" title="৩ × ৩ টেবিল যোগ করুন">▦ টেবিল</button>
+            <button type="button" data-open-table class="editor-tool" title="কাস্টম টেবিল যোগ করুন">▦ টেবিল</button>
+            <button type="button" data-table-action="add-row" class="editor-tool" title="টেবিলে রো যোগ করুন">＋রো</button>
+            <button type="button" data-table-action="add-column" class="editor-tool" title="টেবিলে কলাম যোগ করুন">＋কলাম</button>
+            <button type="button" data-table-action="delete-row" class="editor-tool text-red-500" title="বর্তমান রো মুছুন">−রো</button>
+            <button type="button" data-table-action="delete-column" class="editor-tool text-red-500" title="বর্তমান কলাম মুছুন">−কলাম</button>
+            <button type="button" data-table-action="delete-table" class="editor-tool text-red-500" title="সম্পূর্ণ টেবিল মুছুন">×টেবিল</button>
             <button type="button" data-command="formatBlock" data-value="blockquote" class="editor-tool" title="উদ্ধৃতি">❝</button>
             <button type="button" data-command="insertHorizontalRule" class="editor-tool" title="অনুভূমিক রেখা">―</button>
             <button type="button" data-command="removeFormat" class="editor-tool text-xs" title="ফরম্যাট মুছুন">Tx</button>
@@ -85,6 +90,8 @@
                     <label class="typing-card"><input type="radio" name="document-typing-mode" value="unicode" checked class="peer sr-only"><span class="typing-option"><strong>অভ্র / ইউনিকোড</strong><small>Noto Sans Bengali</small></span></label>
                     <label class="typing-card"><input type="radio" name="document-typing-mode" value="bijoy" class="peer sr-only"><span class="typing-option"><strong>বিজয় সুতনি</strong><small>SutonnyMJ</small></span></label>
                 </div>
+                <label class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-xs font-bold dark:bg-slate-950"><span>বিল্ট-ইন কিবোর্ড</span><input data-built-in-keyboard type="checkbox" checked class="size-4 accent-emerald-600"></label>
+                <p class="mt-2 text-[10px] leading-4 text-slate-500">অভ্র মোডে ইংরেজি অক্ষরে লিখে Space দিন; বিজয় মোডে SutonnyMJ layout সরাসরি কাজ করবে—কম্পিউটারে আলাদা সফটওয়্যার লাগবে না।</p>
             </section>
 
             <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -134,6 +141,15 @@
         </div>
     </dialog>
 
+    <dialog data-table-dialog class="m-auto w-[min(92vw,420px)] rounded-3xl border-0 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800"><h2 class="text-lg font-extrabold">কাস্টম টেবিল</h2><button type="button" data-close-table class="grid size-9 place-items-center rounded-full bg-slate-100 text-xl dark:bg-slate-800">×</button></div>
+        <div class="grid grid-cols-2 gap-4 p-5">
+            <label><span class="editor-label">রো সংখ্যা</span><input data-table-rows type="number" min="1" max="30" value="3" class="setup-input"></label>
+            <label><span class="editor-label">কলাম সংখ্যা</span><input data-table-columns type="number" min="1" max="12" value="3" class="setup-input"></label>
+        </div>
+        <div class="flex justify-end border-t border-slate-200 px-5 py-4 dark:border-slate-800"><button type="button" data-insert-table class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white">টেবিল যোগ করুন</button></div>
+    </dialog>
+
     <template data-page-template>
         <div data-page-sheet class="page-scaler relative origin-top">
             <div class="document-chrome absolute -top-6 left-0 right-0 flex items-center justify-between text-[11px] font-bold text-slate-500">
@@ -152,6 +168,9 @@
         .editor-tool { display:flex; height:2rem; min-width:2rem; flex-shrink:0; align-items:center; justify-content:center; border-radius:.5rem; padding:0 .45rem; color:#475569; transition:.15s; }
         .editor-tool:hover { background:#e2e8f0; color:#0f172a; }
         .editor-select { height:2rem; flex-shrink:0; border:0; border-radius:.5rem; background:#f1f5f9; padding:0 .5rem; font-size:.75rem; font-weight:600; color:#475569; outline:none; }
+        .editor-size-control { display:flex; height:2rem; width:4.5rem; align-items:center; border-radius:.5rem; background:#f1f5f9; padding:0 .45rem; color:#64748b; }
+        .editor-size-control input { min-width:0; width:100%; border:0; background:transparent; padding:0; font-size:.75rem; font-weight:700; color:#334155; outline:none; }
+        .editor-size-control span { font-size:.6rem; }
         .editor-label { margin-bottom:.4rem; display:block; font-size:.68rem; font-weight:800; letter-spacing:.06em; color:#64748b; text-transform:uppercase; }
         .setup-input { width:100%; border:1px solid #e2e8f0; border-radius:.65rem; background:#f8fafc; padding:.65rem .75rem; font-size:.8rem; outline:none; }
         .setup-input:focus { border-color:#10b981; box-shadow:0 0 0 3px rgb(16 185 129 / .12); }
@@ -168,7 +187,7 @@
         .document-page { width:var(--page-width); height:var(--page-height); transform:scale(var(--editor-scale)); transform-origin:top left; }
         .page-scaler.is-active .document-page { outline:2px solid #10b981; outline-offset:3px; }
         .page-scaler.has-overflow .document-page { outline-color:#ef4444; }
-        .editor-canvas { padding:var(--margin-top) var(--margin-right) var(--margin-bottom) var(--margin-left); overflow:hidden; font-family:var(--editor-font, 'Noto Sans Bengali', sans-serif); font-size:12pt; line-height:1.6; }
+        .editor-canvas { padding:var(--margin-top) var(--margin-right) var(--margin-bottom) var(--margin-left); overflow:hidden; overflow-wrap:normal; word-break:normal; hyphens:none; font-family:var(--editor-font, 'Noto Sans Bengali', sans-serif); font-size:12pt; line-height:1.6; text-justify:inter-word; text-align-last:left; letter-spacing:normal; word-spacing:normal; }
         .editor-canvas h1 { margin:0 0 1rem; font-size:24pt; font-weight:800; line-height:1.2; }
         .editor-canvas h2 { margin:1rem 0 .75rem; font-size:19pt; font-weight:750; line-height:1.25; }
         .editor-canvas h3 { margin:.75rem 0 .5rem; font-size:15pt; font-weight:700; }
@@ -182,7 +201,8 @@
         .editor-canvas:empty::before { content:attr(data-placeholder); color:#94a3b8; pointer-events:none; }
         .dark .editor-tool { color:#cbd5e1; }
         .dark .editor-tool:hover { background:#334155; color:#fff; }
-        .dark .editor-select, .dark .setup-input, .dark .converter-field { border-color:#334155; background:#0f172a; color:#e2e8f0; }
+        .dark .editor-select, .dark .editor-size-control, .dark .setup-input, .dark .converter-field { border-color:#334155; background:#0f172a; color:#e2e8f0; }
+        .dark .editor-size-control input { color:#e2e8f0; }
         .dark .editor-label { color:#94a3b8; }
         .dark .orientation-option, .dark .margin-field, .dark .typing-option { border-color:#334155; background:#0f172a; color:#cbd5e1; }
         .dark .margin-field input { color:#e2e8f0; }

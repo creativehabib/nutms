@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup } from '../../resources/js/document-editor.js';
+import { documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
 
 test('documentPageGeometry returns portrait and landscape measurements', () => {
     assert.deepEqual(documentPageGeometry('A4', 'portrait'), { width: 210, height: 297 });
@@ -21,6 +21,11 @@ test('documentTableMarkup creates an editable table of the requested size', () =
     assert.match(markup, /<p><br><\/p>$/);
 });
 
+test('built-in phonetic input creates Unicode Bangla without desktop software', () => {
+    assert.equal(transliteratePhoneticWord('ami'), 'আমি');
+    assert.equal(transliteratePhoneticWord('bangladesh'), 'বাংলাদেশ');
+});
+
 test('print stylesheet keeps the document page and its contents visible', () => {
     const view = readFileSync('resources/views/livewire/document-editor/document-editor.blade.php', 'utf8');
 
@@ -30,6 +35,8 @@ test('print stylesheet keeps the document page and its contents visible', () => 
     assert.match(view, /page-break-after:always/);
     assert.match(view, /data-command="justifyFull"/);
     assert.match(view, /data-insert-table/);
+    assert.match(view, /data-table-action="delete-table"/);
+    assert.match(view, /data-custom-font-size/);
 });
 
 test('documentStatistics counts visible words and characters', () => {
