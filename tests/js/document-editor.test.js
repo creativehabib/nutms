@@ -97,6 +97,7 @@ test('built-in phonetic input creates Unicode Bangla without desktop software', 
 
 test('print stylesheet keeps the document page and its contents visible', () => {
     const view = readFileSync('resources/views/livewire/document-editor/document-editor.blade.php', 'utf8');
+    const editorScript = readFileSync('resources/js/document-editor.js', 'utf8');
 
     assert.match(view, /body \.document-pages, body \.document-pages \*, body \.document-page, body \.document-page \* \{ visibility:visible !important; \}/);
     assert.doesNotMatch(view, /body > \*:not\(\.document-studio\)/);
@@ -110,8 +111,12 @@ test('print stylesheet keeps the document page and its contents visible', () => 
     assert.match(view, /data-custom-font-size/);
     assert.match(view, /data-clear-format/);
     assert.match(view, />＋ Row</);
-    assert.match(view, />Merge cells</);
+    assert.match(view, /title="Merge cells"/);
     assert.match(view, /class="editor-toolbar/);
+    assert.match(view, /\[data-table-context\]\[hidden\] \{ display:none; \}/);
+    assert.match(editorScript, /execCommand\('styleWithCSS', false, false\);[\s\S]*execCommand\('fontSize', false, '7'\);/);
+    assert.match(editorScript, /editor\.addEventListener\('input',[\s\S]*normalizeCustomFontSize\(editor\);/);
+    assert.match(editorScript, /if \(! activeTableCell\) \{[\s\S]*tableContext\.hidden = true;/);
 });
 
 test('documentStatistics counts visible words and characters', () => {

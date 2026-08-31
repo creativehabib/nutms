@@ -187,8 +187,10 @@ export const initializeDocumentEditors = () => {
         let activeEditor;
         let activeTableCell;
         const selectedTableCells = new Set();
+        let tableContextHideTimer;
         let savedRange;
         let saveTimer;
+        let pendingFontSize = 12;
 
         const editors = () => [...pages.querySelectorAll('[data-editor-canvas]')];
         const selectedOrientation = () => orientationInputs.find((input) => input.checked)?.value ?? 'portrait';
@@ -218,6 +220,15 @@ export const initializeDocumentEditors = () => {
         const clearTableSelection = () => {
             selectedTableCells.forEach((cell) => cell.classList.remove('is-selected'));
             selectedTableCells.clear();
+        };
+        const setTableToolsVisibility = (visible) => {
+            workspace.querySelectorAll('[data-table-only]').forEach((tool) => { tool.hidden = ! visible; });
+        };
+        const normalizeCustomFontSize = (editor) => {
+            editor?.querySelectorAll('font[size="7"]').forEach((font) => {
+                font.removeAttribute('size');
+                font.style.fontSize = `${pendingFontSize}pt`;
+            });
         };
         const selectTableCells = (cells) => {
             clearTableSelection();
@@ -321,6 +332,7 @@ export const initializeDocumentEditors = () => {
                 }
             });
             editor.addEventListener('input', () => {
+                normalizeCustomFontSize(editor);
                 const isOverflowing = editor.scrollHeight > editor.clientHeight + 2;
                 sheet.classList.toggle('has-overflow', isOverflowing);
                 if (isOverflowing) status.textContent = 'পৃষ্ঠা পূর্ণ—নতুন পৃষ্ঠা যোগ করুন';
@@ -452,12 +464,12 @@ export const initializeDocumentEditors = () => {
         workspace.querySelector('[data-custom-font-size]').addEventListener('change', (event) => {
             const fontSize = Math.min(96, Math.max(8, Number(event.target.value) || 12));
             event.target.value = fontSize;
+            pendingFontSize = fontSize;
             restoreSelection();
+            document.execCommand('styleWithCSS', false, false);
             document.execCommand('fontSize', false, '7');
-            activeEditor?.querySelectorAll('font[size="7"]').forEach((font) => {
-                font.removeAttribute('size');
-                font.style.fontSize = `${fontSize}pt`;
-            });
+            normalizeCustomFontSize(activeEditor);
+            document.execCommand('styleWithCSS', false, true);
             rememberSelection();
             scheduleSave();
         });
@@ -500,23 +512,44 @@ export const initializeDocumentEditors = () => {
 
                 changeDocumentTable(activeTableCell, button.dataset.tableAction);
                 activeTableCell = activeTableCell.isConnected ? activeTableCell : null;
+                if (! activeTableCell) {
+                    tableContext.hidden = true;
+                    setTableToolsVisibility(false);
+                    clearTableSelection();
+                }
                 status.textContent = 'টেবিল আপডেট হয়েছে';
                 updateStatistics();
                 scheduleSave();
             });
         });
         const tableContext = workspace.querySelector('[data-table-context]');
+        const hideTableContext = () => {
+            tableContext.hidden = true;
+            setTableToolsVisibility(false);
+            activeTableCell = null;
+        };
+        const scheduleTableContextHide = () => {
+            window.clearTimeout(tableContextHideTimer);
+            tableContextHideTimer = window.setTimeout(hideTableContext, 180);
+        };
         const showTableContext = (cell) => {
+            window.clearTimeout(tableContextHideTimer);
             activeTableCell = cell;
-            const bounds = cell.getBoundingClientRect();
+            const bounds = cell.closest('table').getBoundingClientRect();
             tableContext.hidden = false;
-            tableContext.style.left = `${Math.min(window.innerWidth - tableContext.offsetWidth - 8, bounds.right + 6)}px`;
-            tableContext.style.top = `${Math.max(8, bounds.top)}px`;
+            setTableToolsVisibility(true);
+            tableContext.style.left = `${Math.max(8, Math.min(window.innerWidth - tableContext.offsetWidth - 8, bounds.left + (bounds.width - tableContext.offsetWidth) / 2))}px`;
+            tableContext.style.top = `${Math.max(8, bounds.top - tableContext.offsetHeight - 8)}px`;
         };
         pages.addEventListener('mouseover', (event) => {
             const cell = event.target.closest?.('td, th');
             if (cell) showTableContext(cell);
         });
+        pages.addEventListener('mouseout', (event) => {
+            if (event.target.closest?.('td, th') && ! event.relatedTarget?.closest?.('td, th')) scheduleTableContextHide();
+        });
+        tableContext.addEventListener('mouseenter', () => window.clearTimeout(tableContextHideTimer));
+        tableContext.addEventListener('mouseleave', scheduleTableContextHide);
         workspace.querySelectorAll('[data-table-context-action]').forEach((button) => {
             button.addEventListener('mousedown', (event) => event.preventDefault());
             button.addEventListener('click', () => {
@@ -540,11 +573,19 @@ export const initializeDocumentEditors = () => {
                     deleteDocumentTableCells(selectedTableCells.size ? selectedTableCells : [activeTableCell]);
                     clearTableSelection();
                 }
+                if (! activeTableCell?.isConnected) hideTableContext();
                 status.textContent = 'টেবিল আপডেট হয়েছে';
                 updateStatistics();
                 scheduleSave();
             });
         });
+        workspace.addEventListener('mousedown', (event) => {
+            if (! event.target.closest('[data-table-context], td, th, [data-table-action], [data-open-table]')) hideTableContext();
+        });
+        workspace.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') hideTableContext();
+        });
+        setTableToolsVisibility(false);
         workspace.querySelector('[data-insert-link]').addEventListener('click', () => {
             rememberSelection();
             const url = window.prompt('লিংকের ঠিকানা লিখুন (যেমন: https://example.com)');

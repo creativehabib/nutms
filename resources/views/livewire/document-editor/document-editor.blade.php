@@ -53,11 +53,11 @@
             <span class="mx-1 h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></span>
             <button type="button" data-insert-link class="editor-tool" title="লিংক যোগ করুন">🔗</button>
             <button type="button" data-open-table class="editor-tool" title="Insert custom table">▦ Table</button>
-            <button type="button" data-table-action="add-row" class="editor-tool" title="Insert row below">＋ Row</button>
-            <button type="button" data-table-action="add-column" class="editor-tool" title="Insert column right">＋ Column</button>
-            <button type="button" data-table-action="delete-row" class="editor-tool text-red-500" title="Delete current row">− Row</button>
-            <button type="button" data-table-action="delete-column" class="editor-tool text-red-500" title="Delete current column">− Column</button>
-            <button type="button" data-table-action="delete-table" class="editor-tool text-red-500" title="Delete table">× Table</button>
+            <button type="button" data-table-only hidden data-table-action="add-row" class="editor-tool" title="Insert row below">＋ Row</button>
+            <button type="button" data-table-only hidden data-table-action="add-column" class="editor-tool" title="Insert column right">＋ Column</button>
+            <button type="button" data-table-only hidden data-table-action="delete-row" class="editor-tool text-red-500" title="Delete current row">− Row</button>
+            <button type="button" data-table-only hidden data-table-action="delete-column" class="editor-tool text-red-500" title="Delete current column">− Column</button>
+            <button type="button" data-table-only hidden data-table-action="delete-table" class="editor-tool text-red-500" title="Delete table">× Table</button>
             <button type="button" data-command="formatBlock" data-value="blockquote" class="editor-tool" title="উদ্ধৃতি">❝</button>
             <button type="button" data-command="insertHorizontalRule" class="editor-tool" title="অনুভূমিক রেখা">―</button>
             <button type="button" data-clear-format class="editor-tool text-xs" title="সব ফরম্যাট মুছুন">Tx</button>
@@ -125,13 +125,14 @@
         </aside>
     </main>
 
-    <div data-table-context hidden class="document-chrome fixed z-50 w-36 rounded-xl border border-emerald-200 bg-white p-1.5 text-xs font-bold text-slate-700 shadow-xl dark:border-emerald-800 dark:bg-slate-900 dark:text-slate-200" role="toolbar" aria-label="Table cell tools">
-        <button type="button" data-table-context-action="add-row" class="table-context-tool text-emerald-700 dark:text-emerald-300">＋ Insert row</button>
-        <button type="button" data-table-context-action="add-column" class="table-context-tool text-emerald-700 dark:text-emerald-300">＋ Insert column</button>
-        <button type="button" data-table-context-action="select-cell" class="table-context-tool">Select cell</button>
-        <button type="button" data-table-context-action="select-column" class="table-context-tool">Select column</button>
-        <button type="button" data-table-context-action="merge" class="table-context-tool">Merge cells</button>
-        <button type="button" data-table-context-action="delete-selected" class="table-context-tool text-red-600 dark:text-red-400">Delete selection</button>
+    <div data-table-context hidden class="document-chrome fixed z-50 flex items-center gap-1 rounded-lg border border-slate-300 bg-white p-1.5 text-xs font-bold text-slate-700 shadow-xl dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" role="toolbar" aria-label="Table cell tools">
+        <button type="button" data-table-context-action="add-row" class="table-context-tool" title="Insert row">＋ Row</button>
+        <button type="button" data-table-context-action="add-column" class="table-context-tool" title="Insert column">＋ Column</button>
+        <span class="h-6 w-px bg-slate-200 dark:bg-slate-600"></span>
+        <button type="button" data-table-context-action="select-cell" class="table-context-tool" title="Select cell">Cell</button>
+        <button type="button" data-table-context-action="select-column" class="table-context-tool" title="Select column">Column</button>
+        <button type="button" data-table-context-action="merge" class="table-context-tool" title="Merge cells">Merge</button>
+        <button type="button" data-table-context-action="delete-selected" class="table-context-tool text-red-600 dark:text-red-400" title="Delete selection">Delete</button>
     </div>
 
     <dialog data-document-converter class="m-auto w-[min(92vw,760px)] rounded-3xl border-0 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
@@ -179,6 +180,7 @@
         .editor-tool:active { background:#dbeafe; color:#1d4ed8; }
         .editor-tool.is-on { border-color:#bfdbfe; background:#dbeafe; color:#1d4ed8; }
         .editor-tool:focus-visible, .editor-select:focus-visible { outline:2px solid #3b82f6; outline-offset:1px; }
+        [data-table-only][hidden], [data-table-context][hidden] { display:none; }
         .editor-select { height:2rem; flex-shrink:0; border:0; border-radius:.5rem; background:#f1f5f9; padding:0 .5rem; font-size:.75rem; font-weight:600; color:#475569; outline:none; }
         .editor-size-control { display:flex; height:2rem; width:4.5rem; align-items:center; border-radius:.5rem; background:#f1f5f9; padding:0 .45rem; color:#64748b; }
         .editor-size-control input { min-width:0; width:100%; border:0; background:transparent; padding:0; font-size:.75rem; font-weight:700; color:#334155; outline:none; }
@@ -210,7 +212,7 @@
         .editor-canvas td, .editor-canvas th { min-width:2rem; border:1px solid #64748b; padding:.4rem .55rem; vertical-align:top; }
         .editor-canvas td:hover, .editor-canvas th:hover { outline:2px solid #10b981; outline-offset:-2px; }
         .editor-canvas td.is-selected, .editor-canvas th.is-selected { background:#d1fae5; box-shadow:inset 0 0 0 2px #059669; }
-        .table-context-tool { display:block; width:100%; border-radius:.5rem; padding:.45rem .55rem; text-align:left; }
+        .table-context-tool { display:flex; height:2rem; align-items:center; justify-content:center; white-space:nowrap; border-radius:.35rem; padding:0 .55rem; }
         .table-context-tool:hover { background:#ecfdf5; }
         .editor-canvas hr { margin:1rem 0; border:0; border-top:1px solid #94a3b8; }
         .editor-canvas a { color:#047857; text-decoration:underline; }
