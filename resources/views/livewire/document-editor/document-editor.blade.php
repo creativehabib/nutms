@@ -48,6 +48,12 @@
             <button type="button" data-command="justifyFull" class="editor-tool" title="জাস্টিফাই">☰</button>
             <button type="button" data-command="insertUnorderedList" class="editor-tool" title="বুলেট তালিকা">• তালিকা</button>
             <button type="button" data-command="insertOrderedList" class="editor-tool" title="নম্বর তালিকা">1. তালিকা</button>
+            <select data-spacing-property="lineHeight" aria-label="Line spacing" title="Line spacing" class="editor-select w-[6.5rem]">
+                <option value="1">Line 1.0</option><option value="1.15">Line 1.15</option><option value="1.5">Line 1.5</option><option value="1.6" selected>Line 1.6</option><option value="2">Line 2.0</option><option value="2.5">Line 2.5</option><option value="3">Line 3.0</option>
+            </select>
+            <select data-spacing-property="marginBottom" aria-label="Paragraph spacing" title="Paragraph spacing after" class="editor-select w-[7.25rem]">
+                <option value="0pt">After 0 pt</option><option value="4pt">After 4 pt</option><option value="6pt" selected>After 6 pt</option><option value="8pt">After 8 pt</option><option value="12pt">After 12 pt</option><option value="18pt">After 18 pt</option><option value="24pt">After 24 pt</option>
+            </select>
             <button type="button" data-command="outdent" class="editor-tool" title="ইনডেন্ট কমান">⇤</button>
             <button type="button" data-command="indent" class="editor-tool" title="ইনডেন্ট বাড়ান">⇥</button>
             <span class="mx-1 h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></span>
@@ -206,7 +212,7 @@
         .editor-canvas h1 { margin:0 0 1rem; font-size:24pt; font-weight:800; line-height:1.2; }
         .editor-canvas h2 { margin:1rem 0 .75rem; font-size:19pt; font-weight:750; line-height:1.25; }
         .editor-canvas h3 { margin:.75rem 0 .5rem; font-size:15pt; font-weight:700; }
-        .editor-canvas p { margin:.45rem 0; }
+        .editor-canvas p { margin:0 0 .45rem; }
         .editor-canvas ul { list-style:disc; padding-left:1.5rem; } .editor-canvas ol { list-style:decimal; padding-left:1.5rem; }
         .editor-canvas blockquote { margin:1rem 0; border-left:4px solid #10b981; background:#f0fdf4; padding:.75rem 1rem; color:#475569; }
         .editor-canvas table { width:100%; margin:1rem 0; border-collapse:collapse; table-layout:fixed; }

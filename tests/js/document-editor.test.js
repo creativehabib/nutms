@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { changeDocumentTable, deleteDocumentTableCells, documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, mergeDocumentTableCells, splitDocumentTableCell, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
+import { applyDocumentBlockSpacing, changeDocumentTable, deleteDocumentTableCells, documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, mergeDocumentTableCells, splitDocumentTableCell, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
 
 test('documentPageGeometry returns portrait and landscape measurements', () => {
     assert.deepEqual(documentPageGeometry('A4', 'portrait'), { width: 210, height: 297 });
@@ -11,6 +11,16 @@ test('documentPageGeometry returns portrait and landscape measurements', () => {
 
 test('documentPrintStyles creates a zero-margin page matching the preview', () => {
     assert.equal(documentPrintStyles(297, 210), '@media print { @page { size: 297mm 210mm; margin: 0; } }');
+});
+
+test('applyDocumentBlockSpacing applies line and paragraph spacing', () => {
+    const blocks = [{ style: {} }, { style: {} }];
+
+    assert.equal(applyDocumentBlockSpacing(blocks, 'lineHeight', '1.5'), true);
+    assert.deepEqual(blocks.map((block) => block.style.lineHeight), ['1.5', '1.5']);
+    assert.equal(applyDocumentBlockSpacing(blocks, 'marginBottom', '12pt'), true);
+    assert.deepEqual(blocks.map((block) => block.style.marginBottom), ['12pt', '12pt']);
+    assert.equal(applyDocumentBlockSpacing(blocks, 'color', 'red'), false);
 });
 
 test('documentTableMarkup creates an editable table of the requested size', () => {
@@ -135,6 +145,8 @@ test('print stylesheet keeps the document page and its contents visible', () => 
     assert.match(view, /data-table-context-action="select-column"/);
     assert.match(view, /data-table-context-action="split"/);
     assert.match(view, /data-custom-font-size/);
+    assert.match(view, /data-spacing-property="lineHeight"/);
+    assert.match(view, /data-spacing-property="marginBottom"/);
     assert.match(view, /data-clear-format/);
     assert.match(view, />＋ Row</);
     assert.match(view, /title="Merge cells"/);

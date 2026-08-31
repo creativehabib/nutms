@@ -22,6 +22,19 @@ export const documentStatistics = (content = '') => {
 
 export const documentPrintStyles = (width, height) => `@media print { @page { size: ${width}mm ${height}mm; margin: 0; } }`;
 
+export const applyDocumentBlockSpacing = (blocks, property, value) => {
+    const supportedProperties = ['lineHeight', 'marginBottom'];
+
+    if (! supportedProperties.includes(property)) {
+        return false;
+    }
+
+    const uniqueBlocks = [...new Set(blocks)].filter(Boolean);
+    uniqueBlocks.forEach((block) => { block.style[property] = value; });
+
+    return uniqueBlocks.length > 0;
+};
+
 export const documentTableMarkup = (rows = 3, columns = 3) => {
     const cells = () => Array.from({ length: columns }, () => '<td><br></td>').join('');
 
@@ -294,6 +307,28 @@ export const initializeDocumentEditors = () => {
             selection.removeAllRanges();
             selection.addRange(savedRange);
         };
+        const selectedDocumentBlocks = () => {
+            const selection = window.getSelection();
+            const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+
+            if (! range || ! activeEditor?.contains(range.commonAncestorContainer)) return [];
+
+            const blockSelector = 'p, h1, h2, h3, li, blockquote, div';
+            const startElement = range.startContainer.nodeType === Node.ELEMENT_NODE ? range.startContainer : range.startContainer.parentElement;
+            const endElement = range.endContainer.nodeType === Node.ELEMENT_NODE ? range.endContainer : range.endContainer.parentElement;
+            const boundaryBlocks = [startElement?.closest(blockSelector), endElement?.closest(blockSelector)]
+                .filter((block) => block && activeEditor.contains(block));
+            const intersectingBlocks = [...activeEditor.querySelectorAll(blockSelector)]
+                .filter((block) => {
+                    try {
+                        return range.intersectsNode(block);
+                    } catch {
+                        return false;
+                    }
+                });
+
+            return [...new Set([...boundaryBlocks, ...intersectingBlocks])];
+        };
         const updatePageNumbers = () => {
             const total = editors().length;
             pages.querySelectorAll('[data-page-sheet]').forEach((sheet, index) => {
@@ -529,6 +564,18 @@ export const initializeDocumentEditors = () => {
             updateStatistics();
             scheduleSave();
         }));
+        workspace.querySelectorAll('[data-spacing-property]').forEach((select) => {
+            select.addEventListener('mousedown', rememberSelection);
+            select.addEventListener('change', () => {
+                restoreSelection();
+                if (! applyDocumentBlockSpacing(selectedDocumentBlocks(), select.dataset.spacingProperty, select.value)) {
+                    status.textContent = 'Spacing প্রয়োগ করতে paragraph-এর মধ্যে cursor রাখুন';
+                    return;
+                }
+                rememberSelection();
+                scheduleSave();
+            });
+        });
         workspace.querySelector('[data-text-color]').addEventListener('mousedown', rememberSelection);
         workspace.querySelector('[data-text-color]').addEventListener('input', (event) => {
             restoreSelection();
