@@ -1,3 +1,7 @@
+@push('styles')
+    <link rel="stylesheet" href="https://fonts.maateen.me/sutonny-mj/font.css">
+@endpush
+
 <div data-document-editor class="document-studio min-h-screen bg-[#eef1f5] text-slate-800 dark:bg-slate-950 dark:text-slate-100" style="--page-width:210mm;--page-height:297mm;--margin-top:20mm;--margin-right:20mm;--margin-bottom:20mm;--margin-left:20mm;--editor-scale:1">
     <style data-print-rules></style>
 
@@ -69,6 +73,17 @@
 
         <aside class="document-chrome flex flex-col gap-4 lg:sticky lg:top-[130px]">
             <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div class="mb-4 flex items-center justify-between gap-3">
+                    <div><h2 class="font-bold">বাংলা টাইপিং</h2><p class="text-[11px] text-slate-500">ইউনিকোড অথবা বিজয় সুতনি</p></div>
+                    <button type="button" data-open-converter class="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300">কনভার্টার</button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="typing-card"><input type="radio" name="document-typing-mode" value="unicode" checked class="peer sr-only"><span class="typing-option"><strong>অভ্র / ইউনিকোড</strong><small>Noto Sans Bengali</small></span></label>
+                    <label class="typing-card"><input type="radio" name="document-typing-mode" value="bijoy" class="peer sr-only"><span class="typing-option"><strong>বিজয় সুতনি</strong><small>SutonnyMJ</small></span></label>
+                </div>
+            </section>
+
+            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <div class="mb-5 flex items-center gap-3"><span class="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">▤</span><div><h2 class="font-bold">পেইজ সেটআপ</h2><p class="text-[11px] text-slate-500">প্রিন্টের মাপ ও বিন্যাস</p></div></div>
                 <div class="space-y-4">
                     <label class="block"><span class="editor-label">কাগজের সাইজ</span><select data-paper-size class="setup-input"><option value="A4">A4 — 210 × 297 mm</option><option value="Letter">Letter — 8.5 × 11 in</option><option value="Legal">Legal — 8.5 × 14 in</option></select></label>
@@ -87,6 +102,22 @@
         </aside>
     </main>
 
+    <dialog data-document-converter class="m-auto w-[min(92vw,760px)] rounded-3xl border-0 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+            <div><h2 class="text-lg font-extrabold">বিজয় ⇄ ইউনিকোড কনভার্টার</h2><p class="text-xs text-slate-500">লেখা রূপান্তর করে সরাসরি ডকুমেন্টে যোগ করুন</p></div>
+            <button type="button" data-close-converter class="grid size-9 place-items-center rounded-full bg-slate-100 text-xl hover:bg-slate-200 dark:bg-slate-800">×</button>
+        </div>
+        <div class="grid gap-4 p-5 md:grid-cols-2">
+            <label><span class="editor-label">ইউনিকোড লেখা</span><textarea data-converter-unicode rows="9" class="converter-field" placeholder="ইউনিকোড লেখা লিখুন…"></textarea></label>
+            <label><span class="editor-label">বিজয় সুতনি লেখা</span><textarea data-converter-bijoy rows="9" class="converter-field" style="font-family:'SutonnyMJ', sans-serif" placeholder="weRq myZwb‡Z wjLyb…"></textarea></label>
+        </div>
+        <div class="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 px-5 py-4 dark:border-slate-800">
+            <button type="button" data-convert-to-unicode class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold dark:border-slate-700">← ইউনিকোড করুন</button>
+            <button type="button" data-convert-to-bijoy class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold dark:border-slate-700">বিজয় করুন →</button>
+            <button type="button" data-insert-converted class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white">ডকুমেন্টে যোগ করুন</button>
+        </div>
+    </dialog>
+
     <style>
         .editor-tool { display:flex; height:2rem; min-width:2rem; flex-shrink:0; align-items:center; justify-content:center; border-radius:.5rem; padding:0 .45rem; color:#475569; transition:.15s; }
         .editor-tool:hover { background:#e2e8f0; color:#0f172a; }
@@ -98,6 +129,11 @@
         .peer:checked + .orientation-option { border-color:#10b981; background:#ecfdf5; color:#047857; box-shadow:0 0 0 1px #10b981; }
         .margin-field { border:1px solid #e2e8f0; border-radius:.65rem; padding:.4rem .6rem; font-size:.65rem; font-weight:700; color:#64748b; }
         .margin-field input { width:100%; border:0; background:transparent; padding:.1rem 0 0; font-size:.85rem; font-weight:700; color:#1e293b; outline:none; }
+        .typing-option { display:flex; cursor:pointer; flex-direction:column; gap:.15rem; border:1px solid #e2e8f0; border-radius:.75rem; padding:.65rem; font-size:.7rem; color:#475569; transition:.15s; }
+        .typing-option small { color:#94a3b8; font-size:.58rem; }
+        .peer:checked + .typing-option { border-color:#10b981; background:#ecfdf5; color:#047857; box-shadow:0 0 0 1px #10b981; }
+        .converter-field { width:100%; resize:vertical; border:1px solid #e2e8f0; border-radius:.85rem; background:#f8fafc; padding:.85rem; font-size:1rem; line-height:1.7; outline:none; }
+        .converter-field:focus { border-color:#10b981; box-shadow:0 0 0 3px rgb(16 185 129 / .12); }
         .page-scaler { width:calc(var(--page-width) * var(--editor-scale)); height:calc(var(--page-height) * var(--editor-scale)); }
         .document-page { width:var(--page-width); height:var(--page-height); transform:scale(var(--editor-scale)); transform-origin:top left; }
         .editor-canvas { padding:var(--margin-top) var(--margin-right) var(--margin-bottom) var(--margin-left); overflow:hidden; font-family:'Noto Sans Bengali', sans-serif; font-size:12pt; line-height:1.6; }
@@ -107,12 +143,12 @@
         .editor-canvas p { margin:.45rem 0; }
         .editor-canvas ul { list-style:disc; padding-left:1.5rem; } .editor-canvas ol { list-style:decimal; padding-left:1.5rem; }
         .editor-canvas:empty::before { content:attr(data-placeholder); color:#94a3b8; pointer-events:none; }
-        @media (prefers-color-scheme: dark) { .editor-tool { color:#cbd5e1; } .editor-tool:hover { background:#334155; color:#fff; } .editor-select,.setup-input { background:#0f172a; border-color:#334155; color:#e2e8f0; } .orientation-option,.margin-field { border-color:#334155; } .margin-field input { color:#e2e8f0; } }
+        @media (prefers-color-scheme: dark) { .editor-tool { color:#cbd5e1; } .editor-tool:hover { background:#334155; color:#fff; } .editor-select,.setup-input,.converter-field { background:#0f172a; border-color:#334155; color:#e2e8f0; } .orientation-option,.margin-field,.typing-option { border-color:#334155; } .margin-field input { color:#e2e8f0; } }
         @media print {
-            body, .document-studio { margin:0 !important; background:white !important; }
-            body > *:not(.document-studio), .document-chrome, .document-studio main > aside { display:none !important; }
-            .document-studio main, .document-studio main > section, .page-stage, .page-scaler { display:block !important; width:auto !important; height:auto !important; min-height:0 !important; margin:0 !important; padding:0 !important; border:0 !important; overflow:visible !important; background:white !important; }
-            .document-page { width:var(--page-width) !important; height:var(--page-height) !important; transform:none !important; box-shadow:none !important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+            html, body { margin:0 !important; padding:0 !important; background:white !important; }
+            body * { visibility:hidden !important; }
+            body .document-page, body .document-page * { visibility:visible !important; }
+            .document-page { position:fixed !important; inset:0 auto auto 0 !important; width:var(--page-width) !important; height:var(--page-height) !important; margin:0 !important; transform:none !important; box-shadow:none !important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
             .editor-canvas { overflow:visible !important; }
         }
     </style>

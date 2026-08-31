@@ -1,3 +1,5 @@
+import { convertBijoyToUnicode, convertUnicodeToBijoy } from './bangla-converter.js';
+
 export const paperSizes = Object.freeze({
     A4: { width: 210, height: 297, label: 'A4' },
     Letter: { width: 215.9, height: 279.4, label: 'Letter' },
@@ -21,6 +23,8 @@ export const documentStatistics = (content = '') => {
     };
 };
 
+export const documentPrintStyles = (width, height) => `@media print { @page { size: ${width}mm ${height}mm; margin: 0; } }`;
+
 const editorInstances = new WeakSet();
 
 export const initializeDocumentEditors = () => {
@@ -41,6 +45,8 @@ export const initializeDocumentEditors = () => {
         const footer = workspace.querySelector('[data-page-footer]');
         const zoom = workspace.querySelector('[data-zoom]');
         const status = workspace.querySelector('[data-save-status]');
+        const typingModeInputs = [...workspace.querySelectorAll('[name="document-typing-mode"]')];
+        const converter = workspace.querySelector('[data-document-converter]');
         const storageKey = 'nutms-document-editor-v2';
         let saveTimer;
 
@@ -64,7 +70,7 @@ export const initializeDocumentEditors = () => {
             workspace.style.setProperty('--margin-left', `${margin.left}mm`);
             workspace.style.setProperty('--editor-scale', scale);
             workspace.querySelector('[data-zoom-label]').textContent = `${zoom.value}%`;
-            printRules.textContent = `@media print { @page { size: ${geometry.width}mm ${geometry.height}mm; margin: 0; } }`;
+            printRules.textContent = documentPrintStyles(geometry.width, geometry.height);
         };
         const save = () => {
             const payload = {
@@ -75,6 +81,7 @@ export const initializeDocumentEditors = () => {
                 margins: margins(),
                 header: headerInput.value,
                 footer: footerInput.value,
+                typingMode: typingModeInputs.find((input) => input.checked)?.value ?? 'unicode',
                 updatedAt: new Date().toISOString(),
             };
             localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -91,6 +98,13 @@ export const initializeDocumentEditors = () => {
             header.textContent = headerInput.value;
             footer.querySelector('[data-footer-copy]').textContent = footerInput.value;
         };
+        const syncTypingMode = () => {
+            const mode = typingModeInputs.find((input) => input.checked)?.value ?? 'unicode';
+            editor.dataset.typingMode = mode;
+            editor.style.fontFamily = mode === 'bijoy'
+                ? "'SutonnyMJ', sans-serif"
+                : "'Noto Sans Bengali', sans-serif";
+        };
         const restore = () => {
             try {
                 const saved = JSON.parse(localStorage.getItem(storageKey));
@@ -102,6 +116,7 @@ export const initializeDocumentEditors = () => {
                 marginInputs.forEach((input) => { input.value = saved.margins?.[input.dataset.margin] ?? 20; });
                 headerInput.value = saved.header || '';
                 footerInput.value = saved.footer || '';
+                typingModeInputs.forEach((input) => { input.checked = input.value === (saved.typingMode || 'unicode'); });
             } catch {
                 localStorage.removeItem(storageKey);
             }
@@ -115,6 +130,7 @@ export const initializeDocumentEditors = () => {
 
         restore();
         syncHeaderFooter();
+        syncTypingMode();
         applyPageSetup();
         updateStatistics();
 
@@ -131,6 +147,7 @@ export const initializeDocumentEditors = () => {
         });
         [paper, zoom, ...orientationInputs, ...marginInputs].forEach((input) => input.addEventListener('input', () => { applyPageSetup(); scheduleSave(); }));
         [headerInput, footerInput].forEach((input) => input.addEventListener('input', () => { syncHeaderFooter(); scheduleSave(); }));
+        typingModeInputs.forEach((input) => input.addEventListener('change', () => { syncTypingMode(); scheduleSave(); }));
         title.addEventListener('input', scheduleSave);
         editor.addEventListener('input', () => { updateStatistics(); scheduleSave(); });
         workspace.querySelector('[data-print-document]').addEventListener('click', () => window.print());
@@ -143,6 +160,27 @@ export const initializeDocumentEditors = () => {
             }
         });
         workspace.querySelector('[data-fullscreen]').addEventListener('click', () => workspace.requestFullscreen?.());
+        workspace.querySelector('[data-open-converter]').addEventListener('click', () => converter.showModal());
+        workspace.querySelector('[data-close-converter]').addEventListener('click', () => converter.close());
+        workspace.querySelector('[data-convert-to-bijoy]').addEventListener('click', () => {
+            workspace.querySelector('[data-converter-bijoy]').value = convertUnicodeToBijoy(workspace.querySelector('[data-converter-unicode]').value);
+        });
+        workspace.querySelector('[data-convert-to-unicode]').addEventListener('click', () => {
+            workspace.querySelector('[data-converter-unicode]').value = convertBijoyToUnicode(workspace.querySelector('[data-converter-bijoy]').value);
+        });
+        workspace.querySelector('[data-insert-converted]').addEventListener('click', () => {
+            const unicodeValue = workspace.querySelector('[data-converter-unicode]').value;
+            const bijoyValue = workspace.querySelector('[data-converter-bijoy]').value;
+            const usesBijoy = editor.dataset.typingMode === 'bijoy';
+            const convertedValue = usesBijoy
+                ? (bijoyValue || convertUnicodeToBijoy(unicodeValue))
+                : (unicodeValue || convertBijoyToUnicode(bijoyValue));
+            editor.focus();
+            document.execCommand('insertText', false, convertedValue);
+            updateStatistics();
+            scheduleSave();
+            converter.close();
+        });
         workspace.addEventListener('keydown', (event) => {
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
                 event.preventDefault();
