@@ -108,6 +108,10 @@ test('print stylesheet keeps the document page and its contents visible', () => 
     assert.match(view, /data-table-context-action="merge"/);
     assert.match(view, /data-table-context-action="select-column"/);
     assert.match(view, /data-custom-font-size/);
+    assert.match(view, /data-clear-format/);
+    assert.match(view, />＋ Row</);
+    assert.match(view, />Merge cells</);
+    assert.match(view, /class="editor-toolbar/);
 });
 
 test('documentStatistics counts visible words and characters', () => {

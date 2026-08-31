@@ -25,7 +25,7 @@
             </button>
         </div>
 
-        <div class="mx-auto flex max-w-[1600px] flex-wrap items-center gap-1 border-t border-slate-100 px-4 py-2 dark:border-slate-800" role="toolbar" aria-label="লেখা ফরম্যাটিং টুলবার">
+        <div class="editor-toolbar mx-auto my-2 flex max-w-[1568px] flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5 shadow-inner dark:border-slate-700 dark:bg-slate-950" role="toolbar" aria-label="লেখা ফরম্যাটিং টুলবার">
             <button type="button" data-command="undo" class="editor-tool" title="পূর্বাবস্থায় ফিরুন">↶</button>
             <button type="button" data-command="redo" class="editor-tool" title="পুনরায় করুন">↷</button>
             <span class="mx-1 h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></span>
@@ -52,15 +52,15 @@
             <button type="button" data-command="indent" class="editor-tool" title="ইনডেন্ট বাড়ান">⇥</button>
             <span class="mx-1 h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></span>
             <button type="button" data-insert-link class="editor-tool" title="লিংক যোগ করুন">🔗</button>
-            <button type="button" data-open-table class="editor-tool" title="কাস্টম টেবিল যোগ করুন">▦ টেবিল</button>
-            <button type="button" data-table-action="add-row" class="editor-tool" title="টেবিলে রো যোগ করুন">＋রো</button>
-            <button type="button" data-table-action="add-column" class="editor-tool" title="টেবিলে কলাম যোগ করুন">＋কলাম</button>
-            <button type="button" data-table-action="delete-row" class="editor-tool text-red-500" title="বর্তমান রো মুছুন">−রো</button>
-            <button type="button" data-table-action="delete-column" class="editor-tool text-red-500" title="বর্তমান কলাম মুছুন">−কলাম</button>
-            <button type="button" data-table-action="delete-table" class="editor-tool text-red-500" title="সম্পূর্ণ টেবিল মুছুন">×টেবিল</button>
+            <button type="button" data-open-table class="editor-tool" title="Insert custom table">▦ Table</button>
+            <button type="button" data-table-action="add-row" class="editor-tool" title="Insert row below">＋ Row</button>
+            <button type="button" data-table-action="add-column" class="editor-tool" title="Insert column right">＋ Column</button>
+            <button type="button" data-table-action="delete-row" class="editor-tool text-red-500" title="Delete current row">− Row</button>
+            <button type="button" data-table-action="delete-column" class="editor-tool text-red-500" title="Delete current column">− Column</button>
+            <button type="button" data-table-action="delete-table" class="editor-tool text-red-500" title="Delete table">× Table</button>
             <button type="button" data-command="formatBlock" data-value="blockquote" class="editor-tool" title="উদ্ধৃতি">❝</button>
             <button type="button" data-command="insertHorizontalRule" class="editor-tool" title="অনুভূমিক রেখা">―</button>
-            <button type="button" data-command="removeFormat" class="editor-tool text-xs" title="ফরম্যাট মুছুন">Tx</button>
+            <button type="button" data-clear-format class="editor-tool text-xs" title="সব ফরম্যাট মুছুন">Tx</button>
         </div>
     </header>
 
@@ -125,13 +125,13 @@
         </aside>
     </main>
 
-    <div data-table-context hidden class="document-chrome fixed z-50 w-36 rounded-xl border border-emerald-200 bg-white p-1.5 text-xs font-bold text-slate-700 shadow-xl dark:border-emerald-800 dark:bg-slate-900 dark:text-slate-200" role="toolbar" aria-label="টেবিল সেল টুলস">
-        <button type="button" data-table-context-action="add-row" class="table-context-tool text-emerald-700 dark:text-emerald-300">＋ নিচে রো</button>
-        <button type="button" data-table-context-action="add-column" class="table-context-tool text-emerald-700 dark:text-emerald-300">＋ পাশে কলাম</button>
-        <button type="button" data-table-context-action="select-cell" class="table-context-tool">সেল নির্বাচন</button>
-        <button type="button" data-table-context-action="select-column" class="table-context-tool">কলাম নির্বাচন</button>
-        <button type="button" data-table-context-action="merge" class="table-context-tool">সেল মার্জ</button>
-        <button type="button" data-table-context-action="delete-selected" class="table-context-tool text-red-600 dark:text-red-400">নির্বাচিত সেল মুছুন</button>
+    <div data-table-context hidden class="document-chrome fixed z-50 w-36 rounded-xl border border-emerald-200 bg-white p-1.5 text-xs font-bold text-slate-700 shadow-xl dark:border-emerald-800 dark:bg-slate-900 dark:text-slate-200" role="toolbar" aria-label="Table cell tools">
+        <button type="button" data-table-context-action="add-row" class="table-context-tool text-emerald-700 dark:text-emerald-300">＋ Insert row</button>
+        <button type="button" data-table-context-action="add-column" class="table-context-tool text-emerald-700 dark:text-emerald-300">＋ Insert column</button>
+        <button type="button" data-table-context-action="select-cell" class="table-context-tool">Select cell</button>
+        <button type="button" data-table-context-action="select-column" class="table-context-tool">Select column</button>
+        <button type="button" data-table-context-action="merge" class="table-context-tool">Merge cells</button>
+        <button type="button" data-table-context-action="delete-selected" class="table-context-tool text-red-600 dark:text-red-400">Delete selection</button>
     </div>
 
     <dialog data-document-converter class="m-auto w-[min(92vw,760px)] rounded-3xl border-0 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
@@ -151,12 +151,12 @@
     </dialog>
 
     <dialog data-table-dialog class="m-auto w-[min(92vw,420px)] rounded-3xl border-0 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
-        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800"><h2 class="text-lg font-extrabold">কাস্টম টেবিল</h2><button type="button" data-close-table class="grid size-9 place-items-center rounded-full bg-slate-100 text-xl dark:bg-slate-800">×</button></div>
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800"><h2 class="text-lg font-extrabold">Insert table</h2><button type="button" data-close-table class="grid size-9 place-items-center rounded-full bg-slate-100 text-xl dark:bg-slate-800">×</button></div>
         <div class="grid grid-cols-2 gap-4 p-5">
-            <label><span class="editor-label">রো সংখ্যা</span><input data-table-rows type="number" min="1" max="30" value="3" class="setup-input"></label>
-            <label><span class="editor-label">কলাম সংখ্যা</span><input data-table-columns type="number" min="1" max="12" value="3" class="setup-input"></label>
+            <label><span class="editor-label">Rows</span><input data-table-rows type="number" min="1" max="30" value="3" class="setup-input"></label>
+            <label><span class="editor-label">Columns</span><input data-table-columns type="number" min="1" max="12" value="3" class="setup-input"></label>
         </div>
-        <div class="flex justify-end border-t border-slate-200 px-5 py-4 dark:border-slate-800"><button type="button" data-insert-table class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white">টেবিল যোগ করুন</button></div>
+        <div class="flex justify-end border-t border-slate-200 px-5 py-4 dark:border-slate-800"><button type="button" data-insert-table class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white">Insert table</button></div>
     </dialog>
 
     <template data-page-template>
@@ -174,8 +174,11 @@
     </template>
 
     <style>
-        .editor-tool { display:flex; height:2rem; min-width:2rem; flex-shrink:0; align-items:center; justify-content:center; border-radius:.5rem; padding:0 .45rem; color:#475569; transition:.15s; }
-        .editor-tool:hover { background:#e2e8f0; color:#0f172a; }
+        .editor-tool { display:flex; height:2.15rem; min-width:2.15rem; flex-shrink:0; align-items:center; justify-content:center; border:1px solid transparent; border-radius:.4rem; padding:0 .5rem; color:#334155; transition:.15s; }
+        .editor-tool:hover { border-color:#cbd5e1; background:#fff; color:#0f172a; box-shadow:0 1px 2px rgb(15 23 42 / .08); }
+        .editor-tool:active { background:#dbeafe; color:#1d4ed8; }
+        .editor-tool.is-on { border-color:#bfdbfe; background:#dbeafe; color:#1d4ed8; }
+        .editor-tool:focus-visible, .editor-select:focus-visible { outline:2px solid #3b82f6; outline-offset:1px; }
         .editor-select { height:2rem; flex-shrink:0; border:0; border-radius:.5rem; background:#f1f5f9; padding:0 .5rem; font-size:.75rem; font-weight:600; color:#475569; outline:none; }
         .editor-size-control { display:flex; height:2rem; width:4.5rem; align-items:center; border-radius:.5rem; background:#f1f5f9; padding:0 .45rem; color:#64748b; }
         .editor-size-control input { min-width:0; width:100%; border:0; background:transparent; padding:0; font-size:.75rem; font-weight:700; color:#334155; outline:none; }
@@ -214,6 +217,7 @@
         .editor-canvas:empty::before { content:attr(data-placeholder); color:#94a3b8; pointer-events:none; }
         .dark .editor-tool { color:#cbd5e1; }
         .dark .editor-tool:hover { background:#334155; color:#fff; }
+        .dark .editor-tool.is-on { border-color:#2563eb; background:#1e3a8a; color:#dbeafe; }
         .dark .editor-select, .dark .editor-size-control, .dark .setup-input, .dark .converter-field { border-color:#334155; background:#0f172a; color:#e2e8f0; }
         .dark .editor-size-control input { color:#e2e8f0; }
         .dark .editor-label { color:#94a3b8; }

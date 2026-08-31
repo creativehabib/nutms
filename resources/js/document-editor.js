@@ -200,7 +200,13 @@ export const initializeDocumentEditors = () => {
         };
         const rememberSelection = () => {
             const selection = window.getSelection();
-            if (selection?.rangeCount && activeEditor?.contains(selection.anchorNode)) savedRange = selection.getRangeAt(0).cloneRange();
+            if (selection?.rangeCount && activeEditor?.contains(selection.anchorNode)) {
+                savedRange = selection.getRangeAt(0).cloneRange();
+                workspace.querySelectorAll('[data-command]').forEach((button) => {
+                    const statefulCommands = ['bold', 'italic', 'underline', 'strikeThrough', 'superscript', 'subscript', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull', 'insertUnorderedList', 'insertOrderedList'];
+                    button.classList.toggle('is-on', statefulCommands.includes(button.dataset.command) && document.queryCommandState(button.dataset.command));
+                });
+            }
         };
         const rememberTableCell = (target) => {
             const cell = target.nodeType === Node.ELEMENT_NODE ? target.closest('td, th') : target.parentElement?.closest('td, th');
@@ -391,8 +397,18 @@ export const initializeDocumentEditors = () => {
             setActiveEditor(editors()[0]);
         };
         const runCommand = (button) => {
-            activeEditor?.focus();
+            restoreSelection();
             document.execCommand(button.dataset.command, false, button.dataset.value ?? null);
+            rememberSelection();
+            updateStatistics();
+            scheduleSave();
+        };
+        const clearFormatting = () => {
+            restoreSelection();
+            document.execCommand('removeFormat', false, null);
+            document.execCommand('unlink', false, null);
+            document.execCommand('formatBlock', false, 'p');
+            rememberSelection();
             updateStatistics();
             scheduleSave();
         };
@@ -404,26 +420,45 @@ export const initializeDocumentEditors = () => {
         updateStatistics();
         updatePageNumbers();
 
-        workspace.querySelectorAll('[data-command]').forEach((button) => button.addEventListener('click', () => runCommand(button)));
+        document.execCommand('styleWithCSS', false, true);
+        workspace.querySelectorAll('[data-command]').forEach((button) => {
+            button.addEventListener('mousedown', (event) => {
+                event.preventDefault();
+                rememberSelection();
+            });
+            button.addEventListener('click', () => runCommand(button));
+        });
+        workspace.querySelector('[data-clear-format]').addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            rememberSelection();
+        });
+        workspace.querySelector('[data-clear-format]').addEventListener('click', clearFormatting);
+        workspace.querySelectorAll('[data-format-select]').forEach((select) => select.addEventListener('mousedown', rememberSelection));
         workspace.querySelectorAll('[data-format-select]').forEach((select) => select.addEventListener('change', () => {
-            activeEditor?.focus();
+            restoreSelection();
             document.execCommand(select.dataset.formatSelect, false, select.value);
+            rememberSelection();
+            updateStatistics();
             scheduleSave();
         }));
+        workspace.querySelector('[data-text-color]').addEventListener('mousedown', rememberSelection);
         workspace.querySelector('[data-text-color]').addEventListener('input', (event) => {
-            activeEditor?.focus();
+            restoreSelection();
             document.execCommand('foreColor', false, event.target.value);
+            rememberSelection();
             scheduleSave();
         });
+        workspace.querySelector('[data-custom-font-size]').addEventListener('mousedown', rememberSelection);
         workspace.querySelector('[data-custom-font-size]').addEventListener('change', (event) => {
             const fontSize = Math.min(96, Math.max(8, Number(event.target.value) || 12));
             event.target.value = fontSize;
-            activeEditor?.focus();
+            restoreSelection();
             document.execCommand('fontSize', false, '7');
             activeEditor?.querySelectorAll('font[size="7"]').forEach((font) => {
                 font.removeAttribute('size');
                 font.style.fontSize = `${fontSize}pt`;
             });
+            rememberSelection();
             scheduleSave();
         });
         workspace.querySelector('[data-open-table]').addEventListener('mousedown', (event) => {
