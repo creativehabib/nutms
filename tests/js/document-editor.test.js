@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { applyDocumentBlockSpacing, changeDocumentTable, deleteDocumentTableCells, documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, mergeDocumentTableCells, splitDocumentTableCell, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
+import { applyDocumentBlockSpacing, changeDocumentTable, deleteDocumentTableCells, documentPageGeometry, documentPrintStyles, documentStatistics, documentTableMarkup, documentTableTabTarget, mergeDocumentTableCells, splitDocumentTableCell, transliteratePhoneticWord } from '../../resources/js/document-editor.js';
 
 test('documentPageGeometry returns portrait and landscape measurements', () => {
     assert.deepEqual(documentPageGeometry('A4', 'portrait'), { width: 210, height: 297 });
@@ -76,6 +76,36 @@ test('deleteDocumentTableCells removes a fully selected column', () => {
     assert.deepEqual(deletedColumns, [1, 1]);
 });
 
+test('deleteDocumentTableCells removes fully selected rows', () => {
+    const removedRows = [];
+    const table = { rows: [] };
+    table.rows = [0, 1].map((rowIndex) => {
+        const row = { cells: [], remove: () => removedRows.push(rowIndex) };
+        row.cells = [0, 1].map((cellIndex) => ({ cellIndex, closest: () => table }));
+        return row;
+    });
+
+    assert.equal(deleteDocumentTableCells(table.rows[0].cells), true);
+    assert.deepEqual(removedRows, [0]);
+});
+
+test('documentTableTabTarget moves forward and creates a row after the last cell', () => {
+    const table = { rows: [], insertRow() {
+        const row = { cells: [], insertCell() { const cell = { closest: () => table, innerHTML: '' }; this.cells.push(cell); return cell; } };
+        this.rows.push(row);
+        return row;
+    } };
+    const row = { cells: [], closest: () => table };
+    row.cells = [0, 1].map(() => ({ closest: (selector) => selector === 'table' ? table : row }));
+    table.rows = [row];
+
+    assert.equal(documentTableTabTarget(row.cells[0]), row.cells[1]);
+    assert.equal(documentTableTabTarget(row.cells[1], true), row.cells[0]);
+    const createdCell = documentTableTabTarget(row.cells[1]);
+    assert.equal(table.rows.length, 2);
+    assert.equal(createdCell, table.rows[1].cells[0]);
+});
+
 test('mergeDocumentTableCells merges a rectangular selection', () => {
     const table = { rows: [] };
     table.rows = [0, 1].map((rowIndex) => {
@@ -144,6 +174,7 @@ test('print stylesheet keeps the document page and its contents visible', () => 
     assert.match(view, /data-table-context-action="merge"/);
     assert.match(view, /data-table-context-action="select-column"/);
     assert.match(view, /data-table-context-action="split"/);
+    assert.match(view, /data-table-context-action="delete-table"/);
     assert.match(view, /data-custom-font-size/);
     assert.match(view, /data-spacing-property="lineHeight"/);
     assert.match(view, /data-spacing-property="marginBottom"/);

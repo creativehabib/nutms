@@ -144,10 +144,26 @@ export const splitDocumentTableCell = (cell) => {
 export const deleteDocumentTableCells = (cells) => {
     const selectedCells = [...new Set(cells)].filter((cell) => cell?.isConnected !== false);
     const table = selectedCells[0]?.closest?.('table');
+    const tableCells = table ? [...table.rows].flatMap((row) => [...row.cells]) : [];
     const selectedColumn = selectedCells[0]?.cellIndex;
+    const selectedRows = table
+        ? [...table.rows].filter((row) => [...row.cells].every((cell) => selectedCells.includes(cell)))
+        : [];
     const isCompleteColumn = table
         && selectedCells.length === table.rows.length
         && selectedCells.every((cell) => cell.closest('table') === table && cell.cellIndex === selectedColumn);
+
+    if (table && selectedCells.length === tableCells.length) {
+        table.remove();
+
+        return true;
+    }
+
+    if (selectedRows.length > 0 && selectedRows.flatMap((row) => [...row.cells]).length === selectedCells.length) {
+        selectedRows.forEach((row) => row.remove());
+
+        return true;
+    }
 
     if (isCompleteColumn) {
         if (table.rows[0].cells.length === 1) {
@@ -162,6 +178,27 @@ export const deleteDocumentTableCells = (cells) => {
     selectedCells.forEach((cell) => { cell.innerHTML = '<br>'; });
 
     return selectedCells.length > 0;
+};
+
+export const documentTableTabTarget = (cell, backwards = false) => {
+    const table = cell?.closest?.('table');
+
+    if (! table) return null;
+
+    const cells = [...table.rows].flatMap((row) => [...row.cells]);
+    const currentIndex = cells.indexOf(cell);
+    const targetCell = cells[currentIndex + (backwards ? -1 : 1)];
+
+    if (targetCell) return targetCell;
+    if (backwards || currentIndex === -1) return cells[0] ?? null;
+
+    const referenceRow = cell.closest('tr');
+    const newRow = table.insertRow(-1);
+    Array.from({ length: Math.max(1, referenceRow.cells.length) }, () => {
+        newRow.insertCell().innerHTML = '<br>';
+    });
+
+    return newRow.cells[0];
 };
 
 const phoneticConsonants = Object.freeze({
@@ -467,6 +504,28 @@ export const initializeDocumentEditors = () => {
                 scheduleSave();
             });
             editor.addEventListener('keydown', (event) => {
+                const selectionNode = window.getSelection()?.anchorNode;
+                const selectionElement = selectionNode?.nodeType === Node.ELEMENT_NODE ? selectionNode : selectionNode?.parentElement;
+                const tableCell = selectionElement?.closest('td, th');
+
+                if (event.key === 'Tab' && tableCell && editor.contains(tableCell)) {
+                    event.preventDefault();
+                    const targetCell = documentTableTabTarget(tableCell, event.shiftKey);
+                    if (! targetCell) return;
+
+                    const range = document.createRange();
+                    range.selectNodeContents(targetCell);
+                    range.collapse(true);
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    activeTableCell = targetCell;
+                    targetCell.focus?.();
+                    rememberSelection();
+                    scheduleSave();
+                    return;
+                }
+
                 if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
                     event.preventDefault();
                     addPage();
@@ -701,6 +760,8 @@ export const initializeDocumentEditors = () => {
                 } else if (action === 'delete-selected') {
                     deleteDocumentTableCells(selectedTableCells.size ? selectedTableCells : [activeTableCell]);
                     clearTableSelection();
+                } else if (action === 'delete-table') {
+                    table.remove();
                 }
                 if (! activeTableCell?.isConnected) hideTableContext();
                 status.textContent = 'টেবিল আপডেট হয়েছে';

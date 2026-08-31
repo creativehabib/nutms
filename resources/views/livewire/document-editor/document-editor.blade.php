@@ -139,7 +139,8 @@
         <button type="button" data-table-context-action="select-column" class="table-context-tool" title="Select column">Column</button>
         <button type="button" data-table-context-action="merge" class="table-context-tool" title="Merge cells">Merge</button>
         <button type="button" data-table-context-action="split" class="table-context-tool" title="Split cell">Split</button>
-        <button type="button" data-table-context-action="delete-selected" class="table-context-tool text-red-600 dark:text-red-400" title="Delete selection">Delete</button>
+        <button type="button" data-table-context-action="delete-selected" class="table-context-tool text-red-600 dark:text-red-400" title="Delete selected cells, rows, or columns">Delete selection</button>
+        <button type="button" data-table-context-action="delete-table" class="table-context-tool text-red-600 dark:text-red-400" title="Delete entire table">Delete table</button>
     </div>
 
     <dialog data-document-converter class="m-auto w-[min(92vw,760px)] rounded-3xl border-0 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
