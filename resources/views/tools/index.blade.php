@@ -45,7 +45,14 @@
                 <p class="mt-3 flex-1 text-sm leading-7 text-slate-600 dark:text-slate-400">মাইক্সোসফট ওয়া‍র্ড এর কাজ করুণ এখন অনলাইনে ফি ত।</p>
                 <span class="theme-primary-text mt-6 inline-flex items-center gap-2 text-sm font-bold">টুসলস ব্যবহার করু <span class="transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
             </a>
-
+            <a href="{{ route('tools.salary-calculator') }}" wire:navigate class="group flex min-h-72 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700">
+                <div class="theme-primary-soft theme-primary-text flex size-14 items-center justify-center rounded-2xl">
+                    <svg class="size-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm4 3h8M8 12h2m2 0h4m-8 4h2m2 0h4"/></svg>
+                </div>
+                <h2 class="mt-6 text-xl font-extrabold text-slate-900 dark:text-white">পে ফিক্সেশন ক্যালকুলেটর ২০২৬</h2>
+                <p class="mt-3 flex-1 text-sm leading-7 text-slate-600 dark:text-slate-400">সরকারি গেজেট প্রকাশের উপর কম বা বেশি হতে পারে।</p>
+                <span class="theme-primary-text mt-6 inline-flex items-center gap-2 text-sm font-bold">টুসলস ব্যবহার করু <span class="transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
+            </a>
             <div class="flex min-h-72 flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white/50 p-6 text-center dark:border-slate-700 dark:bg-slate-900/40 sm:col-span-2 lg:col-span-3">
                 <div class="flex size-12 items-center justify-center rounded-full bg-slate-100 text-2xl text-slate-400 dark:bg-slate-800">+</div>
                 <h2 class="mt-4 font-bold text-slate-700 dark:text-slate-300">আরও টুল আসছে</h2>

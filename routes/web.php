@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NationalUniversityNoticeController;
-use App\Http\Controllers\PublicCollegeController;
 use App\Http\Controllers\ReportExportController;
 use App\Http\Controllers\TrainingCertificateController;
 use App\Http\Controllers\WelcomeController;
@@ -19,6 +18,7 @@ use App\Livewire\Frontend\AffiliatedCollegeDirectory;
 use App\Livewire\IctTrainingSummary;
 use App\Livewire\ReferenceDataManagement;
 use App\Livewire\RolePermissionManagement;
+use App\Livewire\SalaryCalculator\SalaryCalculator;
 use App\Livewire\StudentSurveyForm;
 use App\Livewire\SurveyReport;
 use App\Livewire\System\CacheManager;
@@ -33,6 +33,7 @@ use App\Livewire\Training\TrainingManagement;
 use App\Livewire\Training\TrainingRegistrationManagement;
 use App\Livewire\TrainingCatalogManagement;
 use App\Models\AdmissionInfo;
+use App\Models\College;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', WelcomeController::class)->name('home');
@@ -42,10 +43,11 @@ Route::view('/tools/image-signature-compressor', 'tools.image-signature-compress
 Route::view('/tools/age-retirement-calculator', 'tools.age-retirement-calculator')->name('tools.age-retirement-calculator');
 Route::view('/tools/cgpa-sgpa-calculator', 'tools.cgpa-sgpa-calculator')->name('tools.cgpa-sgpa-calculator');
 Route::get('/tools/document-editor', DocumentEditor::class)->name('tools.document-editor');
+Route::get('/tools/salary-calculator', SalaryCalculator::class)->name('tools.salary-calculator');
 Route::view('/unicode-to-bijoy-converter', 'unicode-to-bijoy-converter')->name('unicode-to-bijoy-converter');
 Route::get('/affiliated-colleges', AffiliatedCollegeDirectory::class)->name('public.colleges.index');
 Route::get('/affiliated-colleges/{college}/{slug}', AffiliatedCollegeDetails::class)->name('public.colleges.show');
-Route::get('/affiliated-colleges/{college}', fn (\App\Models\College $college) => redirect()->to($college->publicProfileUrl(), 301))
+Route::get('/affiliated-colleges/{college}', fn (College $college) => redirect()->to($college->publicProfileUrl(), 301))
     ->name('public.colleges.legacy-show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
