@@ -166,12 +166,32 @@ class CollegeForm extends Component
         $this->desktopCount = (string) ($college->desktop_count ?? '');
         $this->laptopCount = (string) ($college->laptop_count ?? '');
         $this->isActive = $college->is_active;
+
         $this->programs = $college->programs->groupBy('level')->map(
-            fn (Collection $programs, string $level): array => [
-                'level' => $level,
-                'names' => $programs->flatMap(fn (CollegeProgram $program): array => $program->items ?: [$program->name])->filter()->unique()->values()->all(),
-                'new_name' => '',
-            ],
+            function (Collection $programs, string $level): array {
+                $rawItems = $programs->flatMap(fn (CollegeProgram $program): array => $program->items ?: [$program->name])->filter()->unique()->values()->all();
+
+                $names = [];
+                if (!empty($rawItems)) {
+                    // চেক করা হচ্ছে এটি পুরানো ডাটা (নাম) নাকি নতুন ডাটা (ID)
+                    if (is_numeric($rawItems[0])) {
+                        if (in_array($level, ['degree', 'professional'], true)) {
+                            $names = Course::query()->whereIn('id', $rawItems)->pluck('name')->toArray();
+                        } else {
+                            $names = Subject::query()->whereIn('id', $rawItems)->pluck('name')->toArray();
+                        }
+                    } else {
+                        // পুরানো ডাটার জন্য (যেখানে সরাসরি নাম সেভ করা ছিল)
+                        $names = $rawItems;
+                    }
+                }
+
+                return [
+                    'level' => $level,
+                    'names' => $names,
+                    'new_name' => '',
+                ];
+            }
         )->values()->all();
     }
 
@@ -264,16 +284,28 @@ class CollegeForm extends Component
                 'approved_by' => $user->isAdmin() ? $user->id : College::query()->whereKey($this->editingId)->value('approved_by'),
                 'approved_at' => $user->isAdmin() ? now() : College::query()->whereKey($this->editingId)->value('approved_at'),
             ]);
+
             if ($user->hasRole('principal')) {
                 $user->update(['college_id' => $college->id]);
             }
-            $college->programs()->delete();
-            $programs = collect($validated['programs'])->map(function (array $group): array {
-                $items = collect($group['names'])->map(fn (string $name): string => trim($name))
-                    ->unique(fn (string $name): string => mb_strtolower($name))->values()->all();
 
-                return ['level' => $group['level'], 'name' => $items[0], 'items' => $items];
+            $college->programs()->delete();
+
+            $programs = collect($validated['programs'])->map(function (array $group): array {
+                $names = collect($group['names'])->map(fn (string $name): string => trim($name))
+                    ->unique(fn (string $name): string => mb_strtolower($name))->values()->all();
+                if (in_array($group['level'], ['degree', 'professional'], true)) {
+                    $items = Course::query()->whereIn('name', $names)->pluck('id')->toArray();
+                } else {
+                    $items = Subject::query()->whereIn('name', $names)->pluck('id')->toArray();
+                }
+                return [
+                    'level' => $group['level'],
+                    'name' => $names[0] ?? '', // Backward compatibility
+                    'items' => $items // JSON array-তে এখন ID সেভ হবে
+                ];
             })->values()->all();
+
             $college->programs()->createMany($programs);
         });
 

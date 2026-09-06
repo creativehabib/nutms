@@ -131,7 +131,7 @@
                         </tr>
                         <tr>
                             <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('Principal') }}</th>
-                            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-medium">{{ $college->principal?->name ?: 'এখনো প্রিন্সিপাল এসাইন করা হয়নি' }}</td>
+                            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-medium">{{ $college->principal?->name ?: 'এখনো প্রিন্সিপাল এসাইন করা হয়নি' }}</td>
                         </tr>
                         <tr>
                             <th class="bg-zinc-50/50 px-4 py-3 font-medium text-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-300">{{ __('Email') }}</th>
@@ -270,14 +270,14 @@
                                 </th>
                                 <td class="px-4 py-3">
                                     <div class="flex flex-wrap gap-1.5 no-print">
-                                        @foreach($program->items ?: [$program->name] as $item)
+                                        @foreach($program->item_names ?: [$program->name] as $item)
                                             <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-500/10 dark:text-indigo-400 dark:ring-indigo-500/20">
                                                     {{ $item }}
                                                 </span>
                                         @endforeach
                                     </div>
                                     <div class="hidden print:block text-sm">
-                                        {{ implode(', ', $program->items ?: [$program->name]) }}
+                                        {{ implode(', ', $program->item_names ?: [$program->name]) }}
                                     </div>
                                 </td>
                             </tr>

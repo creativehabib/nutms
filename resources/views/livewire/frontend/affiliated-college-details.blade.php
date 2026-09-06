@@ -4,7 +4,7 @@
             <img src="{{ asset('storage/'.$college->banner) }}" alt="{{ $college->name }}" class="absolute inset-0 h-full w-full object-cover opacity-20">
         @endif
         <div class="relative">
-        <a href="{{ route('public.colleges.index') }}" wire:navigate class="text-sm font-semibold text-emerald-200 hover:text-white">← সকল কলেজ</a>
+            <a href="{{ route('public.colleges.index') }}" wire:navigate class="text-sm font-semibold text-emerald-200 hover:text-white">← সকল কলেজ</a>
             <div class="mt-5 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
                 <div class="flex items-center gap-5">
                     @if($college->logo)
@@ -24,84 +24,84 @@
         </div>
     </div>
 
-        @if($college->about)
-            <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <h2 class="text-lg font-bold text-slate-900 dark:text-white">কলেজ পরিচিতি</h2>
-                <p class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600 dark:text-slate-300">{{ $college->about }}</p>
-            </section>
-        @endif
+    @if($college->about)
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">কলেজ পরিচিতি</h2>
+            <p class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600 dark:text-slate-300">{{ $college->about }}</p>
+        </section>
+    @endif
 
-        <div class="grid gap-6 lg:grid-cols-2">
-            <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <h2 class="border-b border-slate-200 bg-slate-50 px-6 py-4 text-lg font-bold text-slate-900 dark:border-slate-800 dark:bg-slate-800/50 dark:text-white">কলেজের তথ্য</h2>
-                <dl class="divide-y divide-slate-100 dark:divide-slate-800">
-                    @foreach([
-                        'কলেজের ধরন' => ['government' => 'সরকারি', 'non_government' => 'বেসরকারি', 'other' => 'অন্যান্য'][$college->college_type] ?? 'উল্লেখ নেই',
-                        'অধ্যক্ষ' => $college->principal?->name ?: 'উল্লেখ নেই',
-                        'প্রতিষ্ঠার বছর' => $college->establish_year ?: 'উল্লেখ নেই',
-                        'শিক্ষার্থীভিত্তিক ধরন' => ['B' => 'বয়েজ এন্ড গার্লস মিশ্র কলেজ', 'F' => 'শুধু গার্লস কলেজ'][$college->male_female] ?? 'উল্লেখ নেই',
-                        'মোট জমি' => $college->total_land ?: 'উল্লেখ নেই',
-                        'ফোন' => $college->college_phone ?: 'উল্লেখ নেই',
-                        'ইমেইল' => $college->college_email ?: 'উল্লেখ নেই',
-                        'ওয়েবসাইট' => $college->college_website ?: 'উল্লেখ নেই',
-                    ] as $label => $value)
-                        <div class="grid gap-1 px-6 py-4 sm:grid-cols-3 sm:gap-4">
-                            <dt class="text-sm font-semibold text-slate-500">{{ $label }}</dt>
-                            <dd class="break-words text-sm text-slate-900 sm:col-span-2 dark:text-slate-100">{{ $value }}</dd>
-                        </div>
-                    @endforeach
-                </dl>
-            </section>
-
-            <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <h2 class="border-b border-slate-200 bg-slate-50 px-6 py-4 text-lg font-bold text-slate-900 dark:border-slate-800 dark:bg-slate-800/50 dark:text-white">ঠিকানা ও অবস্থান</h2>
-                <dl class="divide-y divide-slate-100 dark:divide-slate-800">
-                    @foreach([
-                        'বিভাগ' => $college->division?->bn_name ?: $college->division?->name ?: 'উল্লেখ নেই',
-                        'জেলা' => $college->district?->bn_name ?: $college->district?->name ?: 'উল্লেখ নেই',
-                        'থানা' => $college->thana?->bn_name ?: $college->thana?->name ?: 'উল্লেখ নেই',
-                        'ঠিকানা' => $college->address ?: 'উল্লেখ নেই',
-                    ] as $label => $value)
-                        <div class="grid gap-1 px-6 py-4 sm:grid-cols-3 sm:gap-4">
-                            <dt class="text-sm font-semibold text-slate-500">{{ $label }}</dt>
-                            <dd class="text-sm text-slate-900 sm:col-span-2 dark:text-slate-100">{{ $value }}</dd>
-                        </div>
-                    @endforeach
-                </dl>
-            </section>
-        </div>
-
+    <div class="grid gap-6 lg:grid-cols-2">
         <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 class="border-b border-slate-200 bg-slate-50 px-6 py-4 text-lg font-bold text-slate-900 dark:border-slate-800 dark:bg-slate-800/50 dark:text-white">কম্পিউটার ল্যাব</h2>
-            <div class="grid gap-4 p-6 sm:grid-cols-3">
-                <div><p class="text-xs font-semibold text-slate-500">ল্যাব আছে?</p><p class="mt-1 font-bold">{{ $college->has_computer_lab === null ? 'উল্লেখ নেই' : ($college->has_computer_lab ? 'হ্যাঁ' : 'না') }}</p></div>
-                @if($college->has_computer_lab)
-                    <div><p class="text-xs font-semibold text-slate-500">ডেস্কটপ</p><p class="mt-1 font-bold">{{ $college->desktop_count ?? 0 }}</p></div>
-                    <div><p class="text-xs font-semibold text-slate-500">ল্যাপটপ</p><p class="mt-1 font-bold">{{ $college->laptop_count ?? 0 }}</p></div>
-                @endif
-            </div>
+            <h2 class="border-b border-slate-200 bg-slate-50 px-6 py-4 text-lg font-bold text-slate-900 dark:border-slate-800 dark:bg-slate-800/50 dark:text-white">কলেজের তথ্য</h2>
+            <dl class="divide-y divide-slate-100 dark:divide-slate-800">
+                @foreach([
+                    'কলেজের ধরন' => ['government' => 'সরকারি', 'non_government' => 'বেসরকারি', 'other' => 'অন্যান্য'][$college->college_type] ?? 'উল্লেখ নেই',
+                    'অধ্যক্ষ' => $college->principal?->name ?: 'উল্লেখ নেই',
+                    'প্রতিষ্ঠার বছর' => $college->establish_year ?: 'উল্লেখ নেই',
+                    'শিক্ষার্থীভিত্তিক ধরন' => ['B' => 'বয়েজ এন্ড গার্লস মিশ্র কলেজ', 'F' => 'শুধু গার্লস কলেজ'][$college->male_female] ?? 'উল্লেখ নেই',
+                    'মোট জমি' => $college->total_land ?: 'উল্লেখ নেই',
+                    'ফোন' => $college->college_phone ?: 'উল্লেখ নেই',
+                    'ইমেইল' => $college->college_email ?: 'উল্লেখ নেই',
+                    'ওয়েবসাইট' => $college->college_website ?: 'উল্লেখ নেই',
+                ] as $label => $value)
+                    <div class="grid gap-1 px-6 py-4 sm:grid-cols-3 sm:gap-4">
+                        <dt class="text-sm font-semibold text-slate-500">{{ $label }}</dt>
+                        <dd class="break-words text-sm text-slate-900 sm:col-span-2 dark:text-slate-100">{{ $value }}</dd>
+                    </div>
+                @endforeach
+            </dl>
         </section>
 
         <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-800/50">
-                <h2 class="text-lg font-bold text-slate-900 dark:text-white">অধিভুক্ত বিষয় ও কোর্সসমূহ</h2>
-            </div>
-            <div class="grid gap-5 p-6 md:grid-cols-2">
-                @forelse($college->programs as $program)
-                    <div class="rounded-xl border border-slate-200 p-5 dark:border-slate-700">
-                        <h3 class="font-bold text-emerald-700 dark:text-emerald-400">
-                            {{ $programLevelNames->get($program->level, $program->level) }}
-                        </h3>
-                        <div class="mt-3 flex flex-wrap gap-2">
-                            @foreach($program->items ?: [$program->name] as $subject)
-                                <span class="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">{{ $subject }}</span>
-                            @endforeach
-                        </div>
+            <h2 class="border-b border-slate-200 bg-slate-50 px-6 py-4 text-lg font-bold text-slate-900 dark:border-slate-800 dark:bg-slate-800/50 dark:text-white">ঠিকানা ও অবস্থান</h2>
+            <dl class="divide-y divide-slate-100 dark:divide-slate-800">
+                @foreach([
+                    'বিভাগ' => $college->division?->bn_name ?: $college->division?->name ?: 'উল্লেখ নেই',
+                    'জেলা' => $college->district?->bn_name ?: $college->district?->name ?: 'উল্লেখ নেই',
+                    'থানা' => $college->thana?->bn_name ?: $college->thana?->name ?: 'উল্লেখ নেই',
+                    'ঠিকানা' => $college->address ?: 'উল্লেখ নেই',
+                ] as $label => $value)
+                    <div class="grid gap-1 px-6 py-4 sm:grid-cols-3 sm:gap-4">
+                        <dt class="text-sm font-semibold text-slate-500">{{ $label }}</dt>
+                        <dd class="text-sm text-slate-900 sm:col-span-2 dark:text-slate-100">{{ $value }}</dd>
                     </div>
-                @empty
-                    <p class="text-slate-500 md:col-span-2">এই কলেজে এখনো কোনো অধিভুক্ত বিষয় বা কোর্স যোগ করা হয়নি।</p>
-                @endforelse
-            </div>
+                @endforeach
+            </dl>
+        </section>
+    </div>
+
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h2 class="border-b border-slate-200 bg-slate-50 px-6 py-4 text-lg font-bold text-slate-900 dark:border-slate-800 dark:bg-slate-800/50 dark:text-white">কম্পিউটার ল্যাব</h2>
+        <div class="grid gap-4 p-6 sm:grid-cols-3">
+            <div><p class="text-xs font-semibold text-slate-500">ল্যাব আছে?</p><p class="mt-1 font-bold">{{ $college->has_computer_lab === null ? 'উল্লেখ নেই' : ($college->has_computer_lab ? 'হ্যাঁ' : 'না') }}</p></div>
+            @if($college->has_computer_lab)
+                <div><p class="text-xs font-semibold text-slate-500">ডেস্কটপ</p><p class="mt-1 font-bold">{{ $college->desktop_count ?? 0 }}</p></div>
+                <div><p class="text-xs font-semibold text-slate-500">ল্যাপটপ</p><p class="mt-1 font-bold">{{ $college->laptop_count ?? 0 }}</p></div>
+            @endif
+        </div>
+    </section>
+
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-800/50">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">অধিভুক্ত বিষয় ও কোর্সসমূহ</h2>
+        </div>
+        <div class="grid gap-5 p-6 md:grid-cols-2">
+            @forelse($college->programs as $program)
+                <div class="rounded-xl border border-slate-200 p-5 dark:border-slate-700">
+                    <h3 class="font-bold text-emerald-700 dark:text-emerald-400">
+                        {{ $programLevelNames->get($program->level, $program->level) }}
+                    </h3>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        @foreach($program->item_names ?: [$program->name] as $subject)
+                            <span class="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">{{ $subject }}</span>
+                        @endforeach
+                    </div>
+                </div>
+            @empty
+                <p class="text-slate-500 md:col-span-2">এই কলেজে এখনো কোনো অধিভুক্ত বিষয় বা কোর্স যোগ করা হয়নি।</p>
+            @endforelse
+        </div>
     </section>
 
     @if($relatedColleges->isNotEmpty())

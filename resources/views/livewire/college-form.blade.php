@@ -30,7 +30,7 @@
                     <flux:input wire:model="college_code" :label="__('College Code')" :placeholder="__('Enter college code')" />
                     <flux:input wire:model="eiin" :label="__('EIIN')" :placeholder="__('Enter EIIN')" />
                     <flux:input wire:model="name" :label="__('College Name')" :placeholder="__('Enter college name')" required />
-                    <flux:input wire:model="collegeNameBn" :label="__('College Name (Bangla)')" :placeholder="__('বাংলায় কলেজের নাম')" />
+                    <flux:input wire:model="collegeNameBn" :label="__('College Name (Bangla)')" :placeholder="__('বাংলায় কলেজের নাম')" />
                     <flux:input wire:model="collegePhone" type="tel" :label="__('College Phone')" :placeholder="__('Enter phone number')" />
                     <flux:input wire:model="collegeEmail" type="email" :label="__('College Email')" :placeholder="__('college@example.com')" />
                     <flux:input wire:model="collegeWebsite" type="url" :label="__('College Website')" :placeholder="__('https://example.edu')" />
@@ -162,20 +162,21 @@
                                             </span>
                                         @endforeach
 
-                                        <input
-                                            class="min-w-[140px] flex-1 border-0 bg-transparent px-1 py-0.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-zinc-100"
+                                        <!-- 🔴 পরিবর্তন: Input ফিল্ড এর পরিবর্তে Select ফিল্ড ব্যবহার করা হয়েছে -->
+                                        <select
+                                            class="min-w-[140px] flex-1 border-0 bg-transparent px-1 py-0.5 text-sm text-zinc-900 outline-none cursor-pointer focus:ring-0 dark:text-zinc-100 dark:bg-zinc-900"
                                             wire:model="programs.{{ $index }}.new_name"
-                                            wire:keydown.enter.prevent.stop="addProgramTag({{ $index }})"
-                                            list="program-suggestions-{{ $index }}"
-                                            autocomplete="off"
-                                             :placeholder="__('Type a program name and press Enter')"
+                                            wire:change="addProgramTag({{ $index }})"
                                         >
+                                            <option value="">{{ __('Select to add...') }}</option>
+                                            @foreach(in_array($program['level'], ['degree', 'professional'], true) ? ($courseSuggestions->get($program['level']) ?? collect()) : $subjectSuggestions as $suggestion)
+                                                <!-- যে বিষয়গুলো আগে সিলেক্ট করা হয়েছে সেগুলো লিস্টে দেখাবে না -->
+                                                @if(!in_array($suggestion, $program['names']))
+                                                    <option value="{{ $suggestion }}">{{ $suggestion }}</option>
+                                                @endif
+                                            @endforeach
+                                        </select>
                                     </div>
-                                    <datalist id="program-suggestions-{{ $index }}">
-                                        @foreach(in_array($program['level'], ['degree', 'professional'], true) ? ($courseSuggestions->get($program['level']) ?? collect()) : $subjectSuggestions as $suggestion)
-                                            <option value="{{ $suggestion }}"></option>
-                                        @endforeach
-                                    </datalist>
                                     @error("programs.$index.names")<span class="text-xs text-red-600">{{ $message }}</span>@enderror
                                 </div>
                             </div>
