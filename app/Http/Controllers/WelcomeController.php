@@ -40,7 +40,7 @@ class WelcomeController extends Controller
             'latestNotices' => $this->noticeService->latest(),
             'affiliatedColleges' => College::query()
                 ->publiclyVisible()
-                ->with(['division:id,name,bn_name', 'district:id,name,bn_name', 'programs:id,college_id,level,name,items'])
+                ->with(['division:id,name,bn_name', 'district:id,name,bn_name', 'programs:id,college_id,level,items'])
                 ->orderBy('name')
                 ->limit(6)
                 ->get(),
