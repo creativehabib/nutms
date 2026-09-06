@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CollegeProgram extends Model
 {
-    protected $fillable = ['level', 'name', 'items'];
+    protected $fillable = ['level', 'items'];
 
     protected function casts(): array
     {
@@ -18,6 +18,7 @@ class CollegeProgram extends Model
     {
         return $this->belongsTo(College::class);
     }
+
     public function getItemNamesAttribute(): array
     {
         if (empty($this->items)) {

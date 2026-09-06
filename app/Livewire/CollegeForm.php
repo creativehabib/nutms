@@ -169,20 +169,14 @@ class CollegeForm extends Component
 
         $this->programs = $college->programs->groupBy('level')->map(
             function (Collection $programs, string $level): array {
-                $rawItems = $programs->flatMap(fn (CollegeProgram $program): array => $program->items ?: [$program->name])->filter()->unique()->values()->all();
+                $itemIds = $programs->flatMap(fn (CollegeProgram $program): array => $program->items ?: [])->filter()->unique()->values()->all();
 
                 $names = [];
-                if (!empty($rawItems)) {
-                    // চেক করা হচ্ছে এটি পুরানো ডাটা (নাম) নাকি নতুন ডাটা (ID)
-                    if (is_numeric($rawItems[0])) {
-                        if (in_array($level, ['degree', 'professional'], true)) {
-                            $names = Course::query()->whereIn('id', $rawItems)->pluck('name')->toArray();
-                        } else {
-                            $names = Subject::query()->whereIn('id', $rawItems)->pluck('name')->toArray();
-                        }
+                if (!empty($itemIds)) {
+                    if (in_array($level, ['degree', 'professional'], true)) {
+                        $names = Course::query()->whereIn('id', $itemIds)->pluck('name')->toArray();
                     } else {
-                        // পুরানো ডাটার জন্য (যেখানে সরাসরি নাম সেভ করা ছিল)
-                        $names = $rawItems;
+                        $names = Subject::query()->whereIn('id', $itemIds)->pluck('name')->toArray();
                     }
                 }
 
@@ -294,6 +288,7 @@ class CollegeForm extends Component
             $programs = collect($validated['programs'])->map(function (array $group): array {
                 $names = collect($group['names'])->map(fn (string $name): string => trim($name))
                     ->unique(fn (string $name): string => mb_strtolower($name))->values()->all();
+
                 if (in_array($group['level'], ['degree', 'professional'], true)) {
                     $items = Course::query()->whereIn('name', $names)->pluck('id')->toArray();
                 } else {
@@ -301,8 +296,7 @@ class CollegeForm extends Component
                 }
                 return [
                     'level' => $group['level'],
-                    'name' => $names[0] ?? '', // Backward compatibility
-                    'items' => $items // JSON array-তে এখন ID সেভ হবে
+                    'items' => $items
                 ];
             })->values()->all();
 

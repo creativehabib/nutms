@@ -64,10 +64,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('college_id')->constrained()->cascadeOnDelete();
             $table->string('level', 30)->index();
-            $table->string('name');
             $table->json('items')->nullable();
             $table->timestamps();
-            $table->unique(['college_id', 'level', 'name']);
+            $table->unique(['college_id', 'level']);
         });
 
         Schema::create('teacher_profiles', function (Blueprint $table): void {
